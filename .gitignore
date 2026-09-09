@@ -1,0 +1,9 @@
+notes
+__pycache__/
+/nexus.db
+/nexus.db-journal
+/nexus.db-wal
+/nexus.db-shm
+/.local-runtime/
+/models/
+.venv

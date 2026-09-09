@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexus"
+version = "0.1.0"
+description = "NEXUS — ghi nhanh việc cần làm"
+dependencies = []
+
+[project.scripts]
+nexus = "nexus.cli.main:main"
