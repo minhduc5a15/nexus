@@ -1,0 +1,227 @@
+[
+  {
+    "id": "create_one",
+    "category": "create",
+    "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {"name": "create_task", "arguments": {"content": "mua sữa"}}
+    ],
+    "expected_tasks": ["mua sữa"],
+    "reply_expectation": "Xác nhận đã thêm mua sữa, không bịa thêm công việc."
+  },
+  {
+    "id": "create_polite",
+    "category": "create",
+    "prompt": "Ghi giúp mình việc gọi cho mẹ nhé.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {"name": "create_task", "arguments": {"content": "gọi cho mẹ"}}
+    ],
+    "expected_tasks": ["gọi cho mẹ"],
+    "reply_expectation": "Xác nhận đã thêm gọi cho mẹ."
+  },
+  {
+    "id": "create_colloquial",
+    "category": "create",
+    "prompt": "Note giúp tui: mua pin chuột",
+    "initial_tasks": [],
+    "expected_calls": [
+      {"name": "create_task", "arguments": {"content": "mua pin chuột"}}
+    ],
+    "expected_tasks": ["mua pin chuột"],
+    "reply_expectation": "Hiểu cách nói đời thường và xác nhận đúng nội dung."
+  },
+  {
+    "id": "create_duplicate",
+    "category": "create",
+    "prompt": "Thêm việc mua sữa.",
+    "initial_tasks": ["mua sữa"],
+    "expected_calls": [
+      {"name": "create_task", "arguments": {"content": "mua sữa"}}
+    ],
+    "expected_tasks": ["mua sữa", "mua sữa"],
+    "reply_expectation": "Xác nhận đã thêm; nội dung trùng vẫn là task mới."
+  },
+  {
+    "id": "keep_comma_one_line",
+    "category": "task_boundary",
+    "prompt": "Ghi lại việc: giặt quần áo, lau bàn, tưới cây",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {"content": "giặt quần áo, lau bàn, tưới cây"}
+      }
+    ],
+    "expected_tasks": ["giặt quần áo, lau bàn, tưới cây"],
+    "reply_expectation": "Xác nhận một task giữ đủ ba hoạt động."
+  },
+  {
+    "id": "keep_and_one_line",
+    "category": "task_boundary",
+    "prompt": "Thêm việc: đọc sách và viết nhật ký",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {"content": "đọc sách và viết nhật ký"}
+      }
+    ],
+    "expected_tasks": ["đọc sách và viết nhật ký"],
+    "reply_expectation": "Xác nhận một task giữ đủ hai hoạt động."
+  },
+  {
+    "id": "keep_times_one_line",
+    "category": "task_boundary",
+    "prompt": "Ghi lại việc: đi ăn lúc 8:00 và đi ngủ lúc 10:00",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {"content": "đi ăn lúc 8:00 và đi ngủ lúc 10:00"}
+      }
+    ],
+    "expected_tasks": ["đi ăn lúc 8:00 và đi ngủ lúc 10:00"],
+    "reply_expectation": "Trong phạm vi hiện tại vẫn xác nhận một task, chưa phân tích giờ."
+  },
+  {
+    "id": "preserve_punctuation",
+    "category": "task_boundary",
+    "prompt": "Ghi lại việc: Ôn C++: vector, map & set",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {"content": "Ôn C++: vector, map & set"}
+      }
+    ],
+    "expected_tasks": ["Ôn C++: vector, map & set"],
+    "reply_expectation": "Xác nhận một task và giữ nguyên chữ hoa cùng dấu câu."
+  },
+  {
+    "id": "create_two_lines",
+    "category": "task_boundary",
+    "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nmua sữa\ngọi mẹ",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {"content": "mua sữa\ngọi mẹ"}
+      }
+    ],
+    "expected_call_options": [
+      [
+        {
+          "name": "create_task",
+          "arguments": {"content": "mua sữa\ngọi mẹ"}
+        }
+      ],
+      [
+        {"name": "create_task", "arguments": {"content": "mua sữa"}},
+        {"name": "create_task", "arguments": {"content": "gọi mẹ"}}
+      ]
+    ],
+    "expected_tasks": ["mua sữa", "gọi mẹ"],
+    "reply_expectation": "Xác nhận đã thêm hai task riêng."
+  },
+  {
+    "id": "list_existing",
+    "category": "list",
+    "prompt": "Cho tôi xem danh sách việc đã lưu.",
+    "initial_tasks": ["học C++", "mua sữa"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["học C++", "mua sữa"],
+    "reply_expectation": "Liệt kê đúng hai việc đã có."
+  },
+  {
+    "id": "list_empty",
+    "category": "list",
+    "prompt": "Danh sách việc của tôi hiện có gì?",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": [],
+    "reply_expectation": "Nói rõ danh sách đang trống."
+  },
+  {
+    "id": "list_colloquial",
+    "category": "list",
+    "prompt": "Mình đã ghi những việc gì rồi nhỉ?",
+    "initial_tasks": ["đọc tài liệu", "gọi mẹ"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["đọc tài liệu", "gọi mẹ"],
+    "reply_expectation": "Liệt kê đúng hai việc bằng tiếng Việt tự nhiên."
+  },
+  {
+    "id": "greeting",
+    "category": "no_tool",
+    "prompt": "Chào bạn!",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Chào đáp lại và không khẳng định đã thao tác."
+  },
+  {
+    "id": "general_question",
+    "category": "no_tool",
+    "prompt": "SQLite là gì?",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Trả lời ngắn hoặc nói ngoài phạm vi, không gọi tool."
+  },
+  {
+    "id": "quoted_command_example",
+    "category": "no_tool",
+    "prompt": "Tôi chỉ đang lấy ví dụ về câu ‘thêm việc mua sữa’, đừng thực hiện nhé.",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Hiểu đây là ví dụ và xác nhận không thực hiện."
+  },
+  {
+    "id": "unsupported_delete",
+    "category": "no_tool",
+    "prompt": "Xóa việc mua sữa giúp tôi.",
+    "initial_tasks": ["mua sữa"],
+    "expected_calls": [],
+    "expected_tasks": ["mua sữa"],
+    "reply_expectation": "Nói thao tác xóa chưa được hỗ trợ, không dùng nhầm tool khác."
+  },
+  {
+    "id": "unsupported_complete",
+    "category": "no_tool",
+    "prompt": "Đánh dấu việc học C++ là đã xong.",
+    "initial_tasks": ["học C++"],
+    "expected_calls": [],
+    "expected_tasks": ["học C++"],
+    "reply_expectation": "Nói chưa hỗ trợ đánh dấu hoàn thành, không sửa dữ liệu."
+  },
+  {
+    "id": "missing_content",
+    "category": "clarification",
+    "prompt": "Thêm việc giúp tôi.",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Hỏi người dùng muốn thêm việc gì."
+  },
+  {
+    "id": "bare_statement",
+    "category": "clarification",
+    "prompt": "Mua sữa.",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Không tự lưu khi người dùng chưa yêu cầu; có thể hỏi lại ý định."
+  },
+  {
+    "id": "negated_create",
+    "category": "clarification",
+    "prompt": "Đừng thêm việc mua sữa vào danh sách.",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Xác nhận không thêm và không gọi tool."
+  }
+]

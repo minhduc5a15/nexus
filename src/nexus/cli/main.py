@@ -1,6 +1,7 @@
 """Command-line entry point for adding and listing tasks."""
 
 import argparse
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -8,13 +9,35 @@ from pathlib import Path
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 
+def default_database_path() -> Path:
+    """Return a persistent user-data path without writing inside the package."""
+    data_home = os.environ.get("XDG_DATA_HOME")
+    base = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
+    return base / "nexus" / "nexus.db"
+
+
+def print_tool_results(calls: list[dict]) -> int:
+    """Print completed tool effects and return the number of created tasks."""
+    saved_count = 0
+    for call in calls:
+        name = call["name"]
+        tasks = call["result"].get("tasks", [])
+        if name == "create_task":
+            for task in tasks:
+                print(f"Đã thêm qua AI [{task['id']}] {task['content']}")
+                saved_count += 1
+        elif name == "list_tasks":
+            print(f"AI đã xem {len(tasks)} việc trong danh sách.")
+    return saved_count
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="NEXUS — ghi nhanh việc cần làm")
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path(__file__).resolve().with_name("nexus.db"),
-        help="Đường dẫn database (mặc định: nexus.db cạnh cli.py)",
+        default=None,
+        help="Đường dẫn database (mặc định: $XDG_DATA_HOME/nexus/nexus.db)",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     add_parser = commands.add_parser("add", help="Thêm việc, mỗi dòng một việc")
@@ -26,8 +49,14 @@ def main() -> int:
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
     args = parser.parse_args()
 
+    uses_default_database = args.db is None
+    if uses_default_database:
+        args.db = default_database_path()
+
     saved_count = 0
     try:
+        if uses_default_database:
+            args.db.parent.mkdir(parents=True, exist_ok=True)
         initialize_database(args.db)
         if args.command == "add":
             if args.content is None:
@@ -51,7 +80,7 @@ def main() -> int:
             if saved_count == 0:
                 print("Không có nội dung để thêm.")
         elif args.command == "ask":
-            from nexus.agent.client import chat, run_turn
+            from nexus.agent.client import PostToolExecutionError, chat, run_turn
             import urllib.error
 
             if args.prompt is None:
@@ -71,18 +100,22 @@ def main() -> int:
             print("Đang xử lý qua AI...", file=sys.stderr)
             try:
                 result = run_turn(args.db, prompt, chat)
-                for call in result.get("calls", []):
-                    name = call["name"]
-                    if name == "create_task":
-                        tasks = call["result"].get("tasks", [])
-                        for t in tasks:
-                            print(f"Đã thêm qua AI [{t['id']}] {t['content']}")
-                            saved_count += 1
-                    elif name == "list_tasks":
-                        tasks = call["result"].get("tasks", [])
-                        print(f"AI đã xem {len(tasks)} việc trong danh sách.")
-                
+                saved_count += print_tool_results(result.get("calls", []))
                 print(f"\nAI: {result['reply']}")
+            except PostToolExecutionError as error:
+                saved_count += print_tool_results(error.executed_calls)
+                stage_message = (
+                    "AI không tạo được câu trả lời cuối"
+                    if error.stage == "final_response"
+                    else "AI không hoàn tất toàn bộ các thao tác"
+                )
+                print(
+                    f"{stage_message}, nhưng các thao tác được liệt kê phía trên "
+                    "đã hoàn tất. Chương trình không tự thử lại.",
+                    file=sys.stderr,
+                )
+                print(f"Chi tiết: {error.cause}", file=sys.stderr)
+                return 1
             except urllib.error.URLError as error:
                 print(f"Lỗi kết nối tới AI (llama-server đã chạy chưa?): {error}", file=sys.stderr)
                 return 1

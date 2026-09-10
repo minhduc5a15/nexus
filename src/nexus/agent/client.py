@@ -1,6 +1,7 @@
 """Probe a local llama.cpp server with text and one real SQLite tool round."""
 
 import json
+import os
 import tempfile
 import urllib.request
 from dataclasses import asdict
@@ -11,10 +12,19 @@ from nexus.agent.prompts import SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
 
-
-import os
-
 ENDPOINT = os.environ.get("QWEN_ENDPOINT", "http://127.0.0.1:8087/v1/chat/completions")
+
+
+class PostToolExecutionError(RuntimeError):
+    """The model turn failed after one or more tools had already completed."""
+
+    def __init__(self, stage: str, executed_calls: list[dict], cause: Exception):
+        super().__init__(
+            f"Agent failed during {stage} after {len(executed_calls)} tool call(s): {cause}"
+        )
+        self.stage = stage
+        self.executed_calls = executed_calls
+        self.cause = cause
 
 
 def chat(payload: dict) -> dict:
@@ -29,7 +39,7 @@ def chat(payload: dict) -> dict:
 def complete_message(response: dict) -> dict:
     choices = response.get("choices", [])
     if not choices or choices[0].get("finish_reason") not in ("stop", "tool_calls"):
-        raise RuntimeError("Local model response is incomplete; no tools executed")
+        raise RuntimeError("Local model response is incomplete")
     return choices[0]["message"]
 
 
@@ -66,22 +76,31 @@ def run_turn(database_path: Path, prompt: str, generate=chat, *, prompt_version:
     trace = []
     if message.get("tool_calls"):
         payload["messages"].append(message)
-        for call in message["tool_calls"]:
-            if call.get("type") != "function":
-                raise ValueError("Only function tools are supported")
-            function = call["function"]
-            arguments = json.loads(function["arguments"])
-            result = execute_tool(database_path, function["name"], arguments)
-            trace.append({"name": function["name"], "arguments": arguments, "result": result})
-            payload["messages"].append({
-                "role": "tool", "tool_call_id": call["id"],
-                "content": json.dumps(result, ensure_ascii=False),
-            })
+        try:
+            for call in message["tool_calls"]:
+                if call.get("type") != "function":
+                    raise ValueError("Only function tools are supported")
+                function = call["function"]
+                arguments = json.loads(function["arguments"])
+                result = execute_tool(database_path, function["name"], arguments)
+                trace.append({"name": function["name"], "arguments": arguments, "result": result})
+                payload["messages"].append({
+                    "role": "tool", "tool_call_id": call["id"],
+                    "content": json.dumps(result, ensure_ascii=False),
+                })
+        except Exception as error:
+            if trace:
+                raise PostToolExecutionError("tool_execution", trace, error) from error
+            raise
+
         payload["tool_choice"] = "none"
-        final = generate(payload)
-        message = complete_message(final)
-        if message.get("tool_calls"):
-            raise RuntimeError("Local model requested more tools than allowed")
+        try:
+            final = generate(payload)
+            message = complete_message(final)
+            if message.get("tool_calls"):
+                raise RuntimeError("Local model requested more tools than allowed")
+        except Exception as error:
+            raise PostToolExecutionError("final_response", trace, error) from error
     reply = message.get("content") or ""
     return {"calls": trace, "reply": reply}
 

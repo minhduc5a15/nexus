@@ -1,10 +1,16 @@
+import contextlib
+import io
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-
+from nexus.agent.client import PostToolExecutionError
+from nexus.cli.main import default_database_path, main
+from nexus.storage.sqlite_db import create_task, list_tasks
 
 
 class CliTests(unittest.TestCase):
@@ -14,12 +20,18 @@ class CliTests(unittest.TestCase):
         self.database_path = Path(self.directory.name) / "tasks.db"
 
     def run_cli(self, *arguments, content=None):
-        import os
         env = os.environ.copy()
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
         return subprocess.run(
-            [sys.executable, "-B", "-m", "nexus.cli.main", "--db", str(self.database_path),
-             *arguments],
+            [
+                sys.executable,
+                "-B",
+                "-m",
+                "nexus.cli.main",
+                "--db",
+                str(self.database_path),
+                *arguments,
+            ],
             input=content,
             text=True,
             capture_output=True,
@@ -59,6 +71,63 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("Lỗi:", result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_default_database_path_uses_xdg_data_home(self):
+        data_home = Path(self.directory.name) / "data"
+        with patch.dict(os.environ, {"XDG_DATA_HOME": str(data_home)}):
+            self.assertEqual(default_database_path(), data_home / "nexus" / "nexus.db")
+
+    def test_default_database_parent_is_created(self):
+        data_home = Path(self.directory.name) / "new-data-directory"
+        stdout = io.StringIO()
+        argv = ["nexus", "add", "mua sữa"]
+        with (
+            patch.dict(os.environ, {"XDG_DATA_HOME": str(data_home)}),
+            patch.object(sys, "argv", argv),
+            contextlib.redirect_stdout(stdout),
+        ):
+            result = main()
+
+        database_path = data_home / "nexus" / "nexus.db"
+        self.assertEqual(result, 0)
+        self.assertTrue(database_path.is_file())
+        self.assertEqual([task.content for task in list_tasks(database_path)], ["mua sữa"])
+
+    def test_ask_reports_a_committed_task_when_the_final_model_call_fails(self):
+        def failed_turn(database_path, *_args, **_kwargs):
+            task = create_task(database_path, "mua sữa")
+            calls = [
+                {
+                    "name": "create_task",
+                    "arguments": {"content": "mua sữa"},
+                    "result": {"tasks": [{"id": task.id, "content": task.content}]},
+                }
+            ]
+            raise PostToolExecutionError(
+                "final_response", calls, RuntimeError("server stopped")
+            )
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "ask", "Thêm mua sữa"]
+        with (
+            patch.object(sys, "argv", argv),
+            patch(
+                "nexus.agent.client.run_turn", side_effect=failed_turn
+            ) as mocked_turn,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 1)
+        mocked_turn.assert_called_once()
+        self.assertIn("Đã thêm qua AI [1] mua sữa", stdout.getvalue())
+        self.assertIn("đã hoàn tất", stderr.getvalue())
+        self.assertIn("không tự thử lại", stderr.getvalue())
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
+        )
 
 
 if __name__ == "__main__":

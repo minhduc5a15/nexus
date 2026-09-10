@@ -6,7 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "nexus"
 version = "0.1.0"
 description = "NEXUS — ghi nhanh việc cần làm"
+requires-python = ">=3.10"
 dependencies = []
 
 [project.scripts]
 nexus = "nexus.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

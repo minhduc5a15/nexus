@@ -1,7 +1,9 @@
 """Evaluate local Qwen3-1.7B via llama.cpp on task datasets."""
 
 import argparse
+import hashlib
 import json
+import re
 import sqlite3
 import tempfile
 import urllib.error
@@ -17,6 +19,39 @@ from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 
 CASES_PATH = Path(__file__).resolve().parents[1] / "evals" / "basic_tasks.json"
+
+
+def inspect_reply(reply: str | None) -> dict:
+    """Detect protocol leakage and obvious language/format problems."""
+    text = reply or ""
+    stripped = text.strip()
+    violations = []
+    warnings = []
+    if not stripped:
+        violations.append("empty_reply")
+    if stripped.startswith(("{", "[")):
+        try:
+            json.loads(stripped)
+        except (TypeError, ValueError):
+            pass
+        else:
+            violations.append("raw_json")
+    if re.search(r"[\u3400-\u4dbf\u4e00-\u9fff]", text):
+        violations.append("cjk_character")
+    leaked_markers = [
+        marker
+        for marker in ("create_task", "list_tasks", "Không gọi tool", "Hành vi đúng:")
+        if marker in text
+    ]
+    if leaked_markers:
+        violations.append("internal_protocol")
+    if stripped.startswith("NEXUS:"):
+        warnings.append("assistant_label")
+    return {
+        "passed": not violations,
+        "violations": violations,
+        "warnings": warnings,
+    }
 
 
 def evaluate_case(
@@ -70,23 +105,28 @@ def evaluate_case(
         elapsed = perf_counter() - started
         after = [asdict(task) for task in list_tasks(path)]
 
+    expected_call_options = case.get("expected_call_options", [case["expected_calls"]])
     checks = {
-        "calls_match": observed_calls == case["expected_calls"],
+        "calls_match": observed_calls in expected_call_options,
         "tasks_match": [task["content"] for task in after] == case["expected_tasks"],
         "existing_tasks_unchanged": after[: len(before)] == before,
     }
     status = "error" if error else ("pass" if all(checks.values()) else "fail")
+    reply = result["reply"] if result else None
     return {
         "id": case["id"],
+        "category": case.get("category", "uncategorized"),
         "prompt": case["prompt"],
         "expected_calls": case["expected_calls"],
+        "expected_call_options": expected_call_options,
         "expected_tasks": case["expected_tasks"],
         "observed_calls": observed_calls,
         "database_before": before,
         "database_after": after,
-        "reply": result["reply"] if result else None,
+        "reply": reply,
         "reply_expectation": case["reply_expectation"],
         "reply_review": "pending_manual_review",
+        "reply_hygiene": inspect_reply(reply),
         "checks": checks,
         "status": status,
         "error": error,
@@ -94,6 +134,29 @@ def evaluate_case(
         "api_requests": request_count,
         "elapsed_seconds": round(elapsed, 3),
     }
+
+
+def summarize(results: list[dict]) -> dict:
+    """Count outcomes overall and per dataset category."""
+    summary = {
+        "total": len(results),
+        "pass": sum(result["status"] == "pass" for result in results),
+        "fail": sum(result["status"] == "fail" for result in results),
+        "error": sum(result["status"] == "error" for result in results),
+        "reply_hygiene_fail": sum(
+            not result.get("reply_hygiene", {"passed": True})["passed"]
+            for result in results
+        ),
+        "by_category": {},
+    }
+    for result in results:
+        category = result.get("category", "uncategorized")
+        counts = summary["by_category"].setdefault(
+            category, {"total": 0, "pass": 0, "fail": 0, "error": 0}
+        )
+        counts["total"] += 1
+        counts[result["status"]] += 1
+    return summary
 
 
 def send_chat(endpoint: str, payload: dict, timeout: float = 120.0) -> dict:
@@ -131,7 +194,9 @@ def main() -> int:
     if args.request_interval < 0:
         parser.error("--request-interval phải không âm")
 
-    cases = json.loads(args.cases.read_text(encoding="utf-8"))
+    cases_bytes = args.cases.read_bytes()
+    cases = json.loads(cases_bytes)
+    source_case_count = len(cases)
     if args.case_ids:
         unknown = set(args.case_ids) - {case["id"] for case in cases}
         if unknown:
@@ -156,8 +221,15 @@ def main() -> int:
         "system_prompt": SYSTEM_PROMPTS[args.prompt_version],
         "settings": common_settings,
         "request_interval_seconds": args.request_interval,
+        "dataset": {
+            "path": str(args.cases),
+            "sha256": hashlib.sha256(cases_bytes).hexdigest(),
+            "source_case_count": source_case_count,
+            "selected_case_ids": [case["id"] for case in cases],
+        },
         "scope": "Tool calls and database effects; replies require manual review. One run per case.",
         "cases": [],
+        "summary": summarize([]),
     }
 
     last_request_finished = None
@@ -180,6 +252,7 @@ def main() -> int:
                 settings=common_settings,
             )
             report["cases"].append(result)
+            report["summary"] = summarize(report["cases"])
             output.seek(0)
             json.dump(report, output, ensure_ascii=False, indent=2)
             output.truncate()
@@ -195,4 +268,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "create_one",
+    "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "mua sữa"}}],
+    "expected_tasks": ["mua sữa"],
+    "reply_expectation": "Xác nhận đã thêm mua sữa, không bịa thêm công việc."
+  },
+  {
+    "id": "keep_one_line",
+    "prompt": "Ghi lại việc: mua sữa, gọi mẹ và học Python",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "mua sữa, gọi mẹ và học Python"}}],
+    "expected_tasks": ["mua sữa, gọi mẹ và học Python"],
+    "reply_expectation": "Xác nhận một task, không tách các hoạt động."
+  },
+  {
+    "id": "list_existing",
+    "prompt": "Cho tôi xem danh sách việc đã lưu.",
+    "initial_tasks": ["học C++", "mua sữa"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["học C++", "mua sữa"],
+    "reply_expectation": "Liệt kê đúng hai việc đã có, không thêm hoặc bỏ việc."
+  },
+  {
+    "id": "greeting",
+    "prompt": "Chào bạn!",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Chào đáp lại, không khẳng định đã thực hiện thao tác."
+  },
+  {
+    "id": "missing_content",
+    "prompt": "Thêm việc giúp tôi.",
+    "initial_tasks": ["giữ nguyên việc này"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên việc này"],
+    "reply_expectation": "Hỏi người dùng muốn thêm việc gì, không đoán nội dung."
+  }
+]

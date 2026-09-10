@@ -1,114 +1,130 @@
 # NEXUS
 
-Phiên bản đầu: thêm việc và xem danh sách qua CLI, lưu bằng SQLite.
-Mỗi dòng có nội dung tạo một việc; nội dung trùng vẫn tạo việc riêng.
-CLI chưa dùng LLM hoặc xử lý lịch nhắc. Demo và đánh giá Gemini nằm riêng bên dưới.
+NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại chỉ
+gồm thêm việc và xem danh sách. Người dùng có thể gọi trực tiếp bằng CLI hoặc
+viết yêu cầu tự nhiên để Qwen3-1.7B chọn một trong hai tool. Dữ liệu được lưu
+cục bộ bằng SQLite.
 
-Môi trường đã kiểm tra: Python 3.12.3, SQLite 3.45.1. Chỉ dùng thư viện chuẩn;
-câu SQL `RETURNING` yêu cầu SQLite >= 3.35.
+Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
+không tự tách task; các dòng trống bị bỏ qua. Mỗi task hiện chỉ có `id` và
+`content`.
 
-## Sử dụng
+## Cài ứng dụng
 
-Chạy từ thư mục dự án:
-
-```sh
-python3 -m nexus.cli.main add "mua sữa, gọi mẹ và học Python"
-python3 -m nexus.cli.main list
-```
-
-Dòng ví dụ trên tạo đúng một việc. Để nhập nhiều việc:
+NEXUS yêu cầu Python 3.10 trở lên, cùng SQLite 3.35 trở lên để dùng câu lệnh
+`RETURNING`. Ứng dụng không có thư viện Python bên thứ ba. Từ thư mục dự án:
 
 ```sh
-python3 -m nexus.cli.main add
+python3 -m venv .venv
+.venv/bin/python -m pip install --editable .
+.venv/bin/nexus --help
 ```
 
-Nhập hoặc dán mỗi việc trên một dòng. Trên Linux, kết thúc bằng Ctrl+D ở đầu
-dòng mới. Chương trình đọc hết đầu vào rồi mới lưu. Dòng trống hoặc chỉ có
-khoảng trắng được bỏ qua; nội dung các dòng còn lại được giữ nguyên.
-
-Cũng có thể đọc từ file UTF-8:
+Lệnh `--editable` giúp thay đổi trong `src/` có hiệu lực ngay, phù hợp khi học
+và phát triển dự án. Không cần model để dùng hai lệnh cơ bản:
 
 ```sh
-python3 -m nexus.cli.main add < tasks.txt
+.venv/bin/nexus add "mua sữa, gọi mẹ và học Python"
+.venv/bin/nexus list
 ```
 
-Mặc định dữ liệu nằm trong `nexus.db` cạnh `cli.py`, không đổi theo thư mục
-đang chạy. Có thể chỉ định file khác, đặt `--db` trước lệnh con:
+Để thêm nhiều task, bỏ đối số và nhập mỗi task trên một dòng. Nhấn `Ctrl+D`
+trên một dòng mới để kết thúc, hoặc chuyển hướng từ file UTF-8:
 
 ```sh
-python3 -m nexus.cli.main --db /tmp/nexus-demo.db add "học Python"
-python3 -m nexus.cli.main --db /tmp/nexus-demo.db list
+.venv/bin/nexus add
+.venv/bin/nexus add < tasks.txt
 ```
 
-Thư mục cha của database phải tồn tại. Mỗi việc được commit riêng: nếu lỗi
-giữa chừng, các việc đã lưu trước đó vẫn còn. Xem danh sách trước khi thử lại
-để tránh thêm trùng ngoài ý muốn.
+Database mặc định nằm tại `$XDG_DATA_HOME/nexus/nexus.db`, hoặc
+`~/.local/share/nexus/nexus.db` khi biến đó chưa được đặt. Có thể chọn file
+khác bằng cách đặt `--db` trước lệnh con:
 
-## Kiểm tra
+```sh
+.venv/bin/nexus --db /tmp/nexus-demo.db add "học Python"
+.venv/bin/nexus --db /tmp/nexus-demo.db list
+```
+
+## Chạy Qwen3-1.7B bằng llama.cpp
+
+Cấu hình đã dùng trong dự án được ghim để một lần chạy sau có thể xác định
+đúng runtime và model:
+
+- `llama.cpp` build `b10809`, commit `5266f24da`, gói Vulkan x86-64.
+- `Qwen3-1.7B-Q8_0.gguf` từ kho chính thức của Qwen.
+- SHA-256 của runtime:
+  `07f029cef440c82c3cff5310641eb6347e5cbcd865a5d88990215058aa049e93`.
+- SHA-256 của model:
+  `061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a`.
+
+Tải và kiểm tra hai artifact:
+
+```sh
+mkdir -p .local-runtime models
+curl -L --fail \
+  -o .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz \
+  https://github.com/ggml-org/llama.cpp/releases/download/b10809/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz
+echo "07f029cef440c82c3cff5310641eb6347e5cbcd865a5d88990215058aa049e93  .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz" | sha256sum --check
+tar -xzf .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz \
+  -C .local-runtime
+
+curl -L --fail \
+  -o models/Qwen3-1.7B-Q8_0.gguf \
+  https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf
+echo "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a  models/Qwen3-1.7B-Q8_0.gguf" | sha256sum --check
+```
+
+Khởi động server bằng cấu hình đã chọn cho laptop 4 GB VRAM:
+
+```sh
+scripts/start_qwen.sh
+```
+
+Script chỉ lắng nghe tại `127.0.0.1:8087`, dùng context 4096, một slot song
+song, sáu CPU thread và offload nhiều layer nhất có thể sang GPU. Request của
+ứng dụng tắt thinking. Có thể thay đường dẫn và thông số bằng các biến
+`NEXUS_LLAMA_SERVER`, `NEXUS_QWEN_MODEL`, `NEXUS_QWEN_PORT`,
+`NEXUS_QWEN_CONTEXT`, `NEXUS_QWEN_THREADS`, `NEXUS_QWEN_GPU_LAYERS`.
+
+Ở terminal khác:
+
+```sh
+.venv/bin/nexus ask "thêm việc mua sữa"
+.venv/bin/nexus ask "xem danh sách của tôi"
+```
+
+Nếu đổi port server, đặt endpoint tương ứng trước khi chạy ứng dụng, ví dụ:
+
+```sh
+QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
+  .venv/bin/nexus ask "xem danh sách"
+```
+
+Một tool có thể đã commit vào SQLite trước khi request lấy câu trả lời cuối
+gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
+tự retry. Hãy xem danh sách trước khi gửi lại yêu cầu để tránh tạo task trùng.
+
+## Kiểm thử và benchmark hiện tại
+
+Toàn bộ unit test chạy offline, không cần model:
 
 ```sh
 PYTHONPATH=src python3 -B -m unittest discover -s tests -v
 ```
 
-Test dùng database tạm; các test CLI chạy thêm và xem trong những tiến trình riêng.
-
-## Demo Gemini tool calling
-
-`gemini_demo.py` thử một yêu cầu cố định “Thêm việc mua sữa vào danh sách giúp tôi.”
-với `gemini-2.5-flash`. Dùng database tạm được dọn khi kết thúc, không ghi vào
-`nexus.db`. Demo gửi prompt và schema tool tới Google, rồi gửi kết quả tool để
-model trả lời; tối đa hai yêu cầu generateContent, không tự retry.
-
-Nếu đã đặt biến môi trường `GEMINI_API_KEY`:
+Các dataset đầu vào được giữ trong Git tại `evals/`. Bộ
+`current_scope_tasks.json` có 20 ca theo đúng chức năng hiện tại. Khi server
+đang chạy, chạy bộ này bằng:
 
 ```sh
-python3 gemini_demo.py
+mkdir -p evals/results
+PYTHONPATH=src python3 -m scripts.eval_qwen \
+  --cases evals/current_scope_tasks.json \
+  --output evals/results/current-scope-run.json
 ```
 
-Hoặc nhập key ẩn, chỉ giữ trong môi trường của tiến trình demo:
-
-```sh
-python3 -c 'import getpass, os; from gemini_demo import main; os.environ["GEMINI_API_KEY"] = getpass.getpass("Gemini API key: "); raise SystemExit(main())'
-```
-
-Các test trong `tests/test_gemini_demo.py` dùng phản hồi giả lập, không gọi mạng
-hoặc dùng key. Demo thật cần mạng và quyền/quota generateContent của key.
-
-## Đánh giá Gemini trên 5 tình huống
-
-`evals/basic_tasks.json` định nghĩa prompt, dữ liệu ban đầu, tool call và dữ liệu
-cuối mong đợi. Mỗi ca dùng database tạm riêng. Khi đã đặt `GEMINI_API_KEY`:
-
-```sh
-python3 eval_gemini.py --output /tmp/nexus-eval-run-1.json
-```
-
-File output phải chưa tồn tại. Bộ chạy lưu kết quả sau từng ca và dừng khi có
-lỗi API/thực thi. Response có finishReason không hợp lệ được ghi thành lỗi
-model, rồi tiếp tục ca độc lập kế tiếp. Có thể chọn những ca còn lại:
-
-```sh
-python3 eval_gemini.py --output /tmp/nexus-eval-run-2.json --case greeting --case missing_content
-```
-
-`pass` chỉ chấm tự động tool và dữ liệu, chưa chấm ngữ nghĩa câu trả lời.
-`fail` là lượt hoàn tất nhưng sai kỳ vọng; `error` là lượt không hoàn tất.
-Cả khi lỗi, report vẫn ghi các call quan sát được và trạng thái database cuối.
-Các test local của bộ chấm dùng phản hồi giả lập, không gọi API.
-
-## So sánh prompt
-
-`gemini_demo.py` giữ prompt gốc `v1` và bản thử nghiệm `v2` làm rõ quy tắc
-một dòng/một task. Mặc định vẫn là `v1`. Chỉ system instruction thay đổi;
-model, tool schema và code thực thi giống nhau.
-
-```sh
-python3 eval_gemini.py --cases evals/prompt_comparison_cases.json --prompt-version v2 --request-interval 15 --output /tmp/nexus-prompt-v2.json
-```
-
-Dataset so sánh gồm 5 ca cũ và 2 câu mới, được viết trước khi chạy thử.
-Khoảng nghỉ giúp giảm tần suất gọi API, không bảo đảm đủ mọi quota và không
-retry request thất bại. `elapsed_seconds` bao gồm cả thời gian nghỉ này,
-không dùng để so tốc độ model giữa các report có khoảng nghỉ khác nhau.
-Report lưu nguyên system prompt, phiên bản prompt và metadata response
-(finishReason, số candidate, blockReason, modelVersion).
+Runner dùng database tạm riêng cho từng ca, so tool call và trạng thái SQLite,
+đồng thời ghi hash dataset, tổng kết theo nhóm, token, thời gian và lỗi
+model/server vào JSON. File output phải chưa tồn tại. `pass` chỉ chấm tool và
+database; nội dung câu trả lời vẫn cần review thủ công. Kết quả sinh ra trong
+`evals/results/` không được đưa vào Git.
