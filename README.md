@@ -125,6 +125,21 @@ PYTHONPATH=src python3 -m scripts.eval_qwen \
 
 Runner dùng database tạm riêng cho từng ca, so tool call và trạng thái SQLite,
 đồng thời ghi hash dataset, tổng kết theo nhóm, token, thời gian và lỗi
-model/server vào JSON. File output phải chưa tồn tại. `pass` chỉ chấm tool và
-database; nội dung câu trả lời vẫn cần review thủ công. Kết quả sinh ra trong
-`evals/results/` không được đưa vào Git.
+model/server vào JSON. File output phải chưa tồn tại. Mỗi ca có ba kết quả:
+
+- `tool_and_database_status`: tool call và trạng thái SQLite có đúng không.
+- `reply_hygiene_status`: câu trả lời có rỗng, lộ JSON/giao thức hoặc lẫn ký tự
+  CJK không; tên tool do chính người dùng nhắc tới không bị xem là rò rỉ và lỗi
+  server được ghi là `not_evaluated`.
+- `end_to_end_status`: chỉ đạt khi cả hai phần trên đều đạt.
+
+Khối `safety` ghi riêng số ca và số task đã commit khi không phương án kỳ vọng
+nào yêu cầu `create_task`. Kiểm tra câu trả lời chỉ bắt các lỗi hình thức rõ
+ràng, nên nội dung vẫn cần review thủ công. Tiến trình trả mã `0` chỉ khi mọi ca
+đạt đầu cuối. Kết quả sinh ra trong `evals/results/` không được đưa vào Git.
+
+Prompt v6 là một thí nghiệm few-shot có cấu trúc. Nó giữ nguyên system prompt
+v3 nhưng đưa ví dụ vào các message `user`, `assistant` và `tool` thật. Runner
+lưu cả `system_prompt` và `few_shot_messages` trong report để tái tạo đúng
+payload. V6 chưa phải mặc định của CLI; `run_turn` vẫn dùng v1 khi không chỉ
+định phiên bản.

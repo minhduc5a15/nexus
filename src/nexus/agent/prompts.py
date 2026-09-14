@@ -73,3 +73,80 @@ NEXUS: Bạn có muốn tôi thêm việc "Mua sữa" vào danh sách không?
 Người dùng: Đánh dấu việc học C++ là đã xong.
 Tool: không gọi.
 NEXUS: Tôi chưa hỗ trợ đánh dấu hoàn thành."""
+
+SYSTEM_PROMPTS["v6"] = SYSTEM_PROMPTS["v3"]
+
+FEW_SHOT_MESSAGES = {
+    "v6": [
+        {
+            "role": "user",
+            "content": "Thêm việc mua sữa vào danh sách giúp tôi.",
+        },
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "example-create-milk",
+                    "function": {
+                        "name": "create_task",
+                        "arguments": '{"content":"mua sữa"}',
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "example-create-milk",
+            "content": '{"tasks":[{"id":1,"content":"mua sữa"}]}',
+        },
+        {
+            "role": "assistant",
+            "content": 'Đã thêm việc "mua sữa".',
+        },
+        {
+            "role": "user",
+            "content": "Ghi giúp mình việc gọi cho mẹ nhé.",
+        },
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "example-create-mother",
+                    "function": {
+                        "name": "create_task",
+                        "arguments": '{"content":"gọi cho mẹ"}',
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "example-create-mother",
+            "content": '{"tasks":[{"id":2,"content":"gọi cho mẹ"}]}',
+        },
+        {
+            "role": "assistant",
+            "content": 'Đã thêm việc "gọi cho mẹ".',
+        },
+        {
+            "role": "user",
+            "content": "Mua sữa.",
+        },
+        {
+            "role": "assistant",
+            "content": 'Bạn có muốn tôi thêm việc "Mua sữa." vào danh sách không?',
+        },
+        {
+            "role": "user",
+            "content": "Đánh dấu việc học C++ là đã xong.",
+        },
+        {
+            "role": "assistant",
+            "content": "Tôi chưa hỗ trợ đánh dấu hoàn thành.",
+        },
+    ]
+}

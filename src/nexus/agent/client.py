@@ -4,11 +4,12 @@ import json
 import os
 import tempfile
 import urllib.request
+from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
 from time import perf_counter
 
-from nexus.agent.prompts import SYSTEM_PROMPTS
+from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
 
@@ -55,6 +56,15 @@ def response_diagnostics(response: dict) -> dict:
     }
 
 
+def build_messages(prompt_version: str, prompt: str) -> list[dict]:
+    """Build one request without sharing mutable few-shot messages."""
+    return [
+        {"role": "system", "content": SYSTEM_PROMPTS[prompt_version]},
+        *deepcopy(FEW_SHOT_MESSAGES.get(prompt_version, [])),
+        {"role": "user", "content": prompt},
+    ]
+
+
 def run_turn(database_path: Path, prompt: str, generate=chat, *, prompt_version: str = "v1", settings: dict | None = None) -> dict:
     """Run one turn against the local model with at most one tool batch."""
     common = settings or {
@@ -64,10 +74,7 @@ def run_turn(database_path: Path, prompt: str, generate=chat, *, prompt_version:
     }
     payload = {
         **common,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPTS[prompt_version]},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": build_messages(prompt_version, prompt),
         "tools": [{"type": "function", "function": tool} for tool in TOOL_DEFINITIONS],
         "tool_choice": "auto",
     }

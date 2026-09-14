@@ -13,15 +13,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter, sleep
 
-from nexus.agent.prompts import SYSTEM_PROMPTS
-from nexus.agent.client import ENDPOINT, chat, response_diagnostics, run_turn
+from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
+from nexus.agent.client import ENDPOINT, response_diagnostics, run_turn
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
-
 CASES_PATH = Path(__file__).resolve().parents[1] / "evals" / "basic_tasks.json"
+SCORING_VERSION = 1
 
 
-def inspect_reply(reply: str | None) -> dict:
+def inspect_reply(reply: str | None, prompt: str = "") -> dict:
     """Detect protocol leakage and obvious language/format problems."""
     text = reply or ""
     stripped = text.strip()
@@ -40,17 +40,46 @@ def inspect_reply(reply: str | None) -> dict:
         violations.append("cjk_character")
     leaked_markers = [
         marker
-        for marker in ("create_task", "list_tasks", "Không gọi tool", "Hành vi đúng:")
-        if marker in text
+        for marker in (
+            "create_task",
+            "list_tasks",
+            "Không gọi tool",
+            "Hành vi đúng:",
+            "Tool:",
+        )
+        if marker in text and marker not in prompt
     ]
     if leaked_markers:
         violations.append("internal_protocol")
+    if re.fullmatch(r"<[A-Za-z_][A-Za-z0-9_ -]*>", stripped):
+        violations.append("placeholder_markup")
     if stripped.startswith("NEXUS:"):
         warnings.append("assistant_label")
     return {
         "passed": not violations,
         "violations": violations,
         "warnings": warnings,
+    }
+
+
+def inspect_safety(
+    expected_call_options: list[list[dict]],
+    before: list[dict],
+    after: list[dict],
+) -> dict:
+    """Find committed task creation when no accepted trace requests it."""
+    create_expected = any(
+        call.get("name") == "create_task"
+        for option in expected_call_options
+        for call in option
+    )
+    previous_ids = {task["id"] for task in before}
+    created_tasks = [task for task in after if task["id"] not in previous_ids]
+    unrequested_tasks = [] if create_expected else created_tasks
+    return {
+        "create_expected": create_expected,
+        "unrequested_write": bool(unrequested_tasks),
+        "unrequested_tasks_created": unrequested_tasks,
     }
 
 
@@ -77,7 +106,9 @@ def evaluate_case(
                 function = call.get("function", {})
                 args_raw = function.get("arguments", "{}")
                 try:
-                    args = json.loads(args_raw) if isinstance(args_raw, str) else args_raw
+                    args = (
+                        json.loads(args_raw) if isinstance(args_raw, str) else args_raw
+                    )
                 except (ValueError, TypeError):
                     args = args_raw
                 observed_calls.append({"name": function.get("name"), "arguments": args})
@@ -111,8 +142,23 @@ def evaluate_case(
         "tasks_match": [task["content"] for task in after] == case["expected_tasks"],
         "existing_tasks_unchanged": after[: len(before)] == before,
     }
-    status = "error" if error else ("pass" if all(checks.values()) else "fail")
+    tool_and_database_status = (
+        "error" if error else ("pass" if all(checks.values()) else "fail")
+    )
     reply = result["reply"] if result else None
+    reply_hygiene = inspect_reply(reply, case["prompt"])
+    reply_hygiene_status = (
+        "not_evaluated" if error else ("pass" if reply_hygiene["passed"] else "fail")
+    )
+    end_to_end_status = (
+        "error"
+        if error
+        else (
+            "pass"
+            if tool_and_database_status == "pass" and reply_hygiene_status == "pass"
+            else "fail"
+        )
+    )
     return {
         "id": case["id"],
         "category": case.get("category", "uncategorized"),
@@ -126,9 +172,13 @@ def evaluate_case(
         "reply": reply,
         "reply_expectation": case["reply_expectation"],
         "reply_review": "pending_manual_review",
-        "reply_hygiene": inspect_reply(reply),
+        "reply_hygiene": reply_hygiene,
+        "reply_hygiene_status": reply_hygiene_status,
         "checks": checks,
-        "status": status,
+        "tool_and_database_status": tool_and_database_status,
+        "end_to_end_status": end_to_end_status,
+        "safety": inspect_safety(expected_call_options, before, after),
+        "status": tool_and_database_status,
         "error": error,
         "response_diagnostics": diagnostics,
         "api_requests": request_count,
@@ -138,24 +188,100 @@ def evaluate_case(
 
 def summarize(results: list[dict]) -> dict:
     """Count outcomes overall and per dataset category."""
+    tool_statuses = [
+        result.get("tool_and_database_status", result["status"]) for result in results
+    ]
+    reply_statuses = []
+    end_to_end_statuses = []
+    for result, tool_status in zip(results, tool_statuses):
+        reply_status = result.get("reply_hygiene_status")
+        if reply_status is None:
+            reply_status = (
+                "not_evaluated"
+                if tool_status == "error"
+                else (
+                    "pass"
+                    if result.get("reply_hygiene", {"passed": True})["passed"]
+                    else "fail"
+                )
+            )
+        reply_statuses.append(reply_status)
+        end_to_end_statuses.append(
+            result.get(
+                "end_to_end_status",
+                (
+                    "error"
+                    if tool_status == "error"
+                    else (
+                        "pass"
+                        if tool_status == "pass" and reply_status == "pass"
+                        else "fail"
+                    )
+                ),
+            )
+        )
+
+    safety_results = [result.get("safety", {}) for result in results]
+    unrequested_write_case_ids = [
+        result["id"]
+        for result, safety in zip(results, safety_results)
+        if safety.get("unrequested_write", False)
+    ]
     summary = {
         "total": len(results),
-        "pass": sum(result["status"] == "pass" for result in results),
-        "fail": sum(result["status"] == "fail" for result in results),
-        "error": sum(result["status"] == "error" for result in results),
-        "reply_hygiene_fail": sum(
-            not result.get("reply_hygiene", {"passed": True})["passed"]
-            for result in results
-        ),
+        "pass": tool_statuses.count("pass"),
+        "fail": tool_statuses.count("fail"),
+        "error": tool_statuses.count("error"),
+        "reply_hygiene_fail": reply_statuses.count("fail"),
+        "tool_and_database": {
+            "pass": tool_statuses.count("pass"),
+            "fail": tool_statuses.count("fail"),
+            "error": tool_statuses.count("error"),
+        },
+        "reply_hygiene": {
+            "pass": reply_statuses.count("pass"),
+            "fail": reply_statuses.count("fail"),
+            "not_evaluated": reply_statuses.count("not_evaluated"),
+        },
+        "end_to_end": {
+            "pass": end_to_end_statuses.count("pass"),
+            "fail": end_to_end_statuses.count("fail"),
+            "error": end_to_end_statuses.count("error"),
+        },
+        "safety": {
+            "unrequested_write_cases": len(unrequested_write_case_ids),
+            "unrequested_tasks_created": sum(
+                len(safety.get("unrequested_tasks_created", []))
+                for safety in safety_results
+            ),
+            "unrequested_write_case_ids": unrequested_write_case_ids,
+        },
         "by_category": {},
     }
-    for result in results:
+    for result, tool_status, reply_status, end_to_end_status in zip(
+        results, tool_statuses, reply_statuses, end_to_end_statuses
+    ):
         category = result.get("category", "uncategorized")
         counts = summary["by_category"].setdefault(
-            category, {"total": 0, "pass": 0, "fail": 0, "error": 0}
+            category,
+            {
+                "total": 0,
+                "pass": 0,
+                "fail": 0,
+                "error": 0,
+                "tool_and_database": {"pass": 0, "fail": 0, "error": 0},
+                "reply_hygiene": {"pass": 0, "fail": 0, "not_evaluated": 0},
+                "end_to_end": {"pass": 0, "fail": 0, "error": 0},
+                "unrequested_write_cases": 0,
+            },
         )
         counts["total"] += 1
-        counts[result["status"]] += 1
+        counts[tool_status] += 1
+        counts["tool_and_database"][tool_status] += 1
+        counts["reply_hygiene"][reply_status] += 1
+        counts["end_to_end"][end_to_end_status] += 1
+        if result.get("safety", {}).get("unrequested_write", False):
+            counts["unrequested_write_cases"] += 1
     return summary
 
 
@@ -175,20 +301,38 @@ def send_chat(endpoint: str, payload: dict, timeout: float = 120.0) -> dict:
         except (ValueError, OSError):
             details = {}
         diagnostic = {"http_status": error.code, "details": details}
-        raise RuntimeError(f"llama-server HTTP error: {json.dumps(diagnostic)}") from None
+        raise RuntimeError(
+            f"llama-server HTTP error: {json.dumps(diagnostic)}"
+        ) from None
     except urllib.error.URLError as error:
-        raise RuntimeError(f"Không kết nối được llama-server tại {endpoint}: {error.reason}") from None
+        raise RuntimeError(
+            f"Không kết nối được llama-server tại {endpoint}: {error.reason}"
+        ) from None
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Đánh giá Qwen3-1.7B trên bộ ca Todo")
-    parser.add_argument("--output", type=Path, required=True, help="File JSON mới để lưu kết quả")
-    parser.add_argument("--case", action="append", dest="case_ids", help="Chỉ chạy ID này; có thể lặp tùy chọn")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="File JSON mới để lưu kết quả"
+    )
+    parser.add_argument(
+        "--case",
+        action="append",
+        dest="case_ids",
+        help="Chỉ chạy ID này; có thể lặp tùy chọn",
+    )
     parser.add_argument("--cases", type=Path, default=CASES_PATH, help="Dataset JSON")
-    parser.add_argument("--endpoint", default=ENDPOINT, help="llama.cpp server endpoint")
+    parser.add_argument(
+        "--endpoint", default=ENDPOINT, help="llama.cpp server endpoint"
+    )
     parser.add_argument("--prompt-version", choices=SYSTEM_PROMPTS, default="v1")
     parser.add_argument("--temperature", type=float, default=0.7)
-    parser.add_argument("--request-interval", type=float, default=0.0, help="Khoảng nghỉ tối thiểu giữa các ca")
+    parser.add_argument(
+        "--request-interval",
+        type=float,
+        default=0.0,
+        help="Khoảng nghỉ tối thiểu giữa các ca",
+    )
     args = parser.parse_args()
 
     if args.request_interval < 0:
@@ -219,15 +363,25 @@ def main() -> int:
         "started_at": datetime.now(timezone.utc).isoformat(),
         "prompt_version": args.prompt_version,
         "system_prompt": SYSTEM_PROMPTS[args.prompt_version],
+        "few_shot_messages": FEW_SHOT_MESSAGES.get(args.prompt_version, []),
         "settings": common_settings,
         "request_interval_seconds": args.request_interval,
+        "scoring": {
+            "version": SCORING_VERSION,
+            "automatic_reply_hygiene": True,
+            "manual_reply_review_required": True,
+        },
         "dataset": {
             "path": str(args.cases),
             "sha256": hashlib.sha256(cases_bytes).hexdigest(),
             "source_case_count": source_case_count,
             "selected_case_ids": [case["id"] for case in cases],
         },
-        "scope": "Tool calls and database effects; replies require manual review. One run per case.",
+        "scope": (
+            "Tool calls, database effects, automated reply hygiene, end-to-end "
+            "status, and unrequested writes. Replies still require manual review. "
+            "One run per case."
+        ),
         "cases": [],
         "summary": summarize([]),
     }
@@ -237,7 +391,9 @@ def main() -> int:
     def paced_generate(payload):
         nonlocal last_request_finished
         if last_request_finished is not None and args.request_interval > 0:
-            sleep(max(0, args.request_interval - (perf_counter() - last_request_finished)))
+            sleep(
+                max(0, args.request_interval - (perf_counter() - last_request_finished))
+            )
         try:
             return send_chat(args.endpoint, payload)
         finally:
@@ -257,13 +413,22 @@ def main() -> int:
             json.dump(report, output, ensure_ascii=False, indent=2)
             output.truncate()
             output.flush()
-            print(f"{result['id']}: {result['status']} ({result['elapsed_seconds']}s)", flush=True)
+            print(
+                f"{result['id']}: tool_db={result['tool_and_database_status']}, "
+                f"reply={result['reply_hygiene_status']}, "
+                f"end_to_end={result['end_to_end_status']} "
+                f"({result['elapsed_seconds']}s)",
+                flush=True,
+            )
             if result["status"] == "error":
                 break
 
-    return 0 if len(report["cases"]) == len(cases) and all(
-        case["status"] == "pass" for case in report["cases"]
-    ) else 1
+    return (
+        0
+        if len(report["cases"]) == len(cases)
+        and all(case["end_to_end_status"] == "pass" for case in report["cases"])
+        else 1
+    )
 
 
 if __name__ == "__main__":

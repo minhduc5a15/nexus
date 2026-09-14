@@ -1,0 +1,342 @@
+[
+  {
+    "id": "h2_create_put_todo",
+    "category": "create_paraphrase",
+    "prompt": "Bỏ vào todo giúp mình: thay pin chuột",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "thay pin chuột"}}],
+    "expected_tasks": ["thay pin chuột"],
+    "reply_expectation": "Xác nhận đã thêm đúng nội dung."
+  },
+  {
+    "id": "h2_create_remember",
+    "category": "create_paraphrase",
+    "prompt": "Ghi nhớ hộ việc đặt vé tàu",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "đặt vé tàu"}}],
+    "expected_tasks": ["đặt vé tàu"],
+    "reply_expectation": "Xác nhận đã thêm đúng nội dung."
+  },
+  {
+    "id": "h2_create_save_task",
+    "category": "create_paraphrase",
+    "prompt": "Lưu lại cho tôi task kiểm tra hóa đơn",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "kiểm tra hóa đơn"}}],
+    "expected_tasks": ["kiểm tra hóa đơn"],
+    "reply_expectation": "Xác nhận đã thêm đúng nội dung."
+  },
+  {
+    "id": "h2_create_add_list",
+    "category": "create_paraphrase",
+    "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "tưới cây tối nay"}}],
+    "expected_tasks": ["tưới cây tối nay"],
+    "reply_expectation": "Xác nhận đã thêm đúng nội dung."
+  },
+  {
+    "id": "h2_exact_endpoint_time",
+    "category": "exact_content",
+    "prompt": "Ghi task: gọi API /health lúc 07:05",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "gọi API /health lúc 07:05"}}],
+    "expected_tasks": ["gọi API /health lúc 07:05"],
+    "reply_expectation": "Giữ nguyên endpoint và thời gian."
+  },
+  {
+    "id": "h2_exact_pr",
+    "category": "exact_content",
+    "prompt": "Lưu việc: Review PR #42!",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "Review PR #42!"}}],
+    "expected_tasks": ["Review PR #42!"],
+    "reply_expectation": "Giữ nguyên hoa thường, số và dấu câu."
+  },
+  {
+    "id": "h2_exact_quantities",
+    "category": "exact_content",
+    "prompt": "Thêm việc: mua 2kg táo & 1kg lê",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "mua 2kg táo & 1kg lê"}}],
+    "expected_tasks": ["mua 2kg táo & 1kg lê"],
+    "reply_expectation": "Giữ nguyên số lượng và dấu ampersand."
+  },
+  {
+    "id": "h2_exact_windows_path",
+    "category": "exact_content",
+    "prompt": "Note giúp: đọc C:\\Docs\\todo.txt",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "đọc C:\\Docs\\todo.txt"}}],
+    "expected_tasks": ["đọc C:\\Docs\\todo.txt"],
+    "reply_expectation": "Giữ nguyên đường dẫn Windows."
+  },
+  {
+    "id": "h2_boundary_arrow",
+    "category": "one_line_boundary",
+    "prompt": "Thêm một việc: rửa bát -> lau bàn",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "rửa bát -> lau bàn"}}],
+    "expected_tasks": ["rửa bát -> lau bàn"],
+    "reply_expectation": "Tạo đúng một task."
+  },
+  {
+    "id": "h2_boundary_names",
+    "category": "one_line_boundary",
+    "prompt": "Ghi lại: gọi An, Bình; gửi mail cho Chi",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "gọi An, Bình; gửi mail cho Chi"}}],
+    "expected_tasks": ["gọi An, Bình; gửi mail cho Chi"],
+    "reply_expectation": "Dấu phẩy và chấm phẩy không tách task."
+  },
+  {
+    "id": "h2_boundary_schedule_slash",
+    "category": "one_line_boundary",
+    "prompt": "Lưu task: 08:00 họp / 09:30 code",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "08:00 họp / 09:30 code"}}],
+    "expected_tasks": ["08:00 họp / 09:30 code"],
+    "reply_expectation": "Dấu slash không tách task."
+  },
+  {
+    "id": "h2_boundary_parentheses",
+    "category": "one_line_boundary",
+    "prompt": "Note việc: (1) backup, (2) deploy",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "(1) backup, (2) deploy"}}],
+    "expected_tasks": ["(1) backup, (2) deploy"],
+    "reply_expectation": "Đánh số cùng dòng không tách task."
+  },
+  {
+    "id": "h2_multiline_two",
+    "category": "multiline",
+    "prompt": "Lưu các dòng này:\nđặt báo thức\nsạc tai nghe",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "đặt báo thức\nsạc tai nghe"}}],
+    "expected_call_options": [
+      [{"name": "create_task", "arguments": {"content": "đặt báo thức\nsạc tai nghe"}}],
+      [{"name": "create_task", "arguments": {"content": "đặt báo thức"}}, {"name": "create_task", "arguments": {"content": "sạc tai nghe"}}]
+    ],
+    "expected_tasks": ["đặt báo thức", "sạc tai nghe"],
+    "reply_expectation": "Tạo hai task."
+  },
+  {
+    "id": "h2_multiline_duplicates",
+    "category": "multiline",
+    "prompt": "Thêm từng dòng:\nUống Nước!\nđọc báo\nUống Nước!",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "Uống Nước!\nđọc báo\nUống Nước!"}}],
+    "expected_call_options": [
+      [{"name": "create_task", "arguments": {"content": "Uống Nước!\nđọc báo\nUống Nước!"}}],
+      [{"name": "create_task", "arguments": {"content": "Uống Nước!"}}, {"name": "create_task", "arguments": {"content": "đọc báo"}}, {"name": "create_task", "arguments": {"content": "Uống Nước!"}}]
+    ],
+    "expected_tasks": ["Uống Nước!", "đọc báo", "Uống Nước!"],
+    "reply_expectation": "Tạo ba task và giữ task trùng."
+  },
+  {
+    "id": "h2_multiline_blank",
+    "category": "multiline",
+    "prompt": "Ghi mỗi dòng thành một việc:\nviết test\n\npush code",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "viết test\n\npush code"}}],
+    "expected_call_options": [
+      [{"name": "create_task", "arguments": {"content": "viết test\n\npush code"}}],
+      [{"name": "create_task", "arguments": {"content": "viết test"}}, {"name": "create_task", "arguments": {"content": "push code"}}]
+    ],
+    "expected_tasks": ["viết test", "push code"],
+    "reply_expectation": "Bỏ dòng trống và tạo hai task."
+  },
+  {
+    "id": "h2_multiline_compounds",
+    "category": "multiline",
+    "prompt": "Ghi hai dòng sau:\nmua bánh và sữa\ngọi taxi lúc 6:30",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "create_task", "arguments": {"content": "mua bánh và sữa\ngọi taxi lúc 6:30"}}],
+    "expected_call_options": [
+      [{"name": "create_task", "arguments": {"content": "mua bánh và sữa\ngọi taxi lúc 6:30"}}],
+      [{"name": "create_task", "arguments": {"content": "mua bánh và sữa"}}, {"name": "create_task", "arguments": {"content": "gọi taxi lúc 6:30"}}]
+    ],
+    "expected_tasks": ["mua bánh và sữa", "gọi taxi lúc 6:30"],
+    "reply_expectation": "Tạo đúng hai task."
+  },
+  {
+    "id": "h2_list_open",
+    "category": "list",
+    "prompt": "Mở danh sách việc đã ghi cho tôi.",
+    "initial_tasks": ["task đỏ", "task xanh"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["task đỏ", "task xanh"],
+    "reply_expectation": "Liệt kê đúng hai task."
+  },
+  {
+    "id": "h2_list_todo_now",
+    "category": "list",
+    "prompt": "Todo hiện giờ gồm gì?",
+    "initial_tasks": ["đóng tiền điện"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["đóng tiền điện"],
+    "reply_expectation": "Liệt kê đúng task hiện tại."
+  },
+  {
+    "id": "h2_list_noted",
+    "category": "list",
+    "prompt": "Tôi đã note những gì vậy?",
+    "initial_tasks": ["học Docker", "mua giấy"],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": ["học Docker", "mua giấy"],
+    "reply_expectation": "Liệt kê đúng hai task."
+  },
+  {
+    "id": "h2_list_empty",
+    "category": "list",
+    "prompt": "Danh sách của mình đang có gì không?",
+    "initial_tasks": [],
+    "expected_calls": [{"name": "list_tasks", "arguments": {}}],
+    "expected_tasks": [],
+    "reply_expectation": "Nói danh sách trống."
+  },
+  {
+    "id": "h2_bare_flight",
+    "category": "bare_statement",
+    "prompt": "Đặt vé máy bay.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tự lưu."
+  },
+  {
+    "id": "h2_bare_afternoon",
+    "category": "bare_statement",
+    "prompt": "chiều nay đọc tài liệu",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tự lưu."
+  },
+  {
+    "id": "h2_bare_many_actions",
+    "category": "bare_statement",
+    "prompt": "Mua rau, nấu cơm và rửa bát.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tự lưu."
+  },
+  {
+    "id": "h2_bare_issue",
+    "category": "bare_statement",
+    "prompt": "Fix issue #88",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tự lưu."
+  },
+  {
+    "id": "h2_unsupported_remove",
+    "category": "unsupported_action",
+    "prompt": "Bỏ task số 2 khỏi danh sách.",
+    "initial_tasks": ["task 1", "task 2"],
+    "expected_calls": [],
+    "expected_tasks": ["task 1", "task 2"],
+    "reply_expectation": "Giải thích chưa hỗ trợ xóa."
+  },
+  {
+    "id": "h2_unsupported_change",
+    "category": "unsupported_action",
+    "prompt": "Đổi nội dung task 1 thành gọi bác sĩ.",
+    "initial_tasks": ["gọi nha sĩ"],
+    "expected_calls": [],
+    "expected_tasks": ["gọi nha sĩ"],
+    "reply_expectation": "Giải thích chưa hỗ trợ sửa."
+  },
+  {
+    "id": "h2_unsupported_tick",
+    "category": "unsupported_action",
+    "prompt": "Tick hoàn thành việc nộp thuế.",
+    "initial_tasks": ["nộp thuế"],
+    "expected_calls": [],
+    "expected_tasks": ["nộp thuế"],
+    "reply_expectation": "Giải thích chưa hỗ trợ hoàn thành."
+  },
+  {
+    "id": "h2_unsupported_reschedule",
+    "category": "unsupported_action",
+    "prompt": "Chuyển việc chạy bộ sang ngày mai.",
+    "initial_tasks": ["chạy bộ hôm nay"],
+    "expected_calls": [],
+    "expected_tasks": ["chạy bộ hôm nay"],
+    "reply_expectation": "Giải thích chưa hỗ trợ sửa hoặc dời task."
+  },
+  {
+    "id": "h2_negation_dont_add",
+    "category": "negation_meta",
+    "prompt": "Đừng thêm việc mua quà vào danh sách.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tạo task."
+  },
+  {
+    "id": "h2_negation_dont_save",
+    "category": "negation_meta",
+    "prompt": "Tôi không muốn lưu việc học đàn.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không tạo task."
+  },
+  {
+    "id": "h2_meta_quoted",
+    "category": "negation_meta",
+    "prompt": "Câu \"Ghi lại việc ngủ sớm\" chỉ là ví dụ, đừng thực hiện.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Không thực hiện câu được trích dẫn."
+  },
+  {
+    "id": "h2_meta_list_tool",
+    "category": "negation_meta",
+    "prompt": "Cho tôi biết list_tasks hoạt động ra sao, không cần chạy.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Giải thích mà không gọi tool."
+  },
+  {
+    "id": "h2_missing_add",
+    "category": "missing_content",
+    "prompt": "Thêm một việc cho tôi.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Hỏi nội dung cần thêm."
+  },
+  {
+    "id": "h2_missing_todo",
+    "category": "missing_content",
+    "prompt": "Ghi vào todo nhé.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Hỏi nội dung cần ghi."
+  },
+  {
+    "id": "h2_missing_reference",
+    "category": "missing_content",
+    "prompt": "Lưu lại chuyện đó.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Hỏi lại chuyện cần lưu là gì."
+  },
+  {
+    "id": "h2_missing_note",
+    "category": "missing_content",
+    "prompt": "Note giúp.",
+    "initial_tasks": ["giữ nguyên"],
+    "expected_calls": [],
+    "expected_tasks": ["giữ nguyên"],
+    "reply_expectation": "Hỏi nội dung cần note."
+  }
+]

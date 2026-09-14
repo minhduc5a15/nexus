@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
-from nexus.agent.client import PostToolExecutionError, run_probe, run_turn
+from nexus.agent.client import PostToolExecutionError, build_messages, run_probe, run_turn
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 
 
@@ -57,6 +57,42 @@ class LocalProbeTests(unittest.TestCase):
             turn = run_turn(db_path, "Chào bạn!", lambda _: response({"role": "assistant", "content": "Chào bạn!"}))
             self.assertEqual(turn["calls"], [])
             self.assertEqual(turn["reply"], "Chào bạn!")
+
+    def test_v6_uses_structured_examples_without_executing_them(self):
+        requests = []
+
+        def generate(payload):
+            requests.append(deepcopy(payload))
+            return response({"role": "assistant", "content": "Chào bạn!"})
+
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "test.db"
+            initialize_database(db_path)
+            with patch("nexus.agent.client.execute_tool") as execute:
+                result = run_turn(db_path, "Chào bạn!", generate, prompt_version="v6")
+
+        messages = requests[0]["messages"]
+        self.assertEqual(messages[0]["role"], "system")
+        self.assertEqual(messages[-1], {"role": "user", "content": "Chào bạn!"})
+        example_call = messages[2]["tool_calls"][0]
+        self.assertEqual(example_call["function"]["name"], "create_task")
+        self.assertEqual(
+            json.loads(example_call["function"]["arguments"]),
+            {"content": "mua sữa"},
+        )
+        self.assertEqual(messages[3]["tool_call_id"], example_call["id"])
+        self.assertEqual(result, {"calls": [], "reply": "Chào bạn!"})
+        execute.assert_not_called()
+
+    def test_build_messages_returns_an_independent_few_shot_copy(self):
+        first = build_messages("v6", "Một")
+        second = build_messages("v6", "Hai")
+
+        first[1]["content"] = "đã sửa"
+
+        self.assertEqual(
+            second[1]["content"], "Thêm việc mua sữa vào danh sách giúp tôi."
+        )
 
     def test_final_response_failure_exposes_the_committed_tool_result(self):
         tool_call = response({
