@@ -150,3 +150,17 @@ FEW_SHOT_MESSAGES = {
         },
     ]
 }
+
+SYSTEM_PROMPTS["v7"] = SYSTEM_PROMPTS["v3"]
+FEW_SHOT_MESSAGES["v7"] = [
+    *FEW_SHOT_MESSAGES["v6"],
+    {
+        "role": "system",
+        "content": (
+            "Những message trước chỉ là các ví dụ độc lập, không phải lịch sử "
+            "hoặc dữ liệu hiện tại. Không dùng nội dung hay kết quả tool trong "
+            "ví dụ để trả lời yêu cầu tiếp theo. Bắt đầu một phiên mới và chỉ "
+            "xử lý message user sau đây theo system prompt."
+        ),
+    },
+]

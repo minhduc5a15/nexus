@@ -143,3 +143,7 @@ v3 nhưng đưa ví dụ vào các message `user`, `assistant` và `tool` thật
 lưu cả `system_prompt` và `few_shot_messages` trong report để tái tạo đúng
 payload. V6 chưa phải mặc định của CLI; `run_turn` vẫn dùng v1 khi không chỉ
 định phiên bản.
+
+V7 giữ nguyên v6 và thêm một system message reset sau các ví dụ. Probe cho thấy
+reset dạng văn bản không ngăn được model dùng task mẫu như dữ liệu hiện tại,
+nên v7 chỉ được giữ để tái tạo thí nghiệm và chưa được benchmark toàn bộ.

@@ -94,6 +94,18 @@ class LocalProbeTests(unittest.TestCase):
             second[1]["content"], "Thêm việc mua sữa vào danh sách giúp tôi."
         )
 
+    def test_v7_resets_context_after_the_structured_examples(self):
+        messages = build_messages("v7", "Xem danh sách")
+
+        self.assertEqual(messages[-2]["role"], "system")
+        self.assertIn("không phải lịch sử", messages[-2]["content"])
+        self.assertIn("Không dùng nội dung", messages[-2]["content"])
+        self.assertEqual(
+            messages[-1], {"role": "user", "content": "Xem danh sách"}
+        )
+        self.assertEqual(len(build_messages("v6", "Xem danh sách")), 14)
+        self.assertEqual(len(messages), 15)
+
     def test_final_response_failure_exposes_the_committed_tool_result(self):
         tool_call = response({
             "role": "assistant",
