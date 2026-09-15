@@ -100,8 +100,10 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
   .venv/bin/nexus ask "xem danh sách"
 ```
 
-Một tool có thể đã commit vào SQLite trước khi request lấy câu trả lời cuối
-gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
+Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Một call
+`create_task` có thể chứa nhiều dòng. Sau khi tool thành công, formatter Python
+tạo câu trả lời từ dữ liệu thật. Một tool có thể đã commit vào SQLite trước khi
+formatter gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
 tự retry. Hãy xem danh sách trước khi gửi lại yêu cầu để tránh tạo task trùng.
 
 ## Kiểm thử và benchmark hiện tại
@@ -113,13 +115,15 @@ PYTHONPATH=src python3 -B -m unittest discover -s tests -v
 ```
 
 Các dataset đầu vào được giữ trong Git tại `evals/`. Bộ
-`current_scope_tasks.json` có 20 ca theo đúng chức năng hiện tại. Khi server
+`current_scope_tasks_v2.json` có 20 ca và áp dụng contract một tool call mỗi
+lượt. Bộ `current_scope_tasks.json` cùng các holdout cũ giữ nguyên để đọc lại
+lịch sử; một số ca cũ chấp nhận cả trace nhiều call. Khi server
 đang chạy, chạy bộ này bằng:
 
 ```sh
 mkdir -p evals/results
 PYTHONPATH=src python3 -m scripts.eval_qwen \
-  --cases evals/current_scope_tasks.json \
+  --cases evals/current_scope_tasks_v2.json \
   --output evals/results/current-scope-run.json
 ```
 
@@ -140,8 +144,9 @@ Các kết quả chính gồm:
 
 Ba trường cũ tiếp tục được ghi để so sánh với các lần benchmark trước. Khối
 `policy` cho biết policy đã can thiệp, đã chặn một đề xuất sai, hay đã từ chối
-nhầm một đề xuất đúng. Nhờ vậy một ca an toàn nhờ policy không bị tính thành
-thành công của model.
+nhầm một đề xuất đúng. `recovered_model_failure` cho biết policy còn giúp toàn
+bộ hành động hệ thống trở về đúng hay không. Nhờ vậy một ca an toàn nhờ policy
+không bị tính thành thành công của model.
 
 Khối `safety` ghi riêng số ca và số task đã commit khi không phương án kỳ vọng
 nào yêu cầu `create_task`. Kiểm tra câu trả lời chỉ bắt các lỗi hình thức rõ
@@ -157,3 +162,26 @@ payload. V6 chưa phải mặc định của CLI; `run_turn` vẫn dùng v1 khi 
 V7 giữ nguyên v6 và thêm một system message reset sau các ví dụ. Probe cho thấy
 reset dạng văn bản không ngăn được model dùng task mẫu như dữ liệu hiện tại,
 nên v7 chỉ được giữ để tái tạo thí nghiệm và chưa được benchmark toàn bộ.
+
+## Policy: cấp quyền và kiểm tra nguồn nội dung
+
+Policy create nhận diện lời dẫn từ các nhóm động từ, đại từ lịch sự và phần
+chỉ task/nhiều dòng. Sau đó nó kiểm tra content do model đề xuất là một span
+nguyên văn trong prompt và không bỏ lại nội dung cần lưu.
+
+- Có `:` hoặc xuống dòng ngay sau lời dẫn: toàn bộ phần sau là dữ liệu, chỉ bỏ
+  khoảng trắng bao quanh cả khối; giữ dấu câu và xuống dòng bên trong.
+- Câu tự nhiên: phần sau content có thể là “vào danh sách”, “giúp tôi/mình/tui”,
+  “nhé”, “với” và dấu kết câu. Dấu `:` trong `8:00` hoặc `C++: vector` thuộc nội dung.
+- `content_not_grounded`: proposal không xuất hiện nguyên văn trong prompt.
+- `content_boundary_mismatch`: proposal có xuất hiện nhưng cắt thiếu hoặc chọn
+  sai vị trí. Policy không tự sửa proposal.
+
+Ví dụ “Thêm việc mua sữa vào danh sách giúp tôi.” cho phép `mua sữa`; “Thêm việc
+mua sữa và gọi mẹ” không cho phép chỉ lấy `mua sữa`. “Thêm việc: sửa xe.” phải
+được giữ nguyên dấu chấm. “Thêm việc: đừng quên gọi mẹ.” là nội dung task hợp lệ.
+
+LIST nhận cả yêu cầu xem và câu hỏi về task đã lưu, nhưng không cấp quyền từ
+câu ví dụ hoặc lời kể chỉ nhắc đến danh sách. Grammar vẫn hữu hạn; chưa bảo đảm
+hiểu mọi cách diễn đạt tiếng Việt. Các trường hợp không chứng minh được quyền
+hoặc ranh giới nội dung vẫn bị từ chối.

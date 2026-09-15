@@ -271,6 +271,9 @@ def evaluate_case(
             "blocked_bad_proposal": (
                 bool(rejected_calls)
                 and model_proposal_status == "fail"
+            ),
+            "recovered_model_failure": (
+                model_proposal_status == "fail"
                 and system_action_status == "pass"
             ),
             "false_rejection": (
@@ -346,6 +349,11 @@ def summarize(results: list[dict]) -> dict:
         for result, policy in zip(results, policy_results)
         if policy.get("blocked_bad_proposal", False)
     ]
+    recovered_model_failure_case_ids = [
+        result["id"]
+        for result, policy in zip(results, policy_results)
+        if policy.get("recovered_model_failure", False)
+    ]
     false_rejection_case_ids = [
         result["id"]
         for result, policy in zip(results, policy_results)
@@ -393,6 +401,8 @@ def summarize(results: list[dict]) -> dict:
             "intervention_case_ids": intervention_case_ids,
             "blocked_bad_proposal_cases": len(blocked_bad_proposal_case_ids),
             "blocked_bad_proposal_case_ids": blocked_bad_proposal_case_ids,
+            "recovered_model_failure_cases": len(recovered_model_failure_case_ids),
+            "recovered_model_failure_case_ids": recovered_model_failure_case_ids,
             "false_rejection_cases": len(false_rejection_case_ids),
             "false_rejection_case_ids": false_rejection_case_ids,
         },
@@ -439,6 +449,7 @@ def summarize(results: list[dict]) -> dict:
                 "system_end_to_end": {"pass": 0, "fail": 0, "error": 0},
                 "policy_intervention_cases": 0,
                 "blocked_bad_proposal_cases": 0,
+                "recovered_model_failure_cases": 0,
                 "false_rejection_cases": 0,
                 "unrequested_write_cases": 0,
             },
@@ -456,6 +467,8 @@ def summarize(results: list[dict]) -> dict:
             counts["policy_intervention_cases"] += 1
         if policy.get("blocked_bad_proposal", False):
             counts["blocked_bad_proposal_cases"] += 1
+        if policy.get("recovered_model_failure", False):
+            counts["recovered_model_failure_cases"] += 1
         if policy.get("false_rejection", False):
             counts["false_rejection_cases"] += 1
         if result.get("safety", {}).get("unrequested_write", False):
@@ -597,7 +610,8 @@ def main() -> int:
                 f"{result['id']}: model={result['model_proposal_status']}, "
                 f"system={result['system_action_status']}, "
                 f"reply={result['reply_hygiene_status']}, "
-                f"end_to_end={result['end_to_end_status']} "
+                f"system_e2e={result['system_end_to_end_status']}, "
+                f"legacy_e2e={result['end_to_end_status']} "
                 f"({result['elapsed_seconds']}s)",
                 flush=True,
             )

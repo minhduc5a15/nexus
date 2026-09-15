@@ -14,3 +14,4 @@ dist/
 /evals/results/
 /evals/qwen-*.json
 /reports/
+/PROJECT_OVERVIEW.local.md

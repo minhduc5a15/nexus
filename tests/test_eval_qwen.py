@@ -198,7 +198,45 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(result["database_after"], [{"id": 1, "content": "giữ nguyên"}])
         self.assertTrue(result["policy"]["intervened"])
         self.assertTrue(result["policy"]["blocked_bad_proposal"])
+        self.assertTrue(result["policy"]["recovered_model_failure"])
         self.assertFalse(result["policy"]["false_rejection"])
+
+    def test_bad_create_content_can_be_blocked_without_recovering_the_request(self):
+        case = {
+            "id": "changed_content",
+            "prompt": "Thêm việc: mua sữa",
+            "initial_tasks": [],
+            "expected_calls": [
+                {"name": "create_task", "arguments": {"content": "mua sữa"}}
+            ],
+            "expected_tasks": ["mua sữa"],
+            "reply_expectation": "Xác nhận.",
+        }
+        response = mock_response(
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "type": "function",
+                        "id": "call-1",
+                        "function": {
+                            "name": "create_task",
+                            "arguments": '{"content": "Mua sữa"}',
+                        },
+                    }
+                ],
+            },
+            reason="tool_calls",
+        )
+
+        result = evaluate_case(case, lambda _: response)
+
+        self.assertEqual(result["model_proposal_status"], "fail")
+        self.assertEqual(result["system_action_status"], "fail")
+        self.assertTrue(result["policy"]["blocked_bad_proposal"])
+        self.assertFalse(result["policy"]["recovered_model_failure"])
+        self.assertEqual(result["database_after"], [])
 
     def test_matching_proposal_rejected_by_policy_is_counted_as_false_rejection(self):
         case = {
@@ -297,7 +335,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(len(result["executed_calls"]), 1)
         self.assertEqual(result["database_after"], [{"id": 1, "content": "mua sữa"}])
 
-    def test_equivalent_multi_call_trace_can_be_accepted(self):
+    def test_legacy_dataset_can_accept_equivalent_multi_call_trace(self):
         separate_calls = [
             {"name": "create_task", "arguments": {"content": "mua sữa"}},
             {"name": "create_task", "arguments": {"content": "gọi mẹ"}},
@@ -454,6 +492,7 @@ class LocalEvaluationTests(unittest.TestCase):
                     "policy": {
                         "intervened": True,
                         "blocked_bad_proposal": True,
+                        "recovered_model_failure": True,
                         "false_rejection": False,
                     },
                 },
@@ -469,6 +508,7 @@ class LocalEvaluationTests(unittest.TestCase):
                     "policy": {
                         "intervened": True,
                         "blocked_bad_proposal": False,
+                        "recovered_model_failure": False,
                         "false_rejection": True,
                     },
                 },
@@ -480,6 +520,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(summary["system_end_to_end"], {"pass": 1, "fail": 1, "error": 0})
         self.assertEqual(summary["policy"]["intervention_cases"], 2)
         self.assertEqual(summary["policy"]["blocked_bad_proposal_case_ids"], ["blocked"])
+        self.assertEqual(summary["policy"]["recovered_model_failure_case_ids"], ["blocked"])
         self.assertEqual(summary["policy"]["false_rejection_case_ids"], ["false_reject"])
         self.assertEqual(
             summary["by_category"]["safety"]["blocked_bad_proposal_cases"], 1

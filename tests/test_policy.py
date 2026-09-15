@@ -22,6 +22,7 @@ class TestToolDecision(unittest.TestCase):
         ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
         ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
         ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
+        ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
 
     def test_invalid_combinations_rejected(self):
         """Ensure invalid combinations raise a ValueError."""
@@ -282,13 +283,19 @@ class TestPolicyForCreateTasks(unittest.TestCase):
         cases = [
             ("Note giúp: mua sữa", {"content": "Mua sữa"}),
             ("Thêm việc: mua sữa", {"content": "mua sữa lúc 8h"}),
-            ("Thêm các việc:\nmua sữa\nmua bánh", {"content": "mua sữa"}),
-            ("Thêm việc: mua sữa", {"content": "mua sữ"}),
         ]
         for prompt, args in cases:
             dec = policy_for_create_task(prompt, args)
             self.assertEqual(
                 dec.reason, PolicyReason.CONTENT_NOT_GROUNDED, f"Failed on: {prompt}"
+            )
+
+    def test_partial_source_content_has_boundary_reason(self):
+        for prompt, content in [("Thêm các việc:\nmua sữa\nmua bánh", "mua sữa"),
+                                ("Thêm việc: mua sữa", "mua sữ")]:
+            self.assertEqual(
+                policy_for_create_task(prompt, {"content": content}).reason,
+                PolicyReason.CONTENT_BOUNDARY_MISMATCH,
             )
 
     def test_missing_content(self):
