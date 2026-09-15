@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from nexus.agent.client import PostToolExecutionError
 from nexus.cli.main import default_database_path, main
-from nexus.storage.sqlite_db import create_task, list_tasks
+from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 
 class CliTests(unittest.TestCase):
@@ -91,9 +91,123 @@ class CliTests(unittest.TestCase):
         database_path = data_home / "nexus" / "nexus.db"
         self.assertEqual(result, 0)
         self.assertTrue(database_path.is_file())
-        self.assertEqual([task.content for task in list_tasks(database_path)], ["mua sữa"])
+        self.assertEqual(
+            [task.content for task in list_tasks(database_path)], ["mua sữa"]
+        )
 
-    def test_ask_reports_a_committed_task_when_the_final_model_call_fails(self):
+    def test_ask_create_success_prints_only_single_reply_without_duplicate(self):
+        def success_turn(database_path, *_args, **_kwargs):
+            task = create_task(database_path, "mua sữa")
+            return {
+                "calls": [
+                    {
+                        "name": "create_task",
+                        "arguments": {"content": "mua sữa"},
+                        "result": {"tasks": [{"id": task.id, "content": task.content}]},
+                    }
+                ],
+                "proposed_calls": [],
+                "authorized_calls": [],
+                "rejected_calls": [],
+                "reply": f"Đã thêm [{task.id}] {task.content}",
+            }
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "ask", "Thêm mua sữa"]
+        with (
+            patch.object(sys, "argv", argv),
+            patch(
+                "nexus.agent.client.run_turn", side_effect=success_turn
+            ) as mocked_turn,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_turn.assert_called_once()
+        self.assertEqual(stdout.getvalue(), "\nAI: Đã thêm [1] mua sữa\n")
+        self.assertNotIn("Đã thêm qua AI", stdout.getvalue())
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
+        )
+
+    def test_ask_list_success_prints_only_formatter_output_without_stats(self):
+        initialize_database(self.database_path)
+        create_task(self.database_path, "mua sữa")
+
+        def success_turn(database_path, *_args, **_kwargs):
+            tasks = list_tasks(database_path)
+            return {
+                "calls": [
+                    {
+                        "name": "list_tasks",
+                        "arguments": {},
+                        "result": {
+                            "tasks": [{"id": t.id, "content": t.content} for t in tasks]
+                        },
+                    }
+                ],
+                "proposed_calls": [],
+                "authorized_calls": [],
+                "rejected_calls": [],
+                "reply": "Danh sách hiện có 1 việc:\n[1] mua sữa",
+            }
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "ask", "Xem việc"]
+        with (
+            patch.object(sys, "argv", argv),
+            patch(
+                "nexus.agent.client.run_turn", side_effect=success_turn
+            ) as mocked_turn,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_turn.assert_called_once()
+        self.assertEqual(
+            stdout.getvalue(), "\nAI: Danh sách hiện có 1 việc:\n[1] mua sữa\n"
+        )
+        self.assertNotIn("AI đã xem", stdout.getvalue())
+
+    def test_ask_direct_reply_prints_model_reply_once(self):
+        def direct_reply_turn(*_args, **_kwargs):
+            return {
+                "calls": [],
+                "proposed_calls": [],
+                "authorized_calls": [],
+                "rejected_calls": [],
+                "reply": "Xin chào! Tôi có thể giúp gì cho bạn?",
+            }
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "ask", "Chào bạn"]
+        with (
+            patch.object(sys, "argv", argv),
+            patch(
+                "nexus.agent.client.run_turn", side_effect=direct_reply_turn
+            ) as mocked_turn,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_turn.assert_called_once()
+        self.assertEqual(
+            stdout.getvalue(), "\nAI: Xin chào! Tôi có thể giúp gì cho bạn?\n"
+        )
+        self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_ask_reports_committed_task_and_stderr_warning_on_response_formatting_error(
+        self,
+    ):
         def failed_turn(database_path, *_args, **_kwargs):
             task = create_task(database_path, "mua sữa")
             calls = [
@@ -104,7 +218,7 @@ class CliTests(unittest.TestCase):
                 }
             ]
             raise PostToolExecutionError(
-                "final_response", calls, RuntimeError("server stopped")
+                "response_formatting", calls, RuntimeError("formatting error")
             )
 
         stdout = io.StringIO()
@@ -123,8 +237,12 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result, 1)
         mocked_turn.assert_called_once()
         self.assertIn("Đã thêm qua AI [1] mua sữa", stdout.getvalue())
-        self.assertIn("đã hoàn tất", stderr.getvalue())
-        self.assertIn("không tự thử lại", stderr.getvalue())
+        self.assertIn(
+            "Chương trình không định dạng được câu trả lời, nhưng các thao tác được liệt kê phía trên đã hoàn tất. Chương trình không tự thử lại.",
+            stderr.getvalue(),
+        )
+        self.assertIn("Chi tiết: formatting error", stderr.getvalue())
+        # Verify database not written twice
         self.assertEqual(
             [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
         )

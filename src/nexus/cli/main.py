@@ -20,8 +20,9 @@ def print_tool_results(calls: list[dict]) -> int:
     """Print completed tool effects and return the number of created tasks."""
     saved_count = 0
     for call in calls:
-        name = call["name"]
-        tasks = call["result"].get("tasks", [])
+        name = call.get("name")
+        result = call.get("result")
+        tasks = result.get("tasks", []) if isinstance(result, dict) else []
         if name == "create_task":
             for task in tasks:
                 print(f"Đã thêm qua AI [{task['id']}] {task['content']}")
@@ -100,15 +101,18 @@ def main() -> int:
             print("Đang xử lý qua AI...", file=sys.stderr)
             try:
                 result = run_turn(args.db, prompt, chat)
-                saved_count += print_tool_results(result.get("calls", []))
+                for call in result.get("calls", []):
+                    if call.get("name") == "create_task":
+                        call_result = call.get("result")
+                        if isinstance(call_result, dict):
+                            saved_count += len(call_result.get("tasks", []))
                 print(f"\nAI: {result['reply']}")
             except PostToolExecutionError as error:
                 saved_count += print_tool_results(error.executed_calls)
-                stage_message = (
-                    "AI không tạo được câu trả lời cuối"
-                    if error.stage == "final_response"
-                    else "AI không hoàn tất toàn bộ các thao tác"
-                )
+                if error.stage == "response_formatting":
+                    stage_message = "Chương trình không định dạng được câu trả lời"
+                else:
+                    stage_message = "AI không hoàn tất toàn bộ các thao tác"
                 print(
                     f"{stage_message}, nhưng các thao tác được liệt kê phía trên "
                     "đã hoàn tất. Chương trình không tự thử lại.",

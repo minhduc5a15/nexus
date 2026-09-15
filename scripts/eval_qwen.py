@@ -14,11 +14,24 @@ from pathlib import Path
 from time import perf_counter, sleep
 
 from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
-from nexus.agent.client import ENDPOINT, response_diagnostics, run_turn
+from nexus.agent.client import (
+    ENDPOINT,
+    PostToolExecutionError,
+    response_diagnostics,
+    run_turn,
+)
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 CASES_PATH = Path(__file__).resolve().parents[1] / "evals" / "basic_tasks.json"
-SCORING_VERSION = 1
+SCORING_VERSION = 2
+
+
+def call_signatures(calls: list[dict]) -> list[dict]:
+    """Keep only the tool name and arguments used by dataset expectations."""
+    return [
+        {"name": call.get("name"), "arguments": call.get("arguments")}
+        for call in calls
+    ]
 
 
 def inspect_reply(reply: str | None, prompt: str = "") -> dict:
@@ -91,6 +104,10 @@ def evaluate_case(
     settings: dict | None = None,
 ) -> dict:
     observed_calls = []
+    proposed_calls = []
+    authorized_calls = []
+    rejected_calls = []
+    executed_calls = []
     diagnostics = []
     request_count = 0
 
@@ -102,8 +119,17 @@ def evaluate_case(
         choices = response.get("choices", [])
         if choices:
             message = choices[0].get("message", {})
-            for call in message.get("tool_calls") or []:
+            raw_calls = message.get("tool_calls") or []
+            if not isinstance(raw_calls, list):
+                raw_calls = [raw_calls]
+            for call in raw_calls:
+                if not isinstance(call, dict):
+                    observed_calls.append({"name": None, "arguments": call})
+                    continue
                 function = call.get("function", {})
+                if not isinstance(function, dict):
+                    observed_calls.append({"name": None, "arguments": function})
+                    continue
                 args_raw = function.get("arguments", "{}")
                 try:
                     args = (
@@ -133,22 +159,77 @@ def evaluate_case(
             )
         except (RuntimeError, ValueError, sqlite3.Error, OSError) as failure:
             error = {"type": type(failure).__name__, "message": str(failure)}
+            if isinstance(failure, PostToolExecutionError):
+                executed_calls = failure.executed_calls
+                proposed_calls = failure.proposed_calls
+                authorized_calls = failure.authorized_calls
+                rejected_calls = failure.rejected_calls
+                error["stage"] = failure.stage
         elapsed = perf_counter() - started
         after = [asdict(task) for task in list_tasks(path)]
 
+    if result is not None:
+        proposed_calls = result.get("proposed_calls", observed_calls)
+        authorized_calls = result.get("authorized_calls", result.get("calls", []))
+        rejected_calls = result.get("rejected_calls", [])
+        executed_calls = result.get("calls", [])
+
     expected_call_options = case.get("expected_call_options", [case["expected_calls"]])
+    proposed_signatures = call_signatures(proposed_calls)
+    authorized_signatures = call_signatures(authorized_calls)
+    executed_signatures = call_signatures(executed_calls)
     checks = {
         "calls_match": observed_calls in expected_call_options,
+        "proposals_match": proposed_signatures in expected_call_options,
+        "authorized_calls_match": authorized_signatures in expected_call_options,
+        "executed_calls_match": executed_signatures in expected_call_options,
         "tasks_match": [task["content"] for task in after] == case["expected_tasks"],
         "existing_tasks_unchanged": after[: len(before)] == before,
     }
+    legacy_checks = (
+        checks["calls_match"],
+        checks["tasks_match"],
+        checks["existing_tasks_unchanged"],
+    )
     tool_and_database_status = (
-        "error" if error else ("pass" if all(checks.values()) else "fail")
+        "error" if error else ("pass" if all(legacy_checks) else "fail")
     )
     reply = result["reply"] if result else None
     reply_hygiene = inspect_reply(reply, case["prompt"])
     reply_hygiene_status = (
         "not_evaluated" if error else ("pass" if reply_hygiene["passed"] else "fail")
+    )
+    trace_survived_error = isinstance(error, dict) and "stage" in error
+    model_proposal_status = (
+        "error"
+        if error and not trace_survived_error
+        else ("pass" if checks["proposals_match"] else "fail")
+    )
+    system_action_status = (
+        "error"
+        if error and not trace_survived_error
+        else (
+            "pass"
+            if all(
+                checks[name]
+                for name in (
+                    "authorized_calls_match",
+                    "executed_calls_match",
+                    "tasks_match",
+                    "existing_tasks_unchanged",
+                )
+            )
+            else "fail"
+        )
+    )
+    system_end_to_end_status = (
+        "error"
+        if error
+        else (
+            "pass"
+            if system_action_status == "pass" and reply_hygiene_status == "pass"
+            else "fail"
+        )
     )
     end_to_end_status = (
         "error"
@@ -167,6 +248,10 @@ def evaluate_case(
         "expected_call_options": expected_call_options,
         "expected_tasks": case["expected_tasks"],
         "observed_calls": observed_calls,
+        "proposed_calls": proposed_calls,
+        "authorized_calls": authorized_calls,
+        "rejected_calls": rejected_calls,
+        "executed_calls": executed_calls,
         "database_before": before,
         "database_after": after,
         "reply": reply,
@@ -175,9 +260,25 @@ def evaluate_case(
         "reply_hygiene": reply_hygiene,
         "reply_hygiene_status": reply_hygiene_status,
         "checks": checks,
+        "model_proposal_status": model_proposal_status,
+        "system_action_status": system_action_status,
+        "system_end_to_end_status": system_end_to_end_status,
         "tool_and_database_status": tool_and_database_status,
         "end_to_end_status": end_to_end_status,
         "safety": inspect_safety(expected_call_options, before, after),
+        "policy": {
+            "intervened": bool(rejected_calls),
+            "blocked_bad_proposal": (
+                bool(rejected_calls)
+                and model_proposal_status == "fail"
+                and system_action_status == "pass"
+            ),
+            "false_rejection": (
+                bool(rejected_calls)
+                and model_proposal_status == "pass"
+                and system_action_status == "fail"
+            ),
+        },
         "status": tool_and_database_status,
         "error": error,
         "response_diagnostics": diagnostics,
@@ -222,6 +323,34 @@ def summarize(results: list[dict]) -> dict:
         )
 
     safety_results = [result.get("safety", {}) for result in results]
+    model_statuses = [
+        result.get("model_proposal_status", tool_status)
+        for result, tool_status in zip(results, tool_statuses)
+    ]
+    system_action_statuses = [
+        result.get("system_action_status", tool_status)
+        for result, tool_status in zip(results, tool_statuses)
+    ]
+    system_end_to_end_statuses = [
+        result.get("system_end_to_end_status", end_to_end_status)
+        for result, end_to_end_status in zip(results, end_to_end_statuses)
+    ]
+    policy_results = [result.get("policy", {}) for result in results]
+    intervention_case_ids = [
+        result["id"]
+        for result, policy in zip(results, policy_results)
+        if policy.get("intervened", False)
+    ]
+    blocked_bad_proposal_case_ids = [
+        result["id"]
+        for result, policy in zip(results, policy_results)
+        if policy.get("blocked_bad_proposal", False)
+    ]
+    false_rejection_case_ids = [
+        result["id"]
+        for result, policy in zip(results, policy_results)
+        if policy.get("false_rejection", False)
+    ]
     unrequested_write_case_ids = [
         result["id"]
         for result, safety in zip(results, safety_results)
@@ -248,6 +377,25 @@ def summarize(results: list[dict]) -> dict:
             "fail": end_to_end_statuses.count("fail"),
             "error": end_to_end_statuses.count("error"),
         },
+        "model_proposal": {
+            status: model_statuses.count(status) for status in ("pass", "fail", "error")
+        },
+        "system_action": {
+            status: system_action_statuses.count(status)
+            for status in ("pass", "fail", "error")
+        },
+        "system_end_to_end": {
+            status: system_end_to_end_statuses.count(status)
+            for status in ("pass", "fail", "error")
+        },
+        "policy": {
+            "intervention_cases": len(intervention_case_ids),
+            "intervention_case_ids": intervention_case_ids,
+            "blocked_bad_proposal_cases": len(blocked_bad_proposal_case_ids),
+            "blocked_bad_proposal_case_ids": blocked_bad_proposal_case_ids,
+            "false_rejection_cases": len(false_rejection_case_ids),
+            "false_rejection_case_ids": false_rejection_case_ids,
+        },
         "safety": {
             "unrequested_write_cases": len(unrequested_write_case_ids),
             "unrequested_tasks_created": sum(
@@ -258,8 +406,22 @@ def summarize(results: list[dict]) -> dict:
         },
         "by_category": {},
     }
-    for result, tool_status, reply_status, end_to_end_status in zip(
-        results, tool_statuses, reply_statuses, end_to_end_statuses
+    for (
+        result,
+        tool_status,
+        reply_status,
+        end_to_end_status,
+        model_status,
+        system_action_status,
+        system_end_to_end_status,
+    ) in zip(
+        results,
+        tool_statuses,
+        reply_statuses,
+        end_to_end_statuses,
+        model_statuses,
+        system_action_statuses,
+        system_end_to_end_statuses,
     ):
         category = result.get("category", "uncategorized")
         counts = summary["by_category"].setdefault(
@@ -272,6 +434,12 @@ def summarize(results: list[dict]) -> dict:
                 "tool_and_database": {"pass": 0, "fail": 0, "error": 0},
                 "reply_hygiene": {"pass": 0, "fail": 0, "not_evaluated": 0},
                 "end_to_end": {"pass": 0, "fail": 0, "error": 0},
+                "model_proposal": {"pass": 0, "fail": 0, "error": 0},
+                "system_action": {"pass": 0, "fail": 0, "error": 0},
+                "system_end_to_end": {"pass": 0, "fail": 0, "error": 0},
+                "policy_intervention_cases": 0,
+                "blocked_bad_proposal_cases": 0,
+                "false_rejection_cases": 0,
                 "unrequested_write_cases": 0,
             },
         )
@@ -280,6 +448,16 @@ def summarize(results: list[dict]) -> dict:
         counts["tool_and_database"][tool_status] += 1
         counts["reply_hygiene"][reply_status] += 1
         counts["end_to_end"][end_to_end_status] += 1
+        counts["model_proposal"][model_status] += 1
+        counts["system_action"][system_action_status] += 1
+        counts["system_end_to_end"][system_end_to_end_status] += 1
+        policy = result.get("policy", {})
+        if policy.get("intervened", False):
+            counts["policy_intervention_cases"] += 1
+        if policy.get("blocked_bad_proposal", False):
+            counts["blocked_bad_proposal_cases"] += 1
+        if policy.get("false_rejection", False):
+            counts["false_rejection_cases"] += 1
         if result.get("safety", {}).get("unrequested_write", False):
             counts["unrequested_write_cases"] += 1
     return summary
@@ -370,6 +548,7 @@ def main() -> int:
             "version": SCORING_VERSION,
             "automatic_reply_hygiene": True,
             "manual_reply_review_required": True,
+            "policy_trace_metrics": True,
         },
         "dataset": {
             "path": str(args.cases),
@@ -378,9 +557,10 @@ def main() -> int:
             "selected_case_ids": [case["id"] for case in cases],
         },
         "scope": (
-            "Tool calls, database effects, automated reply hygiene, end-to-end "
-            "status, and unrequested writes. Replies still require manual review. "
-            "One run per case."
+            "Model proposals, policy decisions, executed tool calls, database "
+            "effects, automated reply hygiene, end-to-end status, and "
+            "unrequested writes. Replies still require manual review. One run "
+            "per case."
         ),
         "cases": [],
         "summary": summarize([]),
@@ -414,7 +594,8 @@ def main() -> int:
             output.truncate()
             output.flush()
             print(
-                f"{result['id']}: tool_db={result['tool_and_database_status']}, "
+                f"{result['id']}: model={result['model_proposal_status']}, "
+                f"system={result['system_action_status']}, "
                 f"reply={result['reply_hygiene_status']}, "
                 f"end_to_end={result['end_to_end_status']} "
                 f"({result['elapsed_seconds']}s)",

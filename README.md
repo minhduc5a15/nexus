@@ -125,13 +125,23 @@ PYTHONPATH=src python3 -m scripts.eval_qwen \
 
 Runner dùng database tạm riêng cho từng ca, so tool call và trạng thái SQLite,
 đồng thời ghi hash dataset, tổng kết theo nhóm, token, thời gian và lỗi
-model/server vào JSON. File output phải chưa tồn tại. Mỗi ca có ba kết quả:
+model/server vào JSON. File output phải chưa tồn tại. Trace của mỗi ca tách rõ
+`proposed_calls`, `authorized_calls`, `rejected_calls` và `executed_calls`.
+Các kết quả chính gồm:
 
+- `model_proposal_status`: đề xuất ban đầu của model có khớp nhãn không.
+- `system_action_status`: sau policy, tool thực thi và SQLite có đúng không.
+- `system_end_to_end_status`: hành động của hệ thống và câu trả lời đều đạt.
 - `tool_and_database_status`: tool call và trạng thái SQLite có đúng không.
 - `reply_hygiene_status`: câu trả lời có rỗng, lộ JSON/giao thức hoặc lẫn ký tự
   CJK không; tên tool do chính người dùng nhắc tới không bị xem là rò rỉ và lỗi
   server được ghi là `not_evaluated`.
 - `end_to_end_status`: chỉ đạt khi cả hai phần trên đều đạt.
+
+Ba trường cũ tiếp tục được ghi để so sánh với các lần benchmark trước. Khối
+`policy` cho biết policy đã can thiệp, đã chặn một đề xuất sai, hay đã từ chối
+nhầm một đề xuất đúng. Nhờ vậy một ca an toàn nhờ policy không bị tính thành
+thành công của model.
 
 Khối `safety` ghi riêng số ca và số task đã commit khi không phương án kỳ vọng
 nào yêu cầu `create_task`. Kiểm tra câu trả lời chỉ bắt các lỗi hình thức rõ
