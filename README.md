@@ -185,3 +185,17 @@ LIST nhận cả yêu cầu xem và câu hỏi về task đã lưu, nhưng khôn
 câu ví dụ hoặc lời kể chỉ nhắc đến danh sách. Grammar vẫn hữu hạn; chưa bảo đảm
 hiểu mọi cách diễn đạt tiếng Việt. Các trường hợp không chứng minh được quyền
 hoặc ranh giới nội dung vẫn bị từ chối.
+
+## Demo có thể chạy trực tiếp
+
+Các script tại [`scripts/demo/`](scripts/demo/README.md) lần lượt minh họa CLI,
+policy, agent offline, Qwen thật, benchmark và cách đọc báo cáo. Bắt đầu bằng:
+
+```sh
+./scripts/demo/01_cli.sh
+./scripts/demo/02_policy.sh
+./scripts/demo/03_agent_offline.sh
+```
+
+Demo tự dùng database riêng trong `evals/results/demos/`. Hướng dẫn chạy AI và
+chọn ca benchmark nằm trong README của thư mục demo.
