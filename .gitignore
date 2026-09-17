@@ -15,3 +15,8 @@ dist/
 /evals/qwen-*.json
 /reports/
 /PROJECT_OVERVIEW.local.md
+/tools/discord-bot/.env
+/tools/discord-bot/state.json*
+/tools/discord-bot/node_modules/
+/tools/*
+!/tools/discord-bot/

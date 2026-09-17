@@ -164,3 +164,15 @@ FEW_SHOT_MESSAGES["v7"] = [
         ),
     },
 ]
+
+# Experiment: preserve v4's rules and CREATE examples; separate the two
+# no-tool decisions from the actual user-facing replies.
+SYSTEM_PROMPTS["v8"] = SYSTEM_PROMPTS["v4"].replace(
+    "Hành vi đúng: không gọi tool; hỏi người dùng có muốn thêm việc đó không.",
+    'Hành động: không gọi tool.\n'
+    'Câu trả lời cho người dùng: Bạn có muốn tôi thêm việc "Mua sữa." vào danh sách không?',
+).replace(
+    "Hành vi đúng: không gọi tool; nói rằng thao tác này chưa được hỗ trợ.",
+    "Hành động: không gọi tool.\n"
+    "Câu trả lời cho người dùng: Tôi chưa hỗ trợ đánh dấu hoàn thành.",
+)

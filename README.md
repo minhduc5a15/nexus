@@ -161,7 +161,27 @@ payload. V6 chưa phải mặc định của CLI; `run_turn` vẫn dùng v1 khi 
 
 V7 giữ nguyên v6 và thêm một system message reset sau các ví dụ. Probe cho thấy
 reset dạng văn bản không ngăn được model dùng task mẫu như dữ liệu hiện tại,
-nên v7 chỉ được giữ để tái tạo thí nghiệm và chưa được benchmark toàn bộ.
+nên chưa thể xem reset là giải pháp tổng quát. Trong lượt benchmark dataset v2
+ngày 2026-09-16, v7 đạt 19/20 hành động và 18/20 đầu cuối tự động; v4 đạt
+20/20 hành động và 17/20 đầu cuối. Đây là tập phát triển có câu trùng ví dụ.
+
+V8 là thí nghiệm từ v4: chỉ thay hai ví dụ không gọi tool bằng phần hành động
+và câu trả lời mẫu riêng biệt. Các quy tắc và hai ví dụ CREATE giữ nguyên.
+Mục tiêu là tránh model đọc nguyên chỉ dẫn “không gọi tool; hỏi người dùng…”.
+Benchmark đối chứng ngày 2026-09-17 cho v8 đạt 19/20 hành động và 19/20 đầu
+cuối, hygiene 20/20. Hai phản hồi mục tiêu đã đúng, nhưng `list_colloquial`
+không gọi LIST và còn lặp nhãn “Câu trả lời cho người dùng”. V8 chưa đạt tiêu
+chí giữ 20/20 hành động của v4; CLI vẫn mặc định v1. Để so sánh từ terminal
+có server đang chạy:
+
+```sh
+./scripts/demo/05_benchmark.sh --prompt-version v4 --temperature 0
+./scripts/demo/05_benchmark.sh --prompt-version v8 --temperature 0
+./scripts/demo/05_benchmark.sh --prompt-version v7 --temperature 0
+```
+
+Chạy từng lệnh kể cả khi lệnh trước trả mã 1 do ca trượt. Mỗi lệnh tự tạo
+output riêng, không ghi đè báo cáo cũ.
 
 ## Policy: cấp quyền và kiểm tra nguồn nội dung
 
