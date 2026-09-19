@@ -127,6 +127,17 @@ PYTHONPATH=src python3 -m scripts.eval_qwen \
   --output evals/results/current-scope-run.json
 ```
 
+Bộ `evals/generalization_holdout_v1.json` có 92 ca mới, được gắn nhãn và
+kiểm tra trùng câu trước lần chạy model đầu tiên. Nó kiểm tra cách diễn đạt
+CREATE/LIST khác tập 20 ca, nội dung nguyên văn, một dòng/nhiều dòng, lời kể,
+phủ định và thao tác chưa hỗ trợ. Lượt đo đầu chạy v1/v4/v8 với temperature 0;
+xem `notes/24-generalization-holdout-v1-2026-09-17.md` và
+`evals/results/generalization-holdout-2026-09-17/run-01/comparison.md`.
+Kết quả này được dùng để chẩn đoán, không dùng chỉnh prompt/policy theo từng câu;
+đây là dữ liệu tự soạn, chưa thay thế đánh giá từ cách nói thực tế của người dùng.
+Trong lượt đo, chỉ số `unrequested_write` bằng 0 nhưng có ca CREATE lưu cả lời
+lịch sự vào nội dung task; phải xem thêm `tasks_match` và `database_after`.
+
 Runner dùng database tạm riêng cho từng ca, so tool call và trạng thái SQLite,
 đồng thời ghi hash dataset, tổng kết theo nhóm, token, thời gian và lỗi
 model/server vào JSON. File output phải chưa tồn tại. Trace của mỗi ca tách rõ
