@@ -63,6 +63,7 @@ class LocalProbeTests(unittest.TestCase):
         )
         self.assertFalse(result["tool_check_passed"])
         self.assertEqual(result["tool_round"]["database_after"], [])
+        self.assertNotIn("Đã thêm", result["tool_round"]["reply"])
 
     def test_truncated_tool_call_is_never_executed(self):
         responses = iter(
@@ -88,7 +89,43 @@ class LocalProbeTests(unittest.TestCase):
                 lambda _: response({"role": "assistant", "content": "Chào bạn!"}),
             )
             self.assertEqual(turn["calls"], [])
-            self.assertEqual(turn["reply"], "Chào bạn!")
+            self.assertEqual(turn["status"], "no_tool")
+            self.assertEqual(turn["model_reply"], "Chào bạn!")
+            self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
+
+    def test_model_cannot_claim_create_or_list_without_a_tool_call(self):
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "test.db"
+            initialize_database(db_path)
+            for prompt, raw_calls, claim in [
+                ("Thêm việc: mua sữa", None, "Đã thêm mua sữa."),
+                ("Xem danh sách", [], "Danh sách trống."),
+            ]:
+                with self.subTest(prompt=prompt):
+                    message = {"role": "assistant", "content": claim}
+                    if raw_calls is not None:
+                        message["tool_calls"] = raw_calls
+                    turn = run_turn(db_path, prompt, lambda _: response(message))
+                    self.assertEqual(turn["status"], "no_tool")
+                    self.assertEqual(turn["calls"], [])
+                    self.assertEqual(turn["model_reply"], claim)
+                    self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
+                    self.assertEqual(list_tasks(db_path), [])
+
+    def test_tool_finish_reason_without_calls_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "test.db"
+            initialize_database(db_path)
+            for raw_calls in (None, []):
+                with self.subTest(raw_calls=raw_calls):
+                    message = {"role": "assistant", "content": "Đã lưu rồi."}
+                    if raw_calls is not None:
+                        message["tool_calls"] = raw_calls
+                    turn = run_turn(db_path, "Thêm việc: mua sữa",
+                                    lambda _: response(message, "tool_calls"))
+                    self.assertEqual(turn["status"], "rejected")
+                    self.assertEqual(turn["rejected_calls"][0]["reason"], "invalid_arguments")
+                    self.assertEqual(list_tasks(db_path), [])
 
     def test_v6_uses_structured_examples_without_executing_them(self):
         requests = []
@@ -120,7 +157,9 @@ class LocalProbeTests(unittest.TestCase):
                 "proposed_calls": [],
                 "authorized_calls": [],
                 "rejected_calls": [],
-                "reply": "Chào bạn!",
+                "status": "no_tool",
+                "model_reply": "Chào bạn!",
+                "reply": "Không có thao tác nào được thực hiện.",
             },
         )
         execute.assert_not_called()
@@ -222,6 +261,7 @@ class LocalProbeTests(unittest.TestCase):
             self.assertEqual(len(turn["proposed_calls"]), 2)
             self.assertEqual(len(turn["rejected_calls"]), 2)
             self.assertEqual(turn["authorized_calls"], [])
+            self.assertEqual(turn["status"], "rejected")
             self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
             self.assertEqual(list_tasks(db_path), [])
 
@@ -276,6 +316,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
             ],
         )
         self.assertEqual(turn["rejected_calls"], [])
+        self.assertEqual(turn["status"], "executed")
         self.assertEqual(turn["reply"], "Đã thêm [1] mua sữa")
         tasks = list_tasks(self.db_path)
         self.assertEqual(len(tasks), 1)
@@ -318,6 +359,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         )
         self.assertEqual(turn["rejected_calls"], [])
         self.assertEqual(turn["reply"], "Danh sách hiện có 1 việc:\n[1] học bài")
+        self.assertEqual(turn["status"], "executed")
 
     def test_bare_statement_converted_to_create_task_does_not_mutate_db(self):
         call_resp = response(
@@ -425,6 +467,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(turn["rejected_calls"][0]["result"], "needs_clarification")
         self.assertEqual(turn["rejected_calls"][0]["reason"], "missing_content")
         self.assertEqual(turn["reply"], "Bạn muốn thêm việc gì?")
+        self.assertEqual(turn["status"], "needs_clarification")
         self.assertEqual(list_tasks(self.db_path), [])
 
     def test_unsupported_tool_blocked(self):
@@ -549,7 +592,8 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
             self.assertEqual(turn["proposed_calls"], [])
             self.assertEqual(turn["authorized_calls"], [])
             self.assertEqual(turn["rejected_calls"], [])
-            self.assertEqual(turn["reply"], "Chào bạn!")
+            self.assertEqual(turn["status"], "no_tool")
+            self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
 
     def test_generate_is_called_exactly_once_across_all_turn_branches(self):
         # Case A: Direct reply -> exactly 1 generate call
@@ -558,7 +602,8 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         )
         turn = run_turn(self.db_path, "Chào bạn!", mock_gen_direct)
         mock_gen_direct.assert_called_once()
-        self.assertEqual(turn["reply"], "Chào bạn!")
+        self.assertEqual(turn["status"], "no_tool")
+        self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
 
         # Case B: Rejected call -> exactly 1 generate call
         mock_gen_reject = unittest.mock.Mock(

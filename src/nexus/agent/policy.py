@@ -69,7 +69,7 @@ _H = r"[^\S\r\n]+"
 _NUMBER_WORD = r"(?:một|hai|ba|bốn|tư|năm|sáu|bảy|tám|chín|mười|mươi|trăm|nghìn|ngàn|lẻ|linh)"
 _COUNT = rf"(?:[0-9]+|{_NUMBER_WORD}(?:{_H}{_NUMBER_WORD})*)"
 _OBJECT = rf"(?:(?:các|những|{_COUNT}){_H})?(?:việc|task)\b"
-_COURTESY = rf"giúp(?:{_H}{_PRONOUN})?\b"
+_COURTESY = rf"(?:giúp|giùm|hộ)(?:{_H}{_PRONOUN})?\b"
 # "sau" is framing only immediately before a delimiter (or a complete line
 # instruction). In "Thêm việc sau giờ làm", it remains part of the task.
 _LINE_INSTRUCTION = rf"[^\S\r\n]*,{_H}mỗi{_H}dòng{_H}một{_H}việc\b"
@@ -78,11 +78,13 @@ _INTRO = (
     rf"{_OBJECT}(?:(?:{_H}sau\b)?{_LINE_INSTRUCTION}{_FRAME_END}"
     rf"|{_H}sau\b{_FRAME_END})?"
 )
+_REQUEST_PREFACE = rf"(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn|nhờ{_H}bạn|bạn|{_PRONOUN}{_H}muốn|nhớ){_H})?"
 _CREATE_HEAD = re.compile(
-    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng){_H})?(?:"
-    rf"(?:thêm|ghi(?:{_H}lại)?|lưu){_H}(?:{_COURTESY}{_H})?{_INTRO}"
+    rf"^\s*{_REQUEST_PREFACE}(?:"
+    rf"(?:thêm|ghi(?:{_H}lại)?|lưu|tạo){_H}(?:{_COURTESY}{_H})?{_INTRO}"
     rf"|note{_H}{_COURTESY}(?:{_H}{_INTRO})?"
     rf"|bỏ{_H}vào{_H}todo\b"
+    rf"|(?P<give>cho{_H}{_OBJECT})"
     rf")(?=\s|:|[.!?]?$)",
     re.IGNORECASE,
 )
@@ -95,8 +97,12 @@ _UNSUPPORTED = re.compile(
     r"(?:\w+\s+){0,2}(?:task|việc|danh sách|todo)\b", re.IGNORECASE,
 )
 _META = re.compile(r"\b(?:ví dụ|giải thích|chỉ là câu|có nghĩa là)\b", re.IGNORECASE)
-_SUFFIX = re.compile(
-    rf"(?:{_H}(?:vào{_H}danh{_H}sách|giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*",
+_SUFFIX_WORD = re.compile(
+    rf"(?:vào{_H}danh{_H}sách|giúp{_H}{_PRONOUN}|được{_H}không|nhé|với)$",
+    re.IGNORECASE,
+)
+_GIVE_END = re.compile(
+    rf"{_H}vào{_H}danh{_H}sách(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
     re.IGNORECASE,
 )
 
@@ -131,8 +137,10 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
     opening = re.match(
         rf"^(?:(?:hãy|xin|vui lòng)\s+)?(?:"
         rf"xem|mở|hiển thị|liệt kê|show|kiểm tra|cho\s+{_PRONOUN}\s+(?:xem|biết)"
+        rf"|bạn\s+đọc\s+lại|{_PRONOUN}\s+(?:muốn\s+xem\s+lại|còn)"
         rf"|{_PRONOUN}\s+đã\s+(?:ghi|lưu|note)"
-        rf"|danh sách|todo|task|có những việc nào)\b", p
+        rf"|tính\s+đến\s+giờ\s+{_PRONOUN}\s+đã\s+(?:ghi|lưu|note)"
+        rf"|danh sách|todo|task|có những việc (?:nào|gì))\b", p
     )
     if opening is None:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
@@ -151,8 +159,10 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
         "có gì không",
         "có gì",
         "việc gì",
+        "task nào",
+        "đọc lại",
     ]
-    object_words = ["danh sách", "todo", "task", "đã ghi", "đã lưu", "đã note"]
+    object_words = ["danh sách", "todo", "task", "các việc", "đã ghi", "đã lưu", "đã note"]
 
     has_intent = any(iw in p for iw in intent_words)
     has_object = any(ow in p for ow in object_words)
@@ -170,6 +180,7 @@ class _CreateRequest:
     content_start: int
     content_end: int
     literal: bool
+    optional_punctuation_end: int
 
 
 def _authorize_create(prompt: str) -> _CreateRequest | ToolDecision:
@@ -184,6 +195,8 @@ def _authorize_create(prompt: str) -> _CreateRequest | ToolDecision:
     # A delimiter counts only immediately after the request header. Colons in
     # task text (C++: vector, 8:00) cannot switch the parsing mode.
     tail = prompt[head.end():]
+    if head.group('give') and not _GIVE_END.search(tail):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
     delimiter = re.match(r"[^\S\r\n]*(?::|\r\n|\r|\n)", tail)
     literal = delimiter is not None
     start = head.end() + (delimiter.end() if delimiter else 0)
@@ -199,9 +212,25 @@ def _authorize_create(prompt: str) -> _CreateRequest | ToolDecision:
         if _META.search(prompt[start:end]):
             return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
 
-    if start >= end or (not literal and _SUFFIX.fullmatch(prompt[head.end():])):
+    optional_punctuation_end = end
+    if not literal:
+        punctuation = re.search(r"[.?!]+$", prompt[start:end])
+        if punctuation:
+            end = start + punctuation.start()
+        suffix_removed = False
+        while suffix := _SUFFIX_WORD.search(prompt, start, end):
+            if suffix.start() > start and not prompt[suffix.start() - 1].isspace():
+                break
+            end = suffix.start()
+            while end > start and prompt[end - 1].isspace():
+                end -= 1
+            suffix_removed = True
+        if suffix_removed:
+            optional_punctuation_end = end
+
+    if start >= end:
         return ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT)
-    return _CreateRequest(start, end, literal)
+    return _CreateRequest(start, end, literal, optional_punctuation_end)
 
 
 def _ground_content(prompt: str, content: str, request: _CreateRequest) -> ToolDecision:
@@ -212,10 +241,10 @@ def _ground_content(prompt: str, content: str, request: _CreateRequest) -> ToolD
 
     while start >= 0:
         end = start + len(content)
-        if start == request.content_start and end <= request.content_end:
-            remainder = prompt[end:request.content_end]
-            if not remainder or (not request.literal and _SUFFIX.fullmatch(remainder)):
-                return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE)
+        if start == request.content_start and end in (
+            request.content_end, request.optional_punctuation_end
+        ):
+            return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE)
         start = prompt.find(content, start + 1)
     return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
 

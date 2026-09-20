@@ -101,9 +101,13 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 ```
 
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Một call
-`create_task` có thể chứa nhiều dòng. Sau khi tool thành công, formatter Python
-tạo câu trả lời từ dữ liệu thật. Một tool có thể đã commit vào SQLite trước khi
-formatter gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
+`create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
+Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
+Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
+được giữ trong trace chẩn đoán, không dùng làm lời xác nhận cho người dùng.
+`run_turn` trả `status` (`no_tool`, `rejected`, `needs_clarification`, `executed`)
+cùng trace các call. Một tool có thể đã commit vào SQLite trước khi formatter
+gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
 tự retry. Hãy xem danh sách trước khi gửi lại yêu cầu để tránh tạo task trùng.
 
 ## Kiểm thử và benchmark hiện tại
@@ -137,6 +141,13 @@ Kết quả này được dùng để chẩn đoán, không dùng chỉnh prompt
 đây là dữ liệu tự soạn, chưa thay thế đánh giá từ cách nói thực tế của người dùng.
 Trong lượt đo, chỉ số `unrequested_write` bằng 0 nhưng có ca CREATE lưu cả lời
 lịch sự vào nội dung task; phải xem thêm `tasks_match` và `database_after`.
+
+Sau bản sửa policy, replay đúng response cũ trên holdout v1 đưa false rejection
+v1/v4/v8 từ 6/11/7 về 0 và không còn ghi thừa lời lịch sự. Bộ mới
+`evals/generalization_holdout_v2.json` có 56 ca được chốt trước khi chạy model:
+v4 đạt 35 proposal đúng, 34 hành động đúng, còn 4 false rejection và không
+ghi task sai. Xem `notes/25-policy-coverage-boundary-holdout-v2.md` và artifact
+trong `evals/results/policy-generalization-2026-09-20/` (cả hai chỉ lưu cục bộ).
 
 Runner dùng database tạm riêng cho từng ca, so tool call và trạng thái SQLite,
 đồng thời ghi hash dataset, tổng kết theo nhóm, token, thời gian và lỗi

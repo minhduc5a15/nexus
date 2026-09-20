@@ -1,0 +1,986 @@
+[
+  {
+    "id": "authorization_01",
+    "category": "authorization",
+    "prompt": "Nhờ bạn thêm việc sửa chân bàn",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "sửa chân bàn"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "sửa chân bàn"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_02",
+    "category": "authorization",
+    "prompt": "Bạn lưu hộ tôi việc kiểm tra phanh xe",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "kiểm tra phanh xe"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "kiểm tra phanh xe"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_03",
+    "category": "authorization",
+    "prompt": "Mình muốn ghi lại việc gửi biên lai",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "gửi biên lai"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "gửi biên lai"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_04",
+    "category": "authorization",
+    "prompt": "Tạo task đóng cửa sổ",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đóng cửa sổ"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đóng cửa sổ"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_05",
+    "category": "authorization",
+    "prompt": "Cho việc đổi pin đồng hồ vào danh sách",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đổi pin đồng hồ"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đổi pin đồng hồ"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_06",
+    "category": "authorization",
+    "prompt": "Làm ơn note giúp mình việc mang ô",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mang ô"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mang ô"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_07",
+    "category": "authorization",
+    "prompt": "Thêm giùm tui việc rửa nồi",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "rửa nồi"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "rửa nồi"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_08",
+    "category": "authorization",
+    "prompt": "Nhớ ghi hộ mình việc đặt lịch khám",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đặt lịch khám"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đặt lịch khám"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_09",
+    "category": "authorization",
+    "prompt": "Bạn ghi lại giúp tui việc gửi bưu thiếp được không?",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "gửi bưu thiếp"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "gửi bưu thiếp"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_10",
+    "category": "authorization",
+    "prompt": "Phiền bạn thêm việc thay nước bình hoa",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "thay nước bình hoa"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "thay nước bình hoa"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_11",
+    "category": "authorization",
+    "prompt": "Ghi dùm mình việc mua giấy nhám",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mua giấy nhám"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mua giấy nhám"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "authorization_12",
+    "category": "authorization",
+    "prompt": "Cho tôi lưu việc kiểm kê hộp thuốc",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "kiểm kê hộp thuốc"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "kiểm kê hộp thuốc"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_01",
+    "category": "canonical_boundary",
+    "prompt": "Ghi việc lau gương với.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "lau gương"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "lau gương"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_02",
+    "category": "canonical_boundary",
+    "prompt": "Lưu task đổi bóng tuýp giúp tôi!",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đổi bóng tuýp"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đổi bóng tuýp"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_03",
+    "category": "canonical_boundary",
+    "prompt": "Bạn thêm việc mua khăn giấy vào danh sách nhé.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mua khăn giấy"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mua khăn giấy"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_04",
+    "category": "canonical_boundary",
+    "prompt": "Thêm việc đi lấy ảnh được không?",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đi lấy ảnh"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đi lấy ảnh"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_05",
+    "category": "canonical_boundary",
+    "prompt": "Ghi việc đọc sách với em.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đọc sách với em"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đọc sách với em"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_06",
+    "category": "canonical_boundary",
+    "prompt": "Lưu task luyện hội thoại nhé.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "luyện hội thoại"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "luyện hội thoại"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_07",
+    "category": "canonical_boundary",
+    "prompt": "Ghi lại việc mang tập tin giúp tui?",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mang tập tin"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mang tập tin"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_08",
+    "category": "canonical_boundary",
+    "prompt": "Thêm việc mua bút và dán nhãn vào danh sách.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mua bút và dán nhãn"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mua bút và dán nhãn"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_09",
+    "category": "canonical_boundary",
+    "prompt": "Thêm việc đi ngủ lúc 22:00 với.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đi ngủ lúc 22:00"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đi ngủ lúc 22:00"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "canonical_boundary_10",
+    "category": "canonical_boundary",
+    "prompt": "Bạn lưu việc thay bộ lọc vào danh sách giúp mình nhé!",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "thay bộ lọc"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "thay bộ lọc"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_01",
+    "category": "literal_boundary",
+    "prompt": "Thêm việc: gọi bố nhé.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "gọi bố nhé."
+        }
+      }
+    ],
+    "expected_tasks": [
+      "gọi bố nhé."
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_02",
+    "category": "literal_boundary",
+    "prompt": "Ghi task: Nhớ mở cửa với.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "Nhớ mở cửa với."
+        }
+      }
+    ],
+    "expected_tasks": [
+      "Nhớ mở cửa với."
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_03",
+    "category": "literal_boundary",
+    "prompt": "Lưu việc: Ôn SQL: window function",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "Ôn SQL: window function"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "Ôn SQL: window function"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_04",
+    "category": "literal_boundary",
+    "prompt": "Thêm task: đi lúc 08:30, về lúc 18:00",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đi lúc 08:30, về lúc 18:00"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đi lúc 08:30, về lúc 18:00"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_05",
+    "category": "literal_boundary",
+    "prompt": "Ghi việc:\n  nhắc về thuốc giúp mình.  ",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "nhắc về thuốc giúp mình."
+        }
+      }
+    ],
+    "expected_tasks": [
+      "nhắc về thuốc giúp mình."
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_06",
+    "category": "literal_boundary",
+    "prompt": "Lưu task: sửa câu “xóa task” trong tài liệu",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "sửa câu “xóa task” trong tài liệu"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "sửa câu “xóa task” trong tài liệu"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_07",
+    "category": "literal_boundary",
+    "prompt": "Thêm việc: mua dầu ăn & nước rửa chén",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mua dầu ăn & nước rửa chén"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mua dầu ăn & nước rửa chén"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "literal_boundary_08",
+    "category": "literal_boundary",
+    "prompt": "Ghi việc: đọc A/B test và viết ghi chú",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đọc A/B test và viết ghi chú"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đọc A/B test và viết ghi chú"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_01",
+    "category": "multiline",
+    "prompt": "Ghi các việc:\nmua bánh mì\nthay pin chuột",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "mua bánh mì\nthay pin chuột"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "mua bánh mì",
+      "thay pin chuột"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_02",
+    "category": "multiline",
+    "prompt": "Lưu hai task sau, mỗi dòng một việc:\ntrả dù\nđọc tài liệu Docker",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "trả dù\nđọc tài liệu Docker"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "trả dù",
+      "đọc tài liệu Docker"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_03",
+    "category": "multiline",
+    "prompt": "Thêm việc:\nkiểm tra bếp\n\nkhóa cửa",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "kiểm tra bếp\n\nkhóa cửa"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "kiểm tra bếp",
+      "khóa cửa"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_04",
+    "category": "multiline",
+    "prompt": "Ghi lại các việc sau:\nĐọc báo.\nGửi email.",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "Đọc báo.\nGửi email."
+        }
+      }
+    ],
+    "expected_tasks": [
+      "Đọc báo.",
+      "Gửi email."
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_05",
+    "category": "multiline",
+    "prompt": "Thêm việc:\nđọc C++: vector\nđọc Python: asyncio",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "đọc C++: vector\nđọc Python: asyncio"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "đọc C++: vector",
+      "đọc Python: asyncio"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "multiline_06",
+    "category": "multiline",
+    "prompt": "Lưu các task:\nrửa xe và bơm lốp\nlau bàn, ghế",
+    "initial_tasks": [],
+    "expected_calls": [
+      {
+        "name": "create_task",
+        "arguments": {
+          "content": "rửa xe và bơm lốp\nlau bàn, ghế"
+        }
+      }
+    ],
+    "expected_tasks": [
+      "rửa xe và bơm lốp",
+      "lau bàn, ghế"
+    ],
+    "reply_expectation": "Xác nhận đúng việc đã lưu."
+  },
+  {
+    "id": "list_01",
+    "category": "list",
+    "prompt": "Liệt kê các việc của tui đi.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_02",
+    "category": "list",
+    "prompt": "Cho tôi biết đã ghi những task nào?",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_03",
+    "category": "list",
+    "prompt": "Tui muốn xem lại danh sách việc.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_04",
+    "category": "list",
+    "prompt": "Bạn đọc lại những việc mình đã lưu nhé.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_05",
+    "category": "list",
+    "prompt": "Có những việc gì tôi đã ghi rồi?",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_06",
+    "category": "list",
+    "prompt": "Tính đến giờ mình đã note những gì?",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_07",
+    "category": "list",
+    "prompt": "Xem giúp tui danh sách task hiện tại.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_08",
+    "category": "list",
+    "prompt": "Mình còn việc nào trong todo?",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_09",
+    "category": "list",
+    "prompt": "Phiền bạn cho xem danh sách việc đã lưu.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "list_10",
+    "category": "list",
+    "prompt": "Đọc cho mình nghe các việc đã ghi.",
+    "initial_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "expected_calls": [
+      {
+        "name": "list_tasks",
+        "arguments": {}
+      }
+    ],
+    "expected_tasks": [
+      "đặt báo thức",
+      "mua bột mì"
+    ],
+    "reply_expectation": "Nêu đúng danh sách đã lưu."
+  },
+  {
+    "id": "no_tool_01",
+    "category": "no_tool",
+    "prompt": "Tôi chỉ nói ví dụ “Tạo task xếp sách”, đừng làm thật.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_02",
+    "category": "no_tool",
+    "prompt": "Đừng thêm việc thay bóng đèn.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_03",
+    "category": "no_tool",
+    "prompt": "Không cần lưu task mua táo.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_04",
+    "category": "no_tool",
+    "prompt": "Tôi đã ghi việc mua bánh hôm qua.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_05",
+    "category": "no_tool",
+    "prompt": "Cho việc đọc sách.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_06",
+    "category": "no_tool",
+    "prompt": "Tạo task nhé, lát nữa gửi nội dung.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_07",
+    "category": "no_tool",
+    "prompt": "Phiền bạn xóa task giặt áo.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_08",
+    "category": "no_tool",
+    "prompt": "Bạn sửa task trả sách thành trả truyện.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_09",
+    "category": "no_tool",
+    "prompt": "Có những việc gì giúp tôi tập trung hơn?",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  },
+  {
+    "id": "no_tool_10",
+    "category": "no_tool",
+    "prompt": "Tôi kể câu “Liệt kê các việc của tui đi” làm ví dụ.",
+    "initial_tasks": [
+      "việc cũ"
+    ],
+    "expected_calls": [],
+    "expected_tasks": [
+      "việc cũ"
+    ],
+    "reply_expectation": "Không nói đã thực hiện thao tác ngoài yêu cầu."
+  }
+]

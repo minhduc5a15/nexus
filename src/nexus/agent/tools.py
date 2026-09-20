@@ -3,7 +3,7 @@
 from dataclasses import asdict
 from pathlib import Path
 
-from nexus.storage.sqlite_db import create_task, list_tasks
+from nexus.storage.sqlite_db import create_tasks, list_tasks
 
 
 # Internal tool descriptions. A provider adapter can wrap these as needed.
@@ -62,17 +62,10 @@ def execute_tool(
             raise ValueError("content must be a nonblank string")
         
         lines = content.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-        tasks = []
-        for line in lines:
-            if line.strip():
-                task = create_task(database_path, line)
-                if task:
-                    tasks.append(asdict(task))
-                    
-        if not tasks:
+        nonblank = [line for line in lines if line.strip()]
+        if not nonblank:
             raise ValueError("content must contain at least one nonblank line")
-            
-        return {"tasks": tasks}
+        return {"tasks": [asdict(task) for task in create_tasks(database_path, nonblank)]}
 
     if arguments:
         raise ValueError("list_tasks does not accept arguments")

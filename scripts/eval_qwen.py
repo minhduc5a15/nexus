@@ -196,6 +196,12 @@ def evaluate_case(
     )
     reply = result["reply"] if result else None
     reply_hygiene = inspect_reply(reply, case["prompt"])
+    model_reply = result.get("model_reply") if result else None
+    model_reply_hygiene = (
+        inspect_reply(model_reply, case["prompt"])
+        if isinstance(model_reply, str)
+        else None
+    )
     reply_hygiene_status = (
         "not_evaluated" if error else ("pass" if reply_hygiene["passed"] else "fail")
     )
@@ -255,6 +261,8 @@ def evaluate_case(
         "database_before": before,
         "database_after": after,
         "reply": reply,
+        "model_reply": model_reply,
+        "model_reply_hygiene": model_reply_hygiene,
         "reply_expectation": case["reply_expectation"],
         "reply_review": "pending_manual_review",
         "reply_hygiene": reply_hygiene,

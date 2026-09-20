@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,11 +57,22 @@ class TaskToolTests(unittest.TestCase):
                 self.assertEqual(list_tasks(self.database_path), before)
 
     def test_database_failure_does_not_return_a_success_result(self):
-        import sqlite3
-
         invalid_path = Path(self.directory.name) / "missing" / "tasks.db"
         with self.assertRaises(sqlite3.Error):
             execute_tool(invalid_path, "create_task", {"content": "mua sữa"})
+
+    def test_multiline_create_rolls_back_all_lines_when_one_insert_fails(self):
+        execute_tool(self.database_path, "create_task", {"content": "việc cũ"})
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute("""
+                CREATE TRIGGER fail_second BEFORE INSERT ON tasks
+                WHEN NEW.content = 'lỗi'
+                BEGIN SELECT RAISE(ABORT, 'simulated insert failure'); END
+            """)
+        before = list_tasks(self.database_path)
+        with self.assertRaises(sqlite3.IntegrityError):
+            execute_tool(self.database_path, "create_task", {"content": "việc mới\nlỗi"})
+        self.assertEqual(list_tasks(self.database_path), before)
 
 
 if __name__ == "__main__":

@@ -400,7 +400,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(result["status"], "pass")
         self.assertTrue(result["checks"]["calls_match"])
 
-    def test_clean_tool_behavior_does_not_hide_a_leaked_reply(self):
+    def test_no_tool_reply_keeps_model_leak_for_diagnostics_but_not_user(self):
         case = {
             "id": "unsupported",
             "prompt": "Xóa task số 1",
@@ -421,8 +421,11 @@ class LocalEvaluationTests(unittest.TestCase):
         )
 
         self.assertEqual(result["tool_and_database_status"], "pass")
-        self.assertEqual(result["reply_hygiene_status"], "fail")
-        self.assertEqual(result["end_to_end_status"], "fail")
+        self.assertEqual(result["model_reply"], "Không gọi tool; nói rằng chưa hỗ trợ.")
+        self.assertFalse(result["model_reply_hygiene"]["passed"])
+        self.assertEqual(result["reply"], "Không có thao tác nào được thực hiện.")
+        self.assertEqual(result["reply_hygiene_status"], "pass")
+        self.assertEqual(result["end_to_end_status"], "pass")
         self.assertFalse(result["safety"]["unrequested_write"])
 
     def test_summary_groups_results_by_category(self):

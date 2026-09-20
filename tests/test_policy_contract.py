@@ -69,6 +69,69 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(policy_for_tool(prompt, 'create_task', {'content': 'sau giờ làm'}).result, PolicyResult.ALLOW)
         self.assertEqual(policy_for_tool(prompt, 'create_task', {'content': 'giờ làm'}).reason.value, 'content_boundary_mismatch')
 
+    def test_request_frames_generalize_to_new_task_text(self):
+        create_cases = [
+            ('Nhờ bạn lưu việc kiểm tra ổ cắm', 'kiểm tra ổ cắm'),
+            ('Bạn ghi giúp tui việc trả chìa khóa', 'trả chìa khóa'),
+            ('Cho task xếp hồ sơ vào danh sách', 'xếp hồ sơ'),
+            ('Tạo task tưới cây ban công', 'tưới cây ban công'),
+            ('Note hộ mình việc gọi thợ điện', 'gọi thợ điện'),
+            ('Làm ơn thêm việc lau quạt.', 'lau quạt'),
+            ('Tôi muốn lưu việc giặt khăn.', 'giặt khăn'),
+            ('Nhớ ghi hộ tôi việc mua băng keo nhé.', 'mua băng keo'),
+            ('Thêm giùm tui việc gửi thư với.', 'gửi thư'),
+            ('Bạn ghi lại giúp tôi việc thay ổ khóa được không?', 'thay ổ khóa'),
+        ]
+        for prompt, content in create_cases:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(policy_for_tool(prompt, 'create_task', {'content': content}).result, PolicyResult.ALLOW)
+
+        list_cases = [
+            'Liệt kê các việc của tôi đi.',
+            'Cho tui biết đã lưu những task nào?',
+            'Mình muốn xem lại danh sách công việc.',
+            'Bạn đọc lại những việc tôi đã ghi được không?',
+            'Có những việc gì mình đã note rồi?',
+        ]
+        for prompt in list_cases:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(policy_for_tool(prompt, 'list_tasks', {}).result, PolicyResult.ALLOW)
+
+    def test_natural_suffix_is_never_task_content(self):
+        cases = [
+            ('Lưu task thay lõi bút với.', 'thay lõi bút với'),
+            ('Ghi việc rửa cốc giúp tui.', 'rửa cốc giúp tui'),
+            ('Thêm việc kiểm tra đèn vào danh sách nhé!', 'kiểm tra đèn vào danh sách'),
+            ('Bạn ghi việc lấy áo được không?', 'lấy áo được không'),
+        ]
+        for prompt, content in cases:
+            with self.subTest(prompt=prompt):
+                args = {'content': content}
+                before = deepcopy(args)
+                decision = policy_for_tool(prompt, 'create_task', args)
+                self.assertEqual(decision.result, PolicyResult.REJECT)
+                self.assertEqual(decision.reason.value, 'content_boundary_mismatch')
+                self.assertEqual(args, before)
+
+        # A delimiter makes all following text literal, including courtesy words.
+        self.assertEqual(policy_for_tool('Thêm việc: rửa cốc với.', 'create_task',
+                                         {'content': 'rửa cốc với.'}).result, PolicyResult.ALLOW)
+        self.assertEqual(policy_for_tool('Cho việc rửa cốc', 'create_task',
+                                         {'content': 'rửa cốc'}).result, PolicyResult.REJECT)
+
+    def test_natural_suffix_false_allow_cannot_write(self):
+        case = {'id': 'suffix', 'prompt': 'Ghi việc lau kính giúp mình.',
+                'initial_tasks': ['việc cũ'],
+                'expected_calls': [{'name': 'create_task', 'arguments': {'content': 'lau kính'}}],
+                'expected_tasks': ['việc cũ', 'lau kính'], 'reply_expectation': 'Xác nhận.'}
+        wrong = proposal_response([{'name': 'create_task', 'arguments': {'content': 'lau kính giúp mình'}}])
+        before = deepcopy(wrong)
+        result = evaluate_case(case, lambda _: wrong)
+        self.assertEqual(wrong, before)
+        self.assertEqual(result['rejected_calls'][0]['reason'], 'content_boundary_mismatch')
+        self.assertEqual(result['executed_calls'], [])
+        self.assertEqual(result['database_before'], result['database_after'])
+
     def test_substrings_must_cover_the_complete_content(self):
         cases = [
             ('Thêm việc mua sữa và gọi mẹ', 'mua sữa'),

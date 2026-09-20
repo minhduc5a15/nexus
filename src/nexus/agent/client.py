@@ -6,6 +6,7 @@ import tempfile
 import urllib.request
 from copy import deepcopy
 from dataclasses import asdict
+from enum import Enum
 from pathlib import Path
 from time import perf_counter
 
@@ -16,6 +17,13 @@ from nexus.agent.policy import PolicyResult, PolicyReason, policy_for_tool
 from nexus.agent.responses import format_tool_result
 
 ENDPOINT = os.environ.get("QWEN_ENDPOINT", "http://127.0.0.1:8087/v1/chat/completions")
+
+
+class TurnStatus(str, Enum):
+    NO_TOOL = "no_tool"
+    REJECTED = "rejected"
+    NEEDS_CLARIFICATION = "needs_clarification"
+    EXECUTED = "executed"
 
 
 class PostToolExecutionError(RuntimeError):
@@ -57,7 +65,10 @@ def complete_message(response: dict) -> dict:
     choices = response.get("choices", [])
     if not choices or choices[0].get("finish_reason") not in ("stop", "tool_calls"):
         raise RuntimeError("Local model response is incomplete")
-    return choices[0]["message"]
+    message = choices[0].get("message")
+    if not isinstance(message, dict):
+        raise RuntimeError("Local model response has no valid message")
+    return message
 
 
 def response_diagnostics(response: dict) -> dict:
@@ -113,16 +124,37 @@ def run_turn(
     authorized_calls = []
     rejected_calls = []
 
-    raw_tool_calls = message.get("tool_calls")
-
-    if raw_tool_calls is None:
+    def turn_result(status: TurnStatus, reply: str) -> dict:
+        model_reply = message.get("content")
         return {
             "calls": calls,
             "proposed_calls": proposed_calls,
             "authorized_calls": authorized_calls,
             "rejected_calls": rejected_calls,
-            "reply": message.get("content") or "",
+            "status": status.value,
+            "model_reply": model_reply if isinstance(model_reply, str) else None,
+            "reply": reply,
         }
+
+    def no_call_result() -> dict:
+        if first["choices"][0]["finish_reason"] == "tool_calls":
+            rejected_calls.append(
+                {
+                    "name": None,
+                    "arguments": None,
+                    "result": PolicyResult.REJECT.value,
+                    "reason": PolicyReason.INVALID_ARGUMENTS.value,
+                }
+            )
+            return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
+        return turn_result(TurnStatus.NO_TOOL, "Không có thao tác nào được thực hiện.")
+
+    raw_tool_calls = message.get("tool_calls")
+
+    if raw_tool_calls is None:
+        # No tool result exists, so a direct model reply cannot certify a write
+        # or the contents of the saved list. Keep it in the trace only.
+        return no_call_result()
 
     if not isinstance(raw_tool_calls, list):
         if isinstance(raw_tool_calls, dict):
@@ -154,24 +186,12 @@ def run_turn(
                 "reason": PolicyReason.INVALID_ARGUMENTS.value,
             }
         )
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": "Không có thao tác nào được thực hiện.",
-        }
+        return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
 
     tool_calls = raw_tool_calls
 
     if len(tool_calls) == 0:
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": message.get("content") or "",
-        }
+        return no_call_result()
 
     if len(tool_calls) > 1:
         for call in tool_calls:
@@ -191,13 +211,7 @@ def run_turn(
                     "reason": PolicyReason.INVALID_ARGUMENTS.value,
                 }
             )
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": "Không có thao tác nào được thực hiện.",
-        }
+        return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
 
     call = tool_calls[0]
     call_id = call.get("id") if isinstance(call, dict) else None
@@ -234,13 +248,7 @@ def run_turn(
                 "reason": PolicyReason.INVALID_ARGUMENTS.value,
             }
         )
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": "Không có thao tác nào được thực hiện.",
-        }
+        return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
 
     name = function["name"]
     arguments = parsed_args
@@ -277,13 +285,7 @@ def run_turn(
                 rejected_calls=rejected_calls,
             ) from error
 
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": reply,
-        }
+        return turn_result(TurnStatus.EXECUTED, reply)
 
     if decision.result == PolicyResult.NEEDS_CLARIFICATION:
         rejected_calls.append(
@@ -294,13 +296,7 @@ def run_turn(
                 "reason": decision.reason.value,
             }
         )
-        return {
-            "calls": calls,
-            "proposed_calls": proposed_calls,
-            "authorized_calls": authorized_calls,
-            "rejected_calls": rejected_calls,
-            "reply": "Bạn muốn thêm việc gì?",
-        }
+        return turn_result(TurnStatus.NEEDS_CLARIFICATION, "Bạn muốn thêm việc gì?")
 
     rejected_calls.append(
         {
@@ -310,13 +306,7 @@ def run_turn(
             "reason": decision.reason.value,
         }
     )
-    return {
-        "calls": calls,
-        "proposed_calls": proposed_calls,
-        "authorized_calls": authorized_calls,
-        "rejected_calls": rejected_calls,
-        "reply": "Không có thao tác nào được thực hiện.",
-    }
+    return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
 
 
 def run_probe(generate=chat) -> dict:

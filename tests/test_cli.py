@@ -175,33 +175,25 @@ class CliTests(unittest.TestCase):
         )
         self.assertNotIn("AI đã xem", stdout.getvalue())
 
-    def test_ask_direct_reply_prints_model_reply_once(self):
-        def direct_reply_turn(*_args, **_kwargs):
-            return {
-                "calls": [],
-                "proposed_calls": [],
-                "authorized_calls": [],
-                "rejected_calls": [],
-                "reply": "Xin chào! Tôi có thể giúp gì cho bạn?",
-            }
-
+    def test_ask_does_not_print_model_success_claim_without_tool(self):
         stdout = io.StringIO()
         stderr = io.StringIO()
-        argv = ["nexus", "--db", str(self.database_path), "ask", "Chào bạn"]
+        argv = ["nexus", "--db", str(self.database_path), "ask", "Thêm việc: mua sữa"]
+        fake_response = {"choices": [{"finish_reason": "stop", "message": {
+            "role": "assistant", "content": "Đã thêm mua sữa.",
+        }}]}
         with (
             patch.object(sys, "argv", argv),
-            patch(
-                "nexus.agent.client.run_turn", side_effect=direct_reply_turn
-            ) as mocked_turn,
+            patch("nexus.agent.client.chat", return_value=fake_response) as mocked_chat,
             contextlib.redirect_stdout(stdout),
             contextlib.redirect_stderr(stderr),
         ):
             result = main()
 
         self.assertEqual(result, 0)
-        mocked_turn.assert_called_once()
+        mocked_chat.assert_called_once()
         self.assertEqual(
-            stdout.getvalue(), "\nAI: Xin chào! Tôi có thể giúp gì cho bạn?\n"
+            stdout.getvalue(), "\nAI: Không có thao tác nào được thực hiện.\n"
         )
         self.assertEqual(list_tasks(self.database_path), [])
 
