@@ -14,7 +14,7 @@ from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
 from nexus.agent.policy import PolicyResult, PolicyReason, policy_for_tool
-from nexus.agent.responses import format_tool_result
+from nexus.agent.responses import format_rejection, format_tool_result
 
 ENDPOINT = os.environ.get("QWEN_ENDPOINT", "http://127.0.0.1:8087/v1/chat/completions")
 
@@ -24,6 +24,7 @@ class TurnStatus(str, Enum):
     REJECTED = "rejected"
     NEEDS_CLARIFICATION = "needs_clarification"
     EXECUTED = "executed"
+    CANCELLED = "cancelled"
 
 
 class PostToolExecutionError(RuntimeError):
@@ -306,7 +307,7 @@ def run_turn(
             "reason": decision.reason.value,
         }
     )
-    return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
+    return turn_result(TurnStatus.REJECTED, format_rejection(decision.reason))
 
 
 def run_probe(generate=chat) -> dict:

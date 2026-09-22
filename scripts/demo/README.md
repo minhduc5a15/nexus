@@ -8,11 +8,12 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | --- | --- | --- |
 | `01_cli.sh` | Thêm một dòng, nhiều dòng, bỏ dòng trống, giữ task trùng, xem danh sách | Không |
 | `02_policy.sh` | 11 prompt/proposal mẫu và quyết định allow/reject/needs_clarification kèm reason | Không |
-| `03_agent_offline.sh` | Trace model giả lập → policy thật → tool thật → SQLite thật → reply | Không |
-| `04_ai.sh` | Output Qwen thật, toàn bộ trace và database sau mỗi lượt | Có |
+| `03_agent_offline.sh` | Từng bước request/response giả lập → proposal → policy thật → tool thật → SQLite trước/sau → reply | Không |
+| `04_ai.sh` | Cùng luồng với Qwen thật; in trace và SQLite trước/sau mỗi lượt | Có |
 | `05_benchmark.sh` | Chạy scoring v2, in summary và reply từng ca | Có |
 | `06_tests.sh` | Tên từng unit test và kết quả | Không |
 | `07_report.sh` | Đọc report JSON có sẵn, không gọi lại model | Không |
+| `08_session.sh` | CREATE thiếu nội dung → hỏi lại → lưu nhiều dòng → hủy → LIST; cho thấy trạng thái session | Không |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -20,6 +21,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/01_cli.sh
 ./scripts/demo/02_policy.sh
 ./scripts/demo/03_agent_offline.sh
+./scripts/demo/08_session.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -28,7 +30,15 @@ không phải bằng chứng về năng lực Qwen.
 
 `03_agent_offline.sh` dùng cùng database demo qua các lượt. Lượt đầu tạo một
 task, lượt nhiều dòng tạo thêm hai task; các proposal sai tiếp theo bị chặn và
-không làm đổi dữ liệu. Cuối cùng `list_tasks` đọc đúng ba task đó.
+không làm đổi dữ liệu. Cuối cùng `list_tasks` đọc đúng ba task đó. Console in
+theo thứ tự: SQLite trước lượt, request gửi model, response thô, proposal đã
+giải mã, quyết định policy, tool đã chạy, trạng thái/reply và SQLite sau lượt.
+`trace.json` giữ cả model request/response để mở lại sau.
+
+`08_session.sh` minh họa phần hội thoại hai lượt mới. Lệnh CREATE thiếu nội
+dung không gọi model; tin nhắn kế tiếp được lưu nguyên văn thành hai task. Demo
+cho thấy hủy yêu cầu đang chờ và một lệnh LIST mới. Chỉ lượt LIST dùng response
+model giả lập; SQLite và các nhánh session là thật.
 
 ## Chạy AI thật
 
@@ -47,6 +57,15 @@ Terminal thứ nhất:
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
 xem danh sách, rồi đưa một câu trần thuật. Cấu hình là prompt `v1`, temperature
 `0`; kết quả thực tế phụ thuộc model.
+
+Để tự gõ nhiều yêu cầu và xem trace từng lượt trên cùng một database demo:
+
+```sh
+./scripts/demo/04_ai.sh --interactive
+```
+
+Gõ `/exit` hoặc nhấn `Ctrl+D` để kết thúc. Đây vẫn là các lượt `run_turn` độc
+lập, chưa phải `AgentSession`; danh sách SQLite được giữ trong suốt phiên demo.
 
 Có thể đưa câu của bạn:
 
@@ -99,7 +118,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script `01`, `03`, `04`, `05` tạo thư mục riêng dưới
+Các script `01`, `03`, `04`, `05`, `08` tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 

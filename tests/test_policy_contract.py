@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nexus.agent.policy import PolicyResult, policy_for_tool
+from nexus.agent.policy import PolicyResult, RequestKind, classify_request, policy_for_tool
 from scripts.eval_qwen import evaluate_case
 
 DATASET = Path(__file__).resolve().parents[1] / 'evals/current_scope_tasks_v2.json'
@@ -21,6 +21,26 @@ def proposal_response(calls):
 
 
 class PolicyContractTests(unittest.TestCase):
+    def test_request_kind_reuses_policy_framing_for_session(self):
+        cases = [
+            ('Thêm việc.', RequestKind.MISSING_CREATE),
+            ('Ghi việc:', RequestKind.MISSING_CREATE),
+            ('Thêm việc: sửa xe', RequestKind.CREATE),
+            ('Thêm việc ví dụ mua sữa', RequestKind.CREATE),
+            ('Xem danh sách', RequestKind.LIST),
+            ('Xem danh sách việc đã thêm', RequestKind.LIST),
+            ('Xóa task cũ', RequestKind.UNSUPPORTED),
+            ('Đừng thêm việc sửa xe', RequestKind.NEGATED),
+            ('Đừng xem danh sách', RequestKind.NEGATED),
+            ('đừng quên mua sữa', RequestKind.OTHER),
+            ('sửa xe', RequestKind.OTHER),
+            ('xóa file nháp', RequestKind.OTHER),
+            ('mua sữa', RequestKind.OTHER),
+        ]
+        for prompt, expected in cases:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(classify_request(prompt), expected)
+
     def test_four_false_rejections_through_real_runtime(self):
         cases = json.loads(DATASET.read_text())
         for case in cases:

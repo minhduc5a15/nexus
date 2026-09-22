@@ -25,6 +25,17 @@ class PolicyReason(str, Enum):
     CONTENT_BOUNDARY_MISMATCH = "content_boundary_mismatch"
 
 
+class RequestKind(str, Enum):
+    """Request framing used by the session; not a tool authorization."""
+
+    CREATE = "create"
+    MISSING_CREATE = "missing_create"
+    LIST = "list"
+    UNSUPPORTED = "unsupported"
+    NEGATED = "negated"
+    OTHER = "other"
+
+
 @dataclass(frozen=True)
 class ToolDecision:
     result: PolicyResult
@@ -103,6 +114,30 @@ _SUFFIX_WORD = re.compile(
 )
 _GIVE_END = re.compile(
     rf"{_H}vào{_H}danh{_H}sách(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_UNSUPPORTED_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn|bạn){_H})?"
+    rf"(?:(?:xóa|sửa|hoàn{_H}thành|đánh{_H}dấu|cập{_H}nhật|"
+    rf"đổi{_H}tên|sắp{_H}xếp){_H}(?:\w+{_H}){{0,2}}"
+    rf"(?:task|việc|danh{_H}sách|todo)\b"
+    rf"|đặt{_H}nhắc{_H}nhở\b|tắt{_H}thông{_H}báo\b)",
+    re.IGNORECASE,
+)
+_NEGATED_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}(?:"
+    rf"(?:thêm|ghi|lưu|note|tạo){_H}(?:{_COURTESY}{_H})?{_OBJECT}"
+    rf"|(?:xem|mở|hiển{_H}thị|liệt{_H}kê){_H}(?:danh{_H}sách|todo|task)"
+    rf")\b",
+    re.IGNORECASE,
+)
+_LIST_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?"
+    rf"(?:(?:xem|mở|hiển{_H}thị|liệt{_H}kê|show|kiểm{_H}tra){_H}"
+    rf"|cho{_H}{_PRONOUN}{_H}(?:xem|biết){_H})"
+    rf"(?:danh{_H}sách|todo|task|các{_H}việc|những{_H}việc|"
+    rf"việc{_H}đã{_H}(?:ghi|lưu|note))\b",
     re.IGNORECASE,
 )
 
@@ -231,6 +266,31 @@ def _authorize_create(prompt: str) -> _CreateRequest | ToolDecision:
     if start >= end:
         return ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT)
     return _CreateRequest(start, end, literal, optional_punctuation_end)
+
+
+def classify_request(prompt: Any) -> RequestKind:
+    """Recognize a new command before consuming a pending CREATE follow-up."""
+    if not isinstance(prompt, str) or not prompt.strip():
+        return RequestKind.OTHER
+    create = _authorize_create(prompt)
+    if isinstance(create, _CreateRequest):
+        return RequestKind.CREATE
+    if create.result == PolicyResult.NEEDS_CLARIFICATION:
+        return RequestKind.MISSING_CREATE
+    listed = policy_for_list_tasks(prompt, {})
+    if listed.result == PolicyResult.ALLOW:
+        return RequestKind.LIST
+    if _NEGATED_COMMAND_HEAD.match(prompt):
+        return RequestKind.NEGATED
+    # A clearly framed new command supersedes pending content even if the
+    # stricter tool policy will reject it after model proposal.
+    if _CREATE_HEAD.match(prompt):
+        return RequestKind.CREATE
+    if _LIST_COMMAND_HEAD.match(prompt):
+        return RequestKind.LIST
+    if _UNSUPPORTED_HEAD.match(prompt):
+        return RequestKind.UNSUPPORTED
+    return RequestKind.OTHER
 
 
 def _ground_content(prompt: str, content: str, request: _CreateRequest) -> ToolDecision:

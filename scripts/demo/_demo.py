@@ -6,6 +6,7 @@ from pathlib import Path
 
 from nexus.agent.client import ENDPOINT, PostToolExecutionError, run_turn
 from nexus.agent.policy import policy_for_tool
+from nexus.agent.session import AgentSession
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from scripts.eval_qwen import send_chat
 
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def dump(value):
-    print(json.dumps(value, ensure_ascii=False, indent=2))
+    print(json.dumps(value, ensure_ascii=False, indent=2), flush=True)
 
 
 def policy_demo():
@@ -48,7 +49,21 @@ def fake_response(calls):
     }}]}
 
 
-def agent_demo(directory, live, prompt):
+def interactive_examples():
+    print('Nhập từng yêu cầu một dòng; /exit hoặc Ctrl+D để kết thúc.', flush=True)
+    while True:
+        try:
+            prompt = input('NEXUS > ')
+        except EOFError:
+            print()
+            return
+        if prompt.strip().lower() == '/exit':
+            return
+        if prompt.strip():
+            yield prompt, None
+
+
+def agent_demo(directory, live, prompt, interactive=False):
     database = directory / 'tasks.db'
     initialize_database(database)
     settings = {'model': 'qwen3-1.7b-q8_0', 'temperature': 0,
@@ -56,10 +71,13 @@ def agent_demo(directory, live, prompt):
                 'chat_template_kwargs': {'enable_thinking': False}}
     if live:
         print(f'Endpoint: {ENDPOINT}\nPrompt: v1; temperature: 0')
-        inputs = [prompt] if prompt is not None else [
-            'Thêm việc: mua sữa', 'Xem danh sách', 'Mua bánh.',
-        ]
-        examples = [(text, None) for text in inputs]
+        if interactive:
+            examples = interactive_examples()
+        else:
+            inputs = [prompt] if prompt is not None else [
+                'Thêm việc: mua sữa', 'Xem danh sách', 'Mua bánh.',
+            ]
+            examples = [(text, None) for text in inputs]
     else:
         examples = [
             ('Thêm việc mua sữa vào danh sách giúp tôi.',
@@ -79,33 +97,104 @@ def agent_demo(directory, live, prompt):
         print(f'\n=== Người dùng: {text} ===', flush=True)
         before = [asdict(task) for task in list_tasks(database)]
         record = {'prompt': text, 'database_before': before, 'error': None}
+        print('0. SQLite trước lượt:')
+        dump(before)
+
+        def generate(payload):
+            record['model_request'] = payload
+            print('1. Gửi tới Qwen:' if live else '1. Request cho model giả lập:',
+                  flush=True)
+            dump({'prompt_version': 'v1', 'temperature': settings['temperature'],
+                  'tools': [tool['function']['name'] for tool in payload['tools']],
+                  'user_message': payload['messages'][-1]['content']})
+            response = send_chat(ENDPOINT, payload) if live else fake_response(calls)
+            record['model_response'] = response
+            choice = response['choices'][0]
+            message = choice['message']
+            print('2. Qwen trả về (chưa được thực thi):' if live
+                  else '2. Response giả lập (chưa được thực thi):', flush=True)
+            dump({'finish_reason': choice.get('finish_reason'),
+                  'content': message.get('content'),
+                  'tool_calls': message.get('tool_calls', [])})
+            return response
+
         try:
-            generate = (lambda payload: send_chat(ENDPOINT, payload)) if live else (
-                lambda payload: fake_response(calls)
-            )
             turn = run_turn(database, text, generate, prompt_version='v1', settings=settings)
             record.update(turn)
-            for key in ('proposed_calls', 'authorized_calls', 'rejected_calls', 'calls'):
-                print(f'{key}:')
-                dump(turn[key])
-            print(f"AI: {turn['reply']}")
+            print('3. Proposal đã giải mã:')
+            dump(turn['proposed_calls'])
+            print('4. Policy (cho phép / từ chối và reason):')
+            dump({'authorized_calls': turn['authorized_calls'],
+                  'rejected_calls': turn['rejected_calls']})
+            print('5. Tool đã thực thi:')
+            dump(turn['calls'])
+            print(f"6. Trạng thái: {turn['status']}; phản hồi ứng dụng: {turn['reply']}",
+                  flush=True)
         except (RuntimeError, ValueError, OSError) as error:
             record['error'] = {'type': type(error).__name__, 'message': str(error)}
             if isinstance(error, PostToolExecutionError):
                 record['calls'] = error.executed_calls
-                print('Các tool đã hoàn tất:')
+                print('5. Tool đã hoàn tất trước lỗi:')
                 dump(error.executed_calls)
-            print(f'Lỗi: {error}')
+            print(f'Lỗi: {error}', flush=True)
             if live:
                 print('Nếu chưa chạy server, mở terminal khác và chạy scripts/start_qwen.sh.')
         record['database_after'] = [asdict(task) for task in list_tasks(database)]
-        print('Database sau lượt này:')
+        print('7. SQLite sau lượt:')
         dump(record['database_after'])
         turns.append(record)
         (directory / 'trace.json').write_text(json.dumps(turns, ensure_ascii=False, indent=2)+'\n')
         if record['error']:
             return 1
+    (directory / 'trace.json').write_text(json.dumps(turns, ensure_ascii=False, indent=2)+'\n')
     print(f'\nTrace: {directory / "trace.json"}\nSQLite: {database}')
+    return 0
+
+
+def session_demo(directory):
+    database = directory / 'tasks.db'
+    initialize_database(database)
+    session = AgentSession(database, settings={'model': 'demo', 'temperature': 0})
+    examples = [
+        'Thêm việc',
+        'mua sữa\ngọi mẹ',
+        'Thêm việc',
+        'thôi',
+        'Xem danh sách',
+    ]
+    turns = []
+
+    def generate(payload):
+        print('Model giả lập được gọi cho lệnh LIST.', flush=True)
+        return fake_response([('list_tasks', {})])
+
+    for prompt in examples:
+        before = [asdict(task) for task in list_tasks(database)]
+        pending_before = session.pending_create
+        print(f'\n=== Người dùng: {prompt} ===', flush=True)
+        print(f'Chờ nội dung CREATE trước lượt: {pending_before}')
+        print('SQLite trước lượt:')
+        dump(before)
+        result = session.run_turn(prompt, generate)
+        after = [asdict(task) for task in list_tasks(database)]
+        print(f"Nguồn: {result['source']}; trạng thái: {result['status']}")
+        print('Proposal / quyền thực thi / tool đã chạy:')
+        dump({'proposed_calls': result['proposed_calls'],
+              'authorized_calls': result['authorized_calls'],
+              'rejected_calls': result['rejected_calls'],
+              'calls': result['calls']})
+        print(f"Phản hồi: {result['reply']}")
+        print(f'Chờ nội dung CREATE sau lượt: {session.pending_create}')
+        print('SQLite sau lượt:')
+        dump(after)
+        turns.append({'prompt': prompt, 'pending_before': pending_before,
+                      'database_before': before, **result,
+                      'pending_after': session.pending_create,
+                      'database_after': after})
+
+    trace_path = directory / 'trace.json'
+    trace_path.write_text(json.dumps(turns, ensure_ascii=False, indent=2) + '\n')
+    print(f'\nTrace: {trace_path}\nSQLite: {database}')
     return 0
 
 
@@ -152,10 +241,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('policy')
-    for command in ('offline', 'live'):
+    for command in ('offline', 'live', 'session'):
         sub = commands.add_parser(command)
         sub.add_argument('--directory', type=Path, required=True)
         sub.add_argument('--prompt')
+        if command == 'live':
+            sub.add_argument('--interactive', action='store_true')
     commands.add_parser('report').add_argument('path', type=Path, nargs='?')
     args = parser.parse_args()
     try:
@@ -163,8 +254,13 @@ def main():
             policy_demo()
         elif args.command == 'report':
             report_demo(args.path)
+        elif args.command == 'session':
+            return session_demo(args.directory)
         else:
-            return agent_demo(args.directory, args.command == 'live', args.prompt)
+            if args.command == 'live' and args.interactive and args.prompt is not None:
+                parser.error('--interactive không dùng cùng --prompt')
+            return agent_demo(args.directory, args.command == 'live', args.prompt,
+                              getattr(args, 'interactive', False))
     except (ValueError, OSError) as error:
         print(f'Lỗi: {error}')
         return 1

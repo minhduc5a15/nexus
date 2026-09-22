@@ -2,6 +2,20 @@
 
 from typing import Any
 
+from nexus.agent.policy import PolicyReason
+
+
+def format_rejection(reason: PolicyReason) -> str:
+    """Describe a rejected proposal without exposing model arguments."""
+    if reason in (PolicyReason.UNSUPPORTED_ACTION, PolicyReason.UNSUPPORTED_TOOL):
+        return "NEXUS hiện chỉ hỗ trợ thêm việc và xem danh sách."
+    if reason in (
+        PolicyReason.CONTENT_NOT_GROUNDED,
+        PolicyReason.CONTENT_BOUNDARY_MISMATCH,
+    ):
+        return "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu."
+    return "Không có thao tác nào được thực hiện."
+
 
 def format_tool_result(name: str, result: Any) -> str:
     """Validate tool result structure and format deterministic response.

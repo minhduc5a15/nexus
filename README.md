@@ -106,9 +106,39 @@ Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ li�
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
 được giữ trong trace chẩn đoán, không dùng làm lời xác nhận cho người dùng.
 `run_turn` trả `status` (`no_tool`, `rejected`, `needs_clarification`, `executed`)
-cùng trace các call. Một tool có thể đã commit vào SQLite trước khi formatter
-gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất, trả exit code `1` và không
-tự retry. Hãy xem danh sách trước khi gửi lại yêu cầu để tránh tạo task trùng.
+cùng trace các call. Khi policy từ chối, ứng dụng báo rõ thao tác chưa được hỗ
+trợ hoặc nội dung không khớp lời người dùng; các lỗi định dạng và lượt không có
+tool vẫn dùng câu báo không thực hiện thao tác. Một tool có thể đã commit vào
+SQLite trước khi formatter gặp lỗi. Khi đó CLI in rõ các thao tác đã hoàn tất,
+trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gửi lại yêu
+cầu để tránh tạo task trùng.
+
+Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
+`AgentSession` cho từng người dùng. Session giữ trong bộ nhớ đúng một trạng thái:
+CREATE đã được yêu cầu rõ nhưng còn thiếu nội dung. Ví dụ khi đã khởi động
+llama.cpp:
+
+```python
+from nexus.agent.session import AgentSession
+from nexus.storage.sqlite_db import initialize_database
+
+database_path = "/tmp/nexus-session-demo.db"
+initialize_database(database_path)
+session = AgentSession(database_path)
+print(session.run_turn("Thêm việc")["reply"])
+print(session.run_turn("mua sữa\ngọi mẹ")["reply"])
+```
+
+Lượt đầu hỏi lại mà không gọi model; lượt thứ hai dùng quyền CREATE từ lượt
+trước, lưu mỗi dòng thành một task trong cùng transaction và trả
+`source="session_continuation"`. Nội dung trả lời này được dùng nguyên văn, không
+được model viết lại. Tin nhắn trống tiếp tục hỏi; `thôi` hoặc `hủy` trả
+`cancelled` và không ghi gì. Một yêu cầu CREATE/LIST mới thay thế yêu cầu đang
+chờ. Session không lưu trạng thái qua lần khởi động lại, không tự giữ lịch sử
+model và không được dùng chung cho nhiều người. `nexus ask` và hàm `run_turn`
+cũ vẫn là các lượt độc lập; CLI chưa có chế độ hội thoại nhiều lượt. Bộ nhận
+diện lệnh mới có grammar hữu hạn, nên câu mơ hồ giữa lệnh và nội dung task vẫn
+cần người dùng diễn đạt rõ hơn.
 
 ## Kiểm thử và benchmark hiện tại
 
@@ -237,7 +267,10 @@ policy, agent offline, Qwen thật, benchmark và cách đọc báo cáo. Bắt 
 ./scripts/demo/01_cli.sh
 ./scripts/demo/02_policy.sh
 ./scripts/demo/03_agent_offline.sh
+./scripts/demo/08_session.sh
 ```
 
-Demo tự dùng database riêng trong `evals/results/demos/`. Hướng dẫn chạy AI và
-chọn ca benchmark nằm trong README của thư mục demo.
+Demo tự dùng database riêng trong `evals/results/demos/`. Để tự nhập yêu cầu
+và thấy từng bước với Qwen thật, chạy `scripts/start_qwen.sh` ở một terminal,
+rồi `./scripts/demo/04_ai.sh --interactive` ở terminal khác. Hướng dẫn chi tiết
+và cách chọn ca benchmark nằm trong README của thư mục demo.

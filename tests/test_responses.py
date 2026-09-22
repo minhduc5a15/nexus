@@ -1,10 +1,19 @@
 import copy
 import unittest
 
-from nexus.agent.responses import format_tool_result
+from nexus.agent.policy import PolicyReason
+from nexus.agent.responses import format_rejection, format_tool_result
 
 
 class ToolResponseFormatterTests(unittest.TestCase):
+    def test_rejection_reply_is_fixed_by_reason(self):
+        self.assertEqual(format_rejection(PolicyReason.UNSUPPORTED_ACTION),
+                         "NEXUS hiện chỉ hỗ trợ thêm việc và xem danh sách.")
+        self.assertEqual(format_rejection(PolicyReason.CONTENT_BOUNDARY_MISMATCH),
+                         "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
+        self.assertEqual(format_rejection(PolicyReason.INVALID_ARGUMENTS),
+                         "Không có thao tác nào được thực hiện.")
+
     def test_create_single_task_format(self):
         result = {"tasks": [{"id": 1, "content": "mua sữa"}]}
         formatted = format_tool_result("create_task", result)

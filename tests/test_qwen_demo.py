@@ -439,7 +439,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(len(turn["rejected_calls"]), 1)
         self.assertEqual(turn["rejected_calls"][0]["result"], "reject")
         self.assertEqual(turn["rejected_calls"][0]["reason"], "content_not_grounded")
-        self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
+        self.assertEqual(turn["reply"], "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
         self.assertEqual(list_tasks(self.db_path), [])
 
     def test_missing_content_asks_for_clarification(self):
@@ -491,7 +491,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(len(turn["rejected_calls"]), 1)
         self.assertEqual(turn["rejected_calls"][0]["result"], "reject")
         self.assertEqual(turn["rejected_calls"][0]["reason"], "unsupported_tool")
-        self.assertEqual(turn["reply"], "Không có thao tác nào được thực hiện.")
+        self.assertEqual(turn["reply"], "NEXUS hiện chỉ hỗ trợ thêm việc và xem danh sách.")
         self.assertEqual(list_tasks(self.db_path), [])
 
     def test_invalid_json_arguments_blocked(self):
