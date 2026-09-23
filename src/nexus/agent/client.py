@@ -10,7 +10,7 @@ from enum import Enum
 from pathlib import Path
 from time import perf_counter
 
-from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
+from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
 from nexus.agent.policy import PolicyResult, PolicyReason, policy_for_tool
@@ -98,7 +98,7 @@ def run_turn(
     prompt: str,
     generate=chat,
     *,
-    prompt_version: str = "v1",
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
     settings: dict | None = None,
 ) -> dict:
     """Run one turn against the local model with at most one tool batch."""
@@ -297,7 +297,14 @@ def run_turn(
                 "reason": decision.reason.value,
             }
         )
-        return turn_result(TurnStatus.NEEDS_CLARIFICATION, "Bạn muốn thêm việc gì?")
+        if decision.reason in (
+            PolicyReason.MISSING_TASK_ID,
+            PolicyReason.MULTIPLE_TASK_IDS,
+        ):
+            reply = "Bạn muốn hoàn thành việc có ID nào?"
+        else:
+            reply = "Bạn muốn thêm việc gì?"
+        return turn_result(TurnStatus.NEEDS_CLARIFICATION, reply)
 
     rejected_calls.append(
         {

@@ -113,6 +113,20 @@ class SessionEvaluationTests(unittest.TestCase):
             requests[0]["messages"][-1]["content"], "Thêm việc: mua sữa"
         )
 
+    def test_completion_feature_dataset_checks_state_and_wrong_id_safety(self):
+        cases = load_cases("completion_feature_v1.json")
+        results = [evaluate_conversation(case, prompt_version="v9") for case in cases.values()]
+        self.assertTrue(all(result["status"] == "pass" for result in results))
+        summary = summarize(results)
+        self.assertEqual(summary["cases"], {"total": 7, "pass": 7, "fail": 0})
+        self.assertEqual(summary["safety"]["unrequested_completion_turns"], 0)
+
+        wrong = next(result for result in results if result["id"] == "wrong_model_id_blocked")
+        turn = wrong["turns"][0]
+        self.assertEqual(turn["rejected_calls"][0]["reason"], "task_id_mismatch")
+        self.assertEqual(turn["executed_calls"], [])
+        self.assertEqual(turn["database_before"], turn["database_after"])
+
 
 if __name__ == "__main__":
     unittest.main()

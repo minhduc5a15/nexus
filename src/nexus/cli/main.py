@@ -7,7 +7,13 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
+from nexus.storage.sqlite_db import (
+    DatabaseSchemaError,
+    complete_task,
+    create_task,
+    initialize_database,
+    list_tasks,
+)
 
 
 def default_database_path() -> Path:
@@ -15,6 +21,16 @@ def default_database_path() -> Path:
     data_home = os.environ.get("XDG_DATA_HOME")
     base = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
     return base / "nexus" / "nexus.db"
+
+
+def _positive_id(value: str) -> int:
+    try:
+        task_id = int(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("ID phải là số nguyên dương") from error
+    if task_id <= 0:
+        raise argparse.ArgumentTypeError("ID phải là số nguyên dương")
+    return task_id
 
 
 def print_tool_results(
@@ -35,6 +51,15 @@ def print_tool_results(
                 saved_count += 1
         elif name == "list_tasks":
             print(f"AI đã xem {len(tasks)} việc trong danh sách.", flush=True)
+        elif name == "complete_task" and isinstance(result, dict):
+            task = result.get("task")
+            if isinstance(task, dict):
+                prefix = (
+                    "Đã hoàn thành"
+                    if result.get("status") == "completed"
+                    else "Đã hoàn thành từ trước"
+                )
+                print(f"{prefix} [{task['id']}] {task['content']}", flush=True)
     return saved_count
 
 
@@ -42,7 +67,7 @@ def _database_snapshot(database_path: Path) -> list[dict] | dict:
     """Return a JSON-safe diagnostic snapshot without breaking the chat."""
     try:
         return [
-            {"id": task.id, "content": task.content}
+            {"id": task.id, "content": task.content, "completed": task.completed}
             for task in list_tasks(database_path)
         ]
     except (sqlite3.Error, OSError) as error:
@@ -96,6 +121,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
         turn_number += 1
         state_before = session.state.value
         pending_before = session.pending_create
+        pending_complete_before = session.pending_complete
         database_before = _database_snapshot(database_path) if trace else None
         model_exchange = {
             "called": False,
@@ -174,7 +200,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                     "model"
                     if model_exchange["called"]
                     else "session_continuation"
-                    if pending_before
+                    if pending_before or pending_complete_before
                     else "session"
                 )
                 status = "error_after_execution" if isinstance(
@@ -196,6 +222,8 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                         "state_after": session.state.value,
                         "pending_create_before": pending_before,
                         "pending_create_after": session.pending_create,
+                        "pending_complete_before": pending_complete_before,
+                        "pending_complete_after": session.pending_complete,
                     },
                     "model": model_exchange,
                     "runtime": {
@@ -247,6 +275,10 @@ def main() -> int:
         "content", nargs="?", help="Nội dung; bỏ qua để đọc từ stdin đến EOF"
     )
     commands.add_parser("list", help="Xem các việc đã lưu")
+    complete_parser = commands.add_parser(
+        "complete", help="Đánh dấu một việc là đã hoàn thành theo ID"
+    )
+    complete_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
     chat_parser = commands.add_parser(
@@ -290,6 +322,18 @@ def main() -> int:
                     print(f"Đã thêm [{task.id}] {task.content}")
             if saved_count == 0:
                 print("Không có nội dung để thêm.")
+        elif args.command == "complete":
+            completion = complete_task(args.db, args.id)
+            if completion.status.value == "not_found":
+                print(f"Không tìm thấy việc có ID {args.id}.")
+                return 1
+            if completion.status.value == "completed":
+                print(f"Đã hoàn thành [{completion.task.id}] {completion.task.content}")
+            else:
+                print(
+                    f"Việc [{completion.task.id}] đã hoàn thành trước đó: "
+                    f"{completion.task.content}"
+                )
         elif args.command == "ask":
             from nexus.agent.client import PostToolExecutionError, chat, run_turn
             import urllib.error
@@ -343,8 +387,9 @@ def main() -> int:
             if not tasks:
                 print("Danh sách trống.")
             for task in tasks:
-                print(f"[{task.id}] {task.content}")
-    except (sqlite3.Error, OSError) as error:
+                marker = "x" if task.completed else " "
+                print(f"[{task.id}] [{marker}] {task.content}")
+    except (sqlite3.Error, OSError, DatabaseSchemaError) as error:
         print(f"Lỗi: {error}", file=sys.stderr)
         if saved_count:
             print(

@@ -137,7 +137,7 @@
             ],
             "created_tasks": [],
             "tasks": ["học C++", "mua sữa"],
-            "reply_contains": ["Danh sách hiện có 2 việc", "[1] học C++", "[2] mua sữa"]
+            "reply_contains": ["Danh sách hiện có 2 việc", "[1] [ ] học C++", "[2] [ ] mua sữa"]
           }
         }
       ],

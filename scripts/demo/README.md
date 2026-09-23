@@ -16,6 +16,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `08_session.sh` | CREATE thiếu nội dung → hỏi lại → lưu nhiều dòng → hủy → LIST; cho thấy trạng thái session | Không |
 | `09_session_eval.sh` | Chấm 13 chuỗi hội thoại giả lập theo state, tool, SQLite, reply và ghi ngoài yêu cầu | Không |
 | `10_session_smoke.sh` | Chạy bảy ca tích hợp nhỏ qua `AgentSession` và Qwen thật | Có |
+| `11_completion_eval.sh` | Chấm scripted COMPLETE theo ID, gồm sai ID và không suy ID từ nội dung | Không |
+| `12_completion_smoke.sh` | Chạy smoke Qwen v9 cho CREATE → COMPLETE → LIST và các nhánh completion | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -25,6 +27,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/03_agent_offline.sh
 ./scripts/demo/08_session.sh
 ./scripts/demo/09_session_eval.sh
+./scripts/demo/11_completion_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -62,10 +65,11 @@ Terminal thứ nhất:
 ```sh
 ./scripts/demo/04_ai.sh
 ./scripts/demo/10_session_smoke.sh
+./scripts/demo/12_completion_smoke.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
-xem danh sách, rồi đưa một câu trần thuật. Cấu hình là prompt `v1`, temperature
+xem danh sách, rồi đưa một câu trần thuật. Cấu hình demo `04` là prompt `v1`, temperature
 `0`; kết quả thực tế phụ thuộc model.
 
 Để tự gõ nhiều yêu cầu và xem trace từng lượt trên cùng một database demo:

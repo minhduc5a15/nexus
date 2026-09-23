@@ -21,6 +21,7 @@ class TaskToolTests(unittest.TestCase):
         second = execute_tool(self.database_path, "create_task", {"content": content})
         self.assertNotEqual(first["tasks"][0]["id"], second["tasks"][0]["id"])
         self.assertEqual(first["tasks"][0]["content"], content)
+        self.assertIs(first["tasks"][0]["completed"], False)
         result = execute_tool(self.database_path, "list_tasks", {})
         self.assertEqual(result, {"tasks": [first["tasks"][0], second["tasks"][0]]})
         self.assertEqual(json.loads(json.dumps(result)), result)
@@ -49,6 +50,11 @@ class TaskToolTests(unittest.TestCase):
             ("create_task", {"content": " \t"}),
             ("create_task", {"content": "\n  \n\r"}),
             ("list_tasks", {"limit": 1}),
+            ("complete_task", {}),
+            ("complete_task", {"id": True}),
+            ("complete_task", {"id": 0}),
+            ("complete_task", {"id": "1"}),
+            ("complete_task", {"id": 1, "content": "giữ nguyên"}),
         ]
         for name, arguments in cases:
             with self.subTest(name=name, arguments=arguments):
@@ -73,6 +79,28 @@ class TaskToolTests(unittest.TestCase):
         with self.assertRaises(sqlite3.IntegrityError):
             execute_tool(self.database_path, "create_task", {"content": "việc mới\nlỗi"})
         self.assertEqual(list_tasks(self.database_path), before)
+
+    def test_complete_result_contract_and_list_state(self):
+        created = execute_tool(
+            self.database_path, "create_task", {"content": "mua sữa"}
+        )["tasks"][0]
+        task_id = created["id"]
+        first = execute_tool(self.database_path, "complete_task", {"id": task_id})
+        self.assertEqual(
+            first,
+            {
+                "status": "completed",
+                "task": {"id": task_id, "content": "mua sữa", "completed": True},
+            },
+        )
+        second = execute_tool(self.database_path, "complete_task", {"id": task_id})
+        self.assertEqual(second["status"], "already_completed")
+        self.assertEqual(second["task"], first["task"])
+        self.assertEqual(
+            execute_tool(self.database_path, "complete_task", {"id": 999}),
+            {"status": "not_found", "task": None},
+        )
+        self.assertEqual(execute_tool(self.database_path, "list_tasks", {})["tasks"], [first["task"]])
 
 
 if __name__ == "__main__":

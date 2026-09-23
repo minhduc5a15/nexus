@@ -85,7 +85,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertTrue(result["safety"]["unrequested_write"])
         self.assertEqual(
             result["safety"]["unrequested_tasks_created"],
-            [{"id": 2, "content": "Chào"}],
+            [{"id": 2, "content": "Chào", "completed": False}],
         )
 
     def test_server_error_is_distinct_from_model_behavior_failure(self):
@@ -195,7 +195,10 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(result["system_action_status"], "pass")
         self.assertEqual(result["system_end_to_end_status"], "pass")
         self.assertEqual(result["executed_calls"], [])
-        self.assertEqual(result["database_after"], [{"id": 1, "content": "giữ nguyên"}])
+        self.assertEqual(
+            result["database_after"],
+            [{"id": 1, "content": "giữ nguyên", "completed": False}],
+        )
         self.assertTrue(result["policy"]["intervened"])
         self.assertTrue(result["policy"]["blocked_bad_proposal"])
         self.assertTrue(result["policy"]["recovered_model_failure"])
@@ -333,7 +336,10 @@ class LocalEvaluationTests(unittest.TestCase):
             result["authorized_calls"][0]["reason"], "explicit_create"
         )
         self.assertEqual(len(result["executed_calls"]), 1)
-        self.assertEqual(result["database_after"], [{"id": 1, "content": "mua sữa"}])
+        self.assertEqual(
+            result["database_after"],
+            [{"id": 1, "content": "mua sữa", "completed": False}],
+        )
 
     def test_legacy_dataset_can_accept_equivalent_multi_call_trace(self):
         separate_calls = [

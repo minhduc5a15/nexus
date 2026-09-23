@@ -196,6 +196,123 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(self.session.state, SessionState.AWAITING_CREATE_CONTENT)
         self.assertEqual(list_tasks(self.database_path), [])
 
+    def test_direct_complete_runs_model_proposal_for_exact_id(self):
+        task = create_task(self.database_path, "mua sữa")
+        generate = Mock(return_value=tool_response("complete_task", '{"id":1}'))
+        result = self.session.run_turn("Hoàn thành việc 1.", generate)
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(result["calls"][0]["result"]["status"], "completed")
+        self.assertTrue(list_tasks(self.database_path)[0].completed)
+        self.assertEqual(task.id, 1)
+
+    def test_missing_complete_id_then_supported_followup_forms(self):
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        for reply in ("1", "#2", "việc 3", "task 4"):
+            create_task(self.database_path, f"việc {reply}")
+            first = self.session.run_turn("Hoàn thành việc", generate)
+            self.assertEqual(first["status"], "needs_clarification")
+            self.assertEqual(first["reply"], "Bạn muốn hoàn thành việc có ID nào?")
+            self.assertEqual(self.session.state, SessionState.AWAITING_COMPLETE_ID)
+            second = self.session.run_turn(reply, generate)
+            self.assertEqual(second["status"], "executed")
+            self.assertEqual(second["source"], "session_continuation")
+            self.assertEqual(second["authorized_calls"][0]["reason"], "session_continuation")
+            self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertTrue(all(task.completed for task in list_tasks(self.database_path)))
+        generate.assert_not_called()
+
+    def test_multiple_ids_asks_for_one_and_invalid_followup_keeps_pending(self):
+        create_task(self.database_path, "a")
+        create_task(self.database_path, "b")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Hoàn thành việc 1 và 2", generate)
+        self.assertEqual(first["status"], "needs_clarification")
+        self.assertEqual(self.session.state, SessionState.AWAITING_COMPLETE_ID)
+        invalid = self.session.run_turn("việc đầu tiên", generate)
+        self.assertEqual(invalid["status"], "needs_clarification")
+        self.assertEqual(self.session.state, SessionState.AWAITING_COMPLETE_ID)
+        done = self.session.run_turn("#2", generate)
+        self.assertEqual(done["status"], "executed")
+        self.assertEqual([task.completed for task in list_tasks(self.database_path)], [False, True])
+
+    def test_cancel_and_new_commands_replace_pending_complete(self):
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        self.session.run_turn("Hoàn thành task", generate)
+        cancelled = self.session.run_turn("hủy", generate)
+        self.assertEqual(cancelled["status"], "cancelled")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+
+        self.session.run_turn("Hoàn thành task", generate)
+        listed = Mock(return_value=tool_response("list_tasks", "{}"))
+        result = self.session.run_turn("Xem danh sách", listed)
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+
+        self.session.run_turn("Hoàn thành task", generate)
+        created = Mock(return_value=tool_response("create_task", '{"content":"mua táo"}'))
+        result = self.session.run_turn("Thêm việc: mua táo", created)
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+
+    def test_complete_database_error_keeps_pending_but_formatter_error_clears_it(self):
+        create_task(self.database_path, "mua sữa")
+        self.session.run_turn("Hoàn thành việc", Mock(side_effect=AssertionError))
+        with patch(
+            "nexus.agent.session.execute_tool",
+            side_effect=sqlite3.OperationalError("before commit"),
+        ):
+            with self.assertRaises(sqlite3.OperationalError):
+                self.session.run_turn("1", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.AWAITING_COMPLETE_ID)
+        self.assertFalse(list_tasks(self.database_path)[0].completed)
+
+        with patch(
+            "nexus.agent.session.format_tool_result", side_effect=ValueError("after commit")
+        ):
+            with self.assertRaises(PostToolExecutionError):
+                self.session.run_turn("1", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertTrue(list_tasks(self.database_path)[0].completed)
+
+    def test_complete_pending_state_is_not_shared(self):
+        create_task(self.database_path, "mua sữa")
+        self.session.run_turn("Hoàn thành việc", Mock(side_effect=AssertionError))
+        other = AgentSession(self.database_path)
+        response = {"choices": [{
+            "finish_reason": "stop",
+            "message": {"role": "assistant", "content": "Không rõ."},
+        }]}
+        result = other.run_turn("1", Mock(return_value=response))
+        self.assertEqual(result["status"], "no_tool")
+        self.assertEqual(other.state, SessionState.IDLE)
+        self.assertEqual(self.session.state, SessionState.AWAITING_COMPLETE_ID)
+        self.assertFalse(list_tasks(self.database_path)[0].completed)
+
+    def test_two_complete_calls_are_rejected_before_any_update(self):
+        create_task(self.database_path, "một")
+        create_task(self.database_path, "hai")
+        response = {"choices": [{
+            "finish_reason": "tool_calls",
+            "message": {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {"type": "function", "id": "a", "function": {
+                        "name": "complete_task", "arguments": '{"id":1}'
+                    }},
+                    {"type": "function", "id": "b", "function": {
+                        "name": "complete_task", "arguments": '{"id":2}'
+                    }},
+                ],
+            },
+        }]}
+        result = self.session.run_turn(
+            "Hoàn thành việc 1.", Mock(return_value=response)
+        )
+        self.assertEqual(result["status"], "rejected")
+        self.assertEqual(result["calls"], [])
+        self.assertEqual([task.completed for task in list_tasks(self.database_path)], [False, False])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,7 @@ from nexus.agent.client import (
     run_probe,
     run_turn,
 )
+from nexus.agent.prompts import SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 
 
@@ -19,6 +20,26 @@ def response(message, reason="stop"):
 
 
 class LocalProbeTests(unittest.TestCase):
+    def test_default_runtime_uses_v9_and_exposes_three_tools(self):
+        requests = []
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "test.db"
+            initialize_database(db_path)
+            run_turn(
+                db_path,
+                "Chào bạn",
+                lambda payload: (
+                    requests.append(deepcopy(payload))
+                    or response({"role": "assistant", "content": "Chào"})
+                ),
+            )
+        payload = requests[0]
+        self.assertEqual(payload["messages"][0]["content"], SYSTEM_PROMPTS["v9"])
+        self.assertEqual(
+            [tool["function"]["name"] for tool in payload["tools"]],
+            ["create_task", "list_tasks", "complete_task"],
+        )
+
     def test_probe_executes_tool_with_single_model_call_in_tool_round(self):
         requests = []
         responses = iter(
@@ -358,7 +379,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
             ],
         )
         self.assertEqual(turn["rejected_calls"], [])
-        self.assertEqual(turn["reply"], "Danh sách hiện có 1 việc:\n[1] học bài")
+        self.assertEqual(turn["reply"], "Danh sách hiện có 1 việc:\n[1] [ ] học bài")
         self.assertEqual(turn["status"], "executed")
 
     def test_bare_statement_converted_to_create_task_does_not_mutate_db(self):
@@ -491,7 +512,10 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(len(turn["rejected_calls"]), 1)
         self.assertEqual(turn["rejected_calls"][0]["result"], "reject")
         self.assertEqual(turn["rejected_calls"][0]["reason"], "unsupported_tool")
-        self.assertEqual(turn["reply"], "NEXUS hiện chỉ hỗ trợ thêm việc và xem danh sách.")
+        self.assertEqual(
+            turn["reply"],
+            "NEXUS hiện chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID.",
+        )
         self.assertEqual(list_tasks(self.db_path), [])
 
     def test_invalid_json_arguments_blocked(self):
@@ -674,7 +698,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         turn = run_turn(self.db_path, "Xem danh sách", mock_gen_list)
         mock_gen_list.assert_called_once()
         self.assertEqual(len(turn["calls"]), 1)
-        self.assertEqual(turn["reply"], "Danh sách hiện có 1 việc:\n[1] mua sữa")
+        self.assertEqual(turn["reply"], "Danh sách hiện có 1 việc:\n[1] [ ] mua sữa")
 
         # Case E: Multi-tool batch rejected -> exactly 1 generate call
         mock_gen_batch = unittest.mock.Mock(
@@ -747,7 +771,8 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         ) as mock_fmt:
             run_turn(self.db_path, "Thêm việc: mua sữa", lambda _: call_resp)
             mock_fmt.assert_called_once_with(
-                "create_task", {"tasks": [{"id": 1, "content": "mua sữa"}]}
+                "create_task",
+                {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]},
             )
 
     def test_execute_tool_failure_does_not_call_formatter(self):
@@ -798,7 +823,8 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         )
         turn = run_turn(self.db_path, "Xem danh sách", lambda _: call_resp)
         self.assertEqual(
-            turn["reply"], "Danh sách hiện có 2 việc:\n[1] việc 1\n[2] việc 2"
+            turn["reply"],
+            "Danh sách hiện có 2 việc:\n[1] [ ] việc 1\n[2] [ ] việc 2",
         )
 
     def test_missing_id_in_tool_call_is_blocked(self):

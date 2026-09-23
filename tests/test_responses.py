@@ -8,22 +8,22 @@ from nexus.agent.responses import format_rejection, format_tool_result
 class ToolResponseFormatterTests(unittest.TestCase):
     def test_rejection_reply_is_fixed_by_reason(self):
         self.assertEqual(format_rejection(PolicyReason.UNSUPPORTED_ACTION),
-                         "NEXUS hiện chỉ hỗ trợ thêm việc và xem danh sách.")
+                         "NEXUS hiện chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID.")
         self.assertEqual(format_rejection(PolicyReason.CONTENT_BOUNDARY_MISMATCH),
                          "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
         self.assertEqual(format_rejection(PolicyReason.INVALID_ARGUMENTS),
                          "Không có thao tác nào được thực hiện.")
 
     def test_create_single_task_format(self):
-        result = {"tasks": [{"id": 1, "content": "mua sữa"}]}
+        result = {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]}
         formatted = format_tool_result("create_task", result)
         self.assertEqual(formatted, "Đã thêm [1] mua sữa")
 
     def test_create_multiple_tasks_format(self):
         result = {
             "tasks": [
-                {"id": 1, "content": "mua sữa"},
-                {"id": 2, "content": "gọi cho mẹ"},
+                {"id": 1, "content": "mua sữa", "completed": False},
+                {"id": 2, "content": "gọi cho mẹ", "completed": False},
             ]
         }
         expected = "Đã thêm 2 việc:\n[1] mua sữa\n[2] gọi cho mẹ"
@@ -31,9 +31,9 @@ class ToolResponseFormatterTests(unittest.TestCase):
 
         result_3 = {
             "tasks": [
-                {"id": 1, "content": "việc 1"},
-                {"id": 2, "content": "việc 2"},
-                {"id": 3, "content": "việc 3"},
+                {"id": 1, "content": "việc 1", "completed": False},
+                {"id": 2, "content": "việc 2", "completed": False},
+                {"id": 3, "content": "việc 3", "completed": False},
             ]
         }
         expected_3 = "Đã thêm 3 việc:\n[1] việc 1\n[2] việc 2\n[3] việc 3"
@@ -44,35 +44,35 @@ class ToolResponseFormatterTests(unittest.TestCase):
         self.assertEqual(format_tool_result("list_tasks", result), "Danh sách trống.")
 
     def test_list_tasks_single_and_multiple_format(self):
-        single_result = {"tasks": [{"id": 1, "content": "mua sữa"}]}
-        expected_single = "Danh sách hiện có 1 việc:\n[1] mua sữa"
+        single_result = {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]}
+        expected_single = "Danh sách hiện có 1 việc:\n[1] [ ] mua sữa"
         self.assertEqual(
             format_tool_result("list_tasks", single_result), expected_single
         )
 
         multiple_result = {
             "tasks": [
-                {"id": 1, "content": "mua sữa"},
-                {"id": 2, "content": "gọi cho mẹ"},
+                {"id": 1, "content": "mua sữa", "completed": False},
+                {"id": 2, "content": "gọi cho mẹ", "completed": True},
             ]
         }
-        expected_multiple = "Danh sách hiện có 2 việc:\n[1] mua sữa\n[2] gọi cho mẹ"
+        expected_multiple = "Danh sách hiện có 2 việc:\n[1] [ ] mua sữa\n[2] [x] gọi cho mẹ"
         self.assertEqual(
             format_tool_result("list_tasks", multiple_result), expected_multiple
         )
 
     def test_preserves_casing_punctuation_and_whitespace_verbatim(self):
         content = "   Mua SỮA & Táo! (loại 1.5% béo)   \t "
-        create_result = {"tasks": [{"id": 10, "content": content}]}
+        create_result = {"tasks": [{"id": 10, "content": content, "completed": False}]}
         self.assertEqual(
             format_tool_result("create_task", create_result),
             f"Đã thêm [10] {content}",
         )
 
-        list_result = {"tasks": [{"id": 10, "content": content}]}
+        list_result = {"tasks": [{"id": 10, "content": content, "completed": False}]}
         self.assertEqual(
             format_tool_result("list_tasks", list_result),
-            f"Danh sách hiện có 1 việc:\n[10] {content}",
+            f"Danh sách hiện có 1 việc:\n[10] [ ] {content}",
         )
 
     def test_rejects_unknown_or_invalid_tools(self):
@@ -90,7 +90,7 @@ class ToolResponseFormatterTests(unittest.TestCase):
             ["create_task"],
             {"name": "create_task"},
         ]
-        sample_result = {"tasks": [{"id": 1, "content": "mua sữa"}]}
+        sample_result = {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]}
         for tool in invalid_tools:
             with self.subTest(tool=tool):
                 with self.assertRaises(ValueError):
@@ -221,8 +221,8 @@ class ToolResponseFormatterTests(unittest.TestCase):
     def test_formatter_does_not_mutate_input_result(self):
         original = {
             "tasks": [
-                {"id": 1, "content": "mua sữa"},
-                {"id": 2, "content": "gọi cho mẹ"},
+                {"id": 1, "content": "mua sữa", "completed": False},
+                {"id": 2, "content": "gọi cho mẹ", "completed": False},
             ]
         }
         deep_copied = copy.deepcopy(original)
@@ -236,15 +236,48 @@ class ToolResponseFormatterTests(unittest.TestCase):
         self.assertEqual(original, deep_copied)
 
     def test_supports_keyword_name(self):
-        result = {"tasks": [{"id": 1, "content": "mua sữa"}]}
+        result = {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]}
         self.assertEqual(
             format_tool_result(name="create_task", result=result),
             "Đã thêm [1] mua sữa",
         )
         self.assertEqual(
             format_tool_result(name="list_tasks", result=result),
-            "Danh sách hiện có 1 việc:\n[1] mua sữa",
+            "Danh sách hiện có 1 việc:\n[1] [ ] mua sữa",
         )
+
+    def test_complete_result_formats_all_statuses(self):
+        task = {"id": 3, "content": "gọi mẹ", "completed": True}
+        self.assertEqual(
+            format_tool_result("complete_task", {"status": "completed", "task": task}),
+            "Đã hoàn thành [3] gọi mẹ",
+        )
+        self.assertEqual(
+            format_tool_result(
+                "complete_task", {"status": "already_completed", "task": task}
+            ),
+            "Việc [3] đã hoàn thành trước đó: gọi mẹ",
+        )
+        self.assertEqual(
+            format_tool_result(
+                "complete_task", {"status": "not_found", "task": None}
+            ),
+            "Không tìm thấy việc có ID đã yêu cầu.",
+        )
+
+    def test_complete_result_schema_is_strict(self):
+        valid_task = {"id": 1, "content": "mua sữa", "completed": True}
+        invalid = [
+            {"status": "completed", "task": None},
+            {"status": "not_found", "task": valid_task},
+            {"status": "unknown", "task": valid_task},
+            {"status": "completed", "task": {**valid_task, "completed": False}},
+            {"status": "completed", "task": {**valid_task, "completed": 1}},
+            {"status": "completed", "task": valid_task, "extra": True},
+        ]
+        for result in invalid:
+            with self.subTest(result=result), self.assertRaises(ValueError):
+                format_tool_result("complete_task", result)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,11 @@ class PolicyResult(str, Enum):
 class PolicyReason(str, Enum):
     EXPLICIT_CREATE = "explicit_create"
     EXPLICIT_LIST = "explicit_list"
+    EXPLICIT_COMPLETE = "explicit_complete"
     MISSING_CONTENT = "missing_content"
+    MISSING_TASK_ID = "missing_task_id"
+    MULTIPLE_TASK_IDS = "multiple_task_ids"
+    TASK_ID_MISMATCH = "task_id_mismatch"
     NEGATED_REQUEST = "negated_request"
     UNSUPPORTED_ACTION = "unsupported_action"
     UNSUPPORTED_TOOL = "unsupported_tool"
@@ -31,6 +35,9 @@ class RequestKind(str, Enum):
     CREATE = "create"
     MISSING_CREATE = "missing_create"
     LIST = "list"
+    COMPLETE = "complete"
+    MISSING_COMPLETE = "missing_complete"
+    MULTIPLE_COMPLETE = "multiple_complete"
     UNSUPPORTED = "unsupported"
     NEGATED = "negated"
     OTHER = "other"
@@ -57,7 +64,10 @@ class ToolDecision:
         valid_pairs = {
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST),
+            (PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS),
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
@@ -65,6 +75,7 @@ class ToolDecision:
             (PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS),
             (PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED),
             (PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH),
+            (PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH),
         }
 
         # 3. Reject any combination outside the valid set
@@ -147,6 +158,71 @@ _LIST_STATE_QUESTION = re.compile(
     rf"(?:{_H}(?:rồi|nhỉ|vậy|thế))?[.?!]*$",
     re.IGNORECASE,
 )
+_COMPLETE_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?"
+    rf"(?:hoàn{_H}thành|đánh{_H}dấu){_H}(?:việc|task)\b",
+    re.IGNORECASE,
+)
+_NEGATED_COMPLETE_HEAD = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}(?:hoàn{_H}thành|đánh{_H}dấu)\b",
+    re.IGNORECASE,
+)
+_COMPLETE_EXACT = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
+    rf"hoàn{_H}thành{_H}(?:việc|task){_H}\#?(?P<finish_id>[0-9]+)"
+    rf"|đánh{_H}dấu{_H}(?:việc|task){_H}\#?(?P<mark_id>[0-9]+)"
+    rf"{_H}(?:là{_H})?(?:đã{_H}xong|hoàn{_H}thành)"
+    rf")(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_ID_TOKEN = re.compile(r"(?<!\w)#?([0-9]+)(?!\w)")
+
+
+@dataclass(frozen=True)
+class _CompleteRequest:
+    task_id: int
+
+
+def _authorize_complete(prompt: str) -> _CompleteRequest | ToolDecision:
+    if _NEGATED_COMPLETE_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+    if not _COMPLETE_COMMAND_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+
+    ids = [int(value) for value in _ID_TOKEN.findall(prompt)]
+    unique_ids = list(dict.fromkeys(ids))
+    if not unique_ids:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID
+        )
+    if len(unique_ids) != 1 or len(ids) != 1:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
+        )
+    exact = _COMPLETE_EXACT.fullmatch(prompt)
+    if exact is None or unique_ids[0] <= 0:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    return _CompleteRequest(unique_ids[0])
+
+
+def policy_for_complete_task(prompt: Any, arguments: Any) -> ToolDecision:
+    if not isinstance(prompt, str) or not prompt.strip():
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    request = _authorize_complete(prompt)
+    if isinstance(request, ToolDecision):
+        return request
+    if (
+        not isinstance(arguments, dict)
+        or set(arguments) != {"id"}
+        or isinstance(arguments["id"], bool)
+        or not isinstance(arguments["id"], int)
+        or arguments["id"] <= 0
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    if arguments["id"] != request.task_id:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
+    return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE)
 
 
 def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
@@ -290,6 +366,13 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.CREATE
     if create.result == PolicyResult.NEEDS_CLARIFICATION:
         return RequestKind.MISSING_CREATE
+    completed = _authorize_complete(prompt)
+    if isinstance(completed, _CompleteRequest):
+        return RequestKind.COMPLETE
+    if completed.reason == PolicyReason.MISSING_TASK_ID:
+        return RequestKind.MISSING_COMPLETE
+    if completed.reason == PolicyReason.MULTIPLE_TASK_IDS:
+        return RequestKind.MULTIPLE_COMPLETE
     listed = policy_for_list_tasks(prompt, {})
     if listed.result == PolicyResult.ALLOW:
         return RequestKind.LIST
@@ -301,6 +384,8 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.CREATE
     if _LIST_COMMAND_HEAD.match(prompt):
         return RequestKind.LIST
+    if _COMPLETE_COMMAND_HEAD.match(prompt):
+        return RequestKind.COMPLETE
     if _UNSUPPORTED_HEAD.match(prompt):
         return RequestKind.UNSUPPORTED
     return RequestKind.OTHER
@@ -347,5 +432,7 @@ def policy_for_tool(prompt: Any, tool_name: Any, arguments: Any) -> ToolDecision
         return policy_for_create_task(prompt, arguments)
     if tool_name == "list_tasks":
         return policy_for_list_tasks(prompt, arguments)
+    if tool_name == "complete_task":
+        return policy_for_complete_task(prompt, arguments)
 
     return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL)

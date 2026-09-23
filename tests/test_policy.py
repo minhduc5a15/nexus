@@ -11,9 +11,12 @@ class TestToolDecision(unittest.TestCase):
         # Allow
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE)
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST)
+        ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE)
 
         # Needs Clarification
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT)
+        ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID)
+        ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS)
 
         # Reject (All 6 reasons)
         ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
@@ -23,6 +26,7 @@ class TestToolDecision(unittest.TestCase):
         ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
         ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
         ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
+        ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
 
     def test_invalid_combinations_rejected(self):
         """Ensure invalid combinations raise a ValueError."""
@@ -71,6 +75,7 @@ class TestToolDecision(unittest.TestCase):
         # All 9 Reasons
         self.assertEqual(PolicyReason.EXPLICIT_CREATE.value, "explicit_create")
         self.assertEqual(PolicyReason.EXPLICIT_LIST.value, "explicit_list")
+        self.assertEqual(PolicyReason.EXPLICIT_COMPLETE.value, "explicit_complete")
         self.assertEqual(PolicyReason.MISSING_CONTENT.value, "missing_content")
         self.assertEqual(PolicyReason.NEGATED_REQUEST.value, "negated_request")
         self.assertEqual(PolicyReason.UNSUPPORTED_ACTION.value, "unsupported_action")
@@ -430,7 +435,6 @@ class TestPolicyForTool(unittest.TestCase):
         for tool_name in [
             "delete_task",
             "update_task",
-            "complete_task",
             "query_database",
             "random_tool",
         ]:
@@ -487,6 +491,61 @@ class TestPolicyForTool(unittest.TestCase):
             prompt = "Xem danh sách"
             policy_for_tool(prompt, "list_tasks", empty_args)
             mock_list.assert_called_once_with(prompt, empty_args)
+
+    def test_complete_task_requires_one_exact_user_id(self):
+        allowed = [
+            "Hoàn thành việc 3.",
+            "Hoàn thành task #3.",
+            "Đánh dấu việc 3 là đã xong.",
+            "Đánh dấu task #3 hoàn thành nhé.",
+        ]
+        for prompt in allowed:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(
+                    policy_for_tool(prompt, "complete_task", {"id": 3}),
+                    ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
+                )
+
+        self.assertEqual(
+            policy_for_tool("Hoàn thành việc 3", "complete_task", {"id": 4}),
+            ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH),
+        )
+        for arguments in ({}, {"id": True}, {"id": 0}, {"id": "3"}, {"id": 3, "x": 1}):
+            with self.subTest(arguments=arguments):
+                self.assertEqual(
+                    policy_for_tool("Hoàn thành việc 3", "complete_task", arguments).reason,
+                    PolicyReason.INVALID_ARGUMENTS,
+                )
+
+    def test_complete_missing_multiple_negated_and_content_reference(self):
+        self.assertEqual(
+            policy_for_tool("Hoàn thành việc", "complete_task", {"id": 1}),
+            ToolDecision(
+                PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID
+            ),
+        )
+        self.assertEqual(
+            policy_for_tool("Hoàn thành việc 2 và 3", "complete_task", {"id": 2}),
+            ToolDecision(
+                PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
+            ),
+        )
+        self.assertEqual(
+            policy_for_tool("Đừng hoàn thành việc 3", "complete_task", {"id": 3}).reason,
+            PolicyReason.NEGATED_REQUEST,
+        )
+        self.assertEqual(
+            policy_for_tool("Hoàn thành báo cáo", "complete_task", {"id": 3}).reason,
+            PolicyReason.BARE_STATEMENT,
+        )
+        self.assertEqual(
+            policy_for_tool(
+                "Thêm việc: hoàn thành báo cáo",
+                "create_task",
+                {"content": "hoàn thành báo cáo"},
+            ).result,
+            PolicyResult.ALLOW,
+        )
 
     def test_no_tool_execution_or_database_access(self):
         with patch("nexus.agent.tools.execute_tool") as mock_exec:

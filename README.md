@@ -1,13 +1,13 @@
 # NEXUS
 
-NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại chỉ
-gồm thêm việc và xem danh sách. Người dùng có thể gọi trực tiếp bằng CLI hoặc
-viết yêu cầu tự nhiên để Qwen3-1.7B chọn một trong hai tool. Dữ liệu được lưu
-cục bộ bằng SQLite.
+NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại gồm
+thêm việc, xem danh sách và hoàn thành đúng một việc theo ID. Người dùng có thể
+gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để Qwen3-1.7B chọn một trong
+ba tool. Dữ liệu được lưu cục bộ bằng SQLite.
 
 Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
-không tự tách task; các dòng trống bị bỏ qua. Mỗi task hiện chỉ có `id` và
-`content`.
+không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content` và
+`completed`.
 
 ## Cài ứng dụng
 
@@ -26,6 +26,7 @@ và phát triển dự án. Không cần model để dùng hai lệnh cơ bản:
 ```sh
 .venv/bin/nexus add "mua sữa, gọi mẹ và học Python"
 .venv/bin/nexus list
+.venv/bin/nexus complete 1
 ```
 
 Để thêm nhiều task, bỏ đối số và nhập mỗi task trên một dòng. Nhấn `Ctrl+D`
@@ -104,7 +105,9 @@ NEXUS > mua sữa
 NEXUS: Đã thêm [1] mua sữa
 NEXUS > Xem danh sách
 NEXUS: Danh sách hiện có 1 việc:
-[1] mua sữa
+[1] [ ] mua sữa
+NEXUS > Hoàn thành việc 1
+NEXUS: Đã hoàn thành [1] mua sữa
 ```
 
 Để xem đầy đủ luồng xử lý của từng lượt:
@@ -126,7 +129,8 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
   .venv/bin/nexus ask "xem danh sách"
 ```
 
-Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Một call
+Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
+định là v9; v1–v8 vẫn được giữ nguyên để tái tạo các thí nghiệm cũ. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
@@ -140,9 +144,10 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` riêng cho từng cuộc trò chuyện. State machine có hai trạng thái
-trong bộ nhớ: `idle` và `awaiting_create_content` (CREATE đã được yêu cầu rõ
-nhưng còn thiếu nội dung). Ví dụ khi đã khởi động llama.cpp:
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có ba trạng thái
+trong bộ nhớ: `idle`, `awaiting_create_content` và `awaiting_complete_id`.
+Trạng thái thứ ba giữ quyền COMPLETE khi người dùng đã yêu cầu hoàn thành nhưng
+chưa nêu ID. Ví dụ khi đã khởi động llama.cpp:
 
 ```python
 from nexus.agent.session import AgentSession
@@ -161,8 +166,10 @@ transaction rồi chuyển về `idle` và trả `source="session_continuation"`
 quả hoàn tất chứa `session_state_before` và `session_state_after`. Nội dung trả
 lời được dùng nguyên văn, không được model viết lại.
 
-Tin nhắn trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về
-`idle`. Một yêu cầu CREATE/LIST mới thay thế yêu cầu đang chờ. Nếu SQLite lỗi
+Khi chờ ID, lượt sau chỉ nhận `3`, `#3`, `việc 3` hoặc `task 3`; không tìm task
+theo nội dung. Tin nhắn trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy
+yêu cầu và về `idle`. Một yêu cầu CREATE/LIST/COMPLETE mới thay thế yêu cầu
+đang chờ. Nếu SQLite lỗi
 trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi lỗi
 sau commit, session đã về `idle` để tránh tự lưu trùng. Session không lưu trạng
 thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
@@ -172,6 +179,10 @@ lập. CLI chat hiện coi mỗi dòng là một tin nhắn, nên chưa nhập �
 nhiều dòng trực tiếp; API `AgentSession` vẫn hỗ trợ content nhiều dòng. Bộ nhận
 diện lệnh mới có grammar hữu hạn, nên câu mơ hồ giữa lệnh và nội dung task vẫn
 cần người dùng diễn đạt rõ hơn.
+
+SQLite dùng schema version 1. Database cũ chỉ có `id/content` được migration
+trong một transaction và mọi task cũ bắt đầu ở trạng thái chưa hoàn thành.
+Ứng dụng dừng với lỗi rõ khi gặp schema lạ hoặc database có version mới hơn.
 
 ## Kiểm thử và benchmark hiện tại
 
@@ -200,6 +211,15 @@ Sau khi chạy llama.cpp, smoke suite Qwen thật dùng bảy ca nhỏ:
 
 ```sh
 ./scripts/demo/10_session_smoke.sh
+```
+
+Completion có hai bộ riêng. Bộ scripted kiểm tra cả proposal sai ID bị policy
+chặn; bộ live đo Qwen v9 trên CREATE → COMPLETE → LIST, hoàn thành lại, ID không
+tồn tại, hỏi ID qua hai lượt và yêu cầu theo nội dung:
+
+```sh
+./scripts/demo/11_completion_eval.sh
+./scripts/demo/12_completion_smoke.sh
 ```
 
 Hai evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git

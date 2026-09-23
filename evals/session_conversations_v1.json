@@ -48,7 +48,7 @@
             ],
             "created_tasks": [],
             "tasks": ["mua sữa"],
-            "reply_contains": ["Danh sách hiện có 1 việc", "[1] mua sữa"]
+            "reply_contains": ["Danh sách hiện có 1 việc", "[1] [ ] mua sữa"]
           }
         }
       ],
@@ -227,7 +227,7 @@
             ],
             "created_tasks": [],
             "tasks": ["việc cũ"],
-            "reply_contains": ["[1] việc cũ"]
+            "reply_contains": ["[1] [ ] việc cũ"]
           }
         }
       ],
@@ -260,7 +260,7 @@
             "executed_calls": [],
             "created_tasks": [],
             "tasks": [],
-            "reply_contains": ["chỉ hỗ trợ thêm việc và xem"]
+            "reply_contains": ["chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID"]
           }
         }
       ],

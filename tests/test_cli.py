@@ -47,7 +47,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(added.returncode, 0, added.stderr)
         listed = self.run_cli("list")
         self.assertEqual(listed.returncode, 0, listed.stderr)
-        self.assertEqual(listed.stdout, f"[1] {content}\n")
+        self.assertEqual(listed.stdout, f"[1] [ ] {content}\n")
 
     def test_stdin_splits_lines_preserves_duplicates_and_ignores_blanks(self):
         added = self.run_cli(
@@ -56,7 +56,10 @@ class CliTests(unittest.TestCase):
         self.assertEqual(added.returncode, 0, added.stderr)
         listed = self.run_cli("list")
         self.assertEqual(listed.returncode, 0, listed.stderr)
-        self.assertEqual(listed.stdout, "[1] mua sữa\n[2] học Python\n[3] mua sữa\n")
+        self.assertEqual(
+            listed.stdout,
+            "[1] [ ] mua sữa\n[2] [ ] học Python\n[3] [ ] mua sữa\n",
+        )
 
     def test_empty_argument_is_not_replaced_with_stdin(self):
         added = self.run_cli("add", "", content="không được thêm")
@@ -65,6 +68,28 @@ class CliTests(unittest.TestCase):
         listed = self.run_cli("list")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         self.assertEqual(listed.stdout, "Danh sách trống.\n")
+
+    def test_complete_command_success_idempotency_not_found_and_validation(self):
+        self.assertEqual(self.run_cli("add", "mua sữa").returncode, 0)
+
+        completed = self.run_cli("complete", "1")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "Đã hoàn thành [1] mua sữa\n")
+        self.assertEqual(self.run_cli("list").stdout, "[1] [x] mua sữa\n")
+
+        repeated = self.run_cli("complete", "1")
+        self.assertEqual(repeated.returncode, 0, repeated.stderr)
+        self.assertIn("đã hoàn thành trước đó", repeated.stdout)
+
+        missing = self.run_cli("complete", "999")
+        self.assertEqual(missing.returncode, 1)
+        self.assertEqual(missing.stdout, "Không tìm thấy việc có ID 999.\n")
+
+        for invalid in ("0", "-1", "abc"):
+            with self.subTest(invalid=invalid):
+                result = self.run_cli("complete", invalid)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("ID phải là số nguyên dương", result.stderr)
 
     def test_database_error_returns_failure_without_success_message(self):
         self.database_path = Path(self.directory.name) / "missing" / "tasks.db"
@@ -104,7 +129,7 @@ class CliTests(unittest.TestCase):
                     {
                         "name": "create_task",
                         "arguments": {"content": "mua sữa"},
-                        "result": {"tasks": [{"id": task.id, "content": task.content}]},
+                        "result": {"tasks": [{"id": task.id, "content": task.content, "completed": task.completed}]},
                     }
                 ],
                 "proposed_calls": [],
@@ -146,14 +171,14 @@ class CliTests(unittest.TestCase):
                         "name": "list_tasks",
                         "arguments": {},
                         "result": {
-                            "tasks": [{"id": t.id, "content": t.content} for t in tasks]
+                            "tasks": [{"id": t.id, "content": t.content, "completed": t.completed} for t in tasks]
                         },
                     }
                 ],
                 "proposed_calls": [],
                 "authorized_calls": [],
                 "rejected_calls": [],
-                "reply": "Danh sách hiện có 1 việc:\n[1] mua sữa",
+                "reply": "Danh sách hiện có 1 việc:\n[1] [ ] mua sữa",
             }
 
         stdout = io.StringIO()
@@ -172,7 +197,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result, 0)
         mocked_turn.assert_called_once()
         self.assertEqual(
-            stdout.getvalue(), "\nAI: Danh sách hiện có 1 việc:\n[1] mua sữa\n"
+            stdout.getvalue(), "\nAI: Danh sách hiện có 1 việc:\n[1] [ ] mua sữa\n"
         )
         self.assertNotIn("AI đã xem", stdout.getvalue())
 
@@ -207,7 +232,7 @@ class CliTests(unittest.TestCase):
                 {
                     "name": "create_task",
                     "arguments": {"content": "mua sữa"},
-                    "result": {"tasks": [{"id": task.id, "content": task.content}]},
+                    "result": {"tasks": [{"id": task.id, "content": task.content, "completed": task.completed}]},
                 }
             ]
             raise PostToolExecutionError(
@@ -275,7 +300,7 @@ class CliTests(unittest.TestCase):
             "NEXUS: Đã thêm [1] mua sữa\n"
             "NEXUS: Bạn muốn thêm việc gì?\n"
             "NEXUS: Danh sách hiện có 1 việc:\n"
-            "[1] mua sữa\n",
+            "[1] [ ] mua sữa\n",
         )
         self.assertEqual(stderr.getvalue(), "")
         self.assertEqual(
@@ -390,6 +415,8 @@ class CliTests(unittest.TestCase):
                 "state_after": "idle",
                 "pending_create_before": True,
                 "pending_create_after": False,
+                "pending_complete_before": False,
+                "pending_complete_after": False,
             },
         )
         self.assertFalse(continuation["model"]["called"])
@@ -400,7 +427,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(continuation["database"]["before"], [])
         self.assertEqual(
             continuation["database"]["after"],
-            [{"id": 1, "content": "mua sữa"}],
+            [{"id": 1, "content": "mua sữa", "completed": False}],
         )
 
         self.assertEqual(listed["runtime"]["source"], "model")

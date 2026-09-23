@@ -3,7 +3,7 @@
 from dataclasses import asdict
 from pathlib import Path
 
-from nexus.storage.sqlite_db import create_tasks, list_tasks
+from nexus.storage.sqlite_db import complete_task, create_tasks, list_tasks
 
 
 # Internal tool descriptions. A provider adapter can wrap these as needed.
@@ -31,10 +31,31 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "list_tasks",
-        "description": "Xem toàn bộ danh sách khi người dùng yêu cầu xem các việc đã lưu.",
+        "description": (
+            "Xem toàn bộ danh sách và trạng thái khi người dùng yêu cầu xem các việc đã lưu."
+        ),
         "parameters": {
             "type": "object",
             "properties": {},
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "complete_task",
+        "description": (
+            "Đánh dấu đúng một việc là đã hoàn thành khi người dùng nêu rõ ID. "
+            "Không tìm việc theo nội dung và không tự chọn ID."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "ID chính xác do người dùng nêu.",
+                }
+            },
+            "required": ["id"],
             "additionalProperties": False,
         },
     },
@@ -49,7 +70,7 @@ def execute_tool(
     Invalid calls raise ValueError before touching storage. Database errors
     propagate to the caller. This validates structure, not user intent.
     """
-    if name not in ("create_task", "list_tasks"):
+    if name not in ("create_task", "list_tasks", "complete_task"):
         raise ValueError("Unknown tool")
     if not isinstance(arguments, dict):
         raise ValueError("Tool arguments must be an object")
@@ -67,6 +88,18 @@ def execute_tool(
             raise ValueError("content must contain at least one nonblank line")
         return {"tasks": [asdict(task) for task in create_tasks(database_path, nonblank)]}
 
-    if arguments:
-        raise ValueError("list_tasks does not accept arguments")
-    return {"tasks": [asdict(task) for task in list_tasks(database_path)]}
+    if name == "list_tasks":
+        if arguments:
+            raise ValueError("list_tasks does not accept arguments")
+        return {"tasks": [asdict(task) for task in list_tasks(database_path)]}
+
+    if set(arguments) != {"id"}:
+        raise ValueError("complete_task requires exactly one argument: id")
+    task_id = arguments["id"]
+    if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
+        raise ValueError("id must be a positive integer")
+    completion = complete_task(database_path, task_id)
+    return {
+        "status": completion.status.value,
+        "task": asdict(completion.task) if completion.task is not None else None,
+    }

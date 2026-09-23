@@ -1,24 +1,109 @@
 """Store tasks in a local SQLite database using only the standard library."""
 
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-from nexus.core.models import Task
+from nexus.core.models import CompletionResult, CompletionStatus, Task
+
+
+SCHEMA_VERSION = 1
+
+
+class DatabaseSchemaError(RuntimeError):
+    """The database version or task table is not understood by this build."""
+
+
+def _task_columns(connection: sqlite3.Connection) -> list[tuple]:
+    return connection.execute("PRAGMA table_info(tasks)").fetchall()
+
+
+def _schema_kind(connection: sqlite3.Connection) -> str | None:
+    entry = connection.execute(
+        "SELECT type, sql FROM sqlite_master WHERE name = 'tasks'"
+    ).fetchone()
+    if entry is None:
+        return None
+    object_type, create_sql = entry
+    if object_type != "table" or not isinstance(create_sql, str):
+        return "unknown"
+
+    columns = _task_columns(connection)
+    names = [column[1] for column in columns]
+    if names not in (["id", "content"], ["id", "content", "completed"]):
+        return "unknown"
+
+    by_name = {column[1]: column for column in columns}
+    task_id = by_name["id"]
+    content = by_name["content"]
+    if task_id[2].upper() != "INTEGER" or task_id[5] != 1:
+        return "unknown"
+    if content[2].upper() != "TEXT" or content[3] != 1:
+        return "unknown"
+    if names == ["id", "content"]:
+        return "legacy"
+
+    completed = by_name["completed"]
+    default = str(completed[4]).strip("()'") if completed[4] is not None else None
+    if completed[2].upper() != "INTEGER" or completed[3] != 1 or default != "0":
+        return "unknown"
+    table_sql = re.sub(r"\s+", "", create_sql.lower())
+    if "check(completedin(0,1))" not in table_sql:
+        return "unknown"
+    invalid = connection.execute(
+        "SELECT 1 FROM tasks WHERE completed NOT IN (0, 1) LIMIT 1"
+    ).fetchone()
+    return "unknown" if invalid else "current"
 
 
 def initialize_database(database_path: str | Path) -> None:
-    """Create the task table if it does not exist; preserve existing tasks."""
-    with closing(sqlite3.connect(database_path)) as connection:
-        with connection:
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS tasks (
-                    id INTEGER PRIMARY KEY,
-                    content TEXT NOT NULL
-                )
-                """
+    """Create or migrate the recognized task schema in one transaction."""
+    with closing(sqlite3.connect(database_path, isolation_level=None)) as connection:
+        version = connection.execute("PRAGMA user_version").fetchone()[0]
+        if version > SCHEMA_VERSION:
+            raise DatabaseSchemaError(
+                f"Database schema version {version} is newer than supported version "
+                f"{SCHEMA_VERSION}"
             )
+
+        kind = _schema_kind(connection)
+        if kind == "unknown":
+            raise DatabaseSchemaError("Unrecognized tasks table schema")
+        if version == SCHEMA_VERSION:
+            if kind != "current":
+                raise DatabaseSchemaError(
+                    f"Database declares schema version {version}, but its tasks table "
+                    "does not match that version"
+                )
+            return
+        if version != 0:
+            raise DatabaseSchemaError(f"Unsupported database schema version {version}")
+
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            if kind is None:
+                connection.execute(
+                    """
+                    CREATE TABLE tasks (
+                        id INTEGER PRIMARY KEY,
+                        content TEXT NOT NULL,
+                        completed INTEGER NOT NULL DEFAULT 0
+                            CHECK(completed IN (0, 1))
+                    )
+                    """
+                )
+            elif kind == "legacy":
+                connection.execute(
+                    """ALTER TABLE tasks ADD COLUMN completed INTEGER NOT NULL
+                       DEFAULT 0 CHECK(completed IN (0, 1))"""
+                )
+            # A current table at version 0 is a recognized interrupted upgrade.
+            connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
 
 
 def create_task(database_path: str | Path, content: str) -> Task | None:
@@ -57,6 +142,35 @@ def list_tasks(database_path: str | Path) -> list[Task]:
     """Return all tasks ordered by their generated IDs."""
     with closing(sqlite3.connect(database_path)) as connection:
         rows = connection.execute(
-            "SELECT id, content FROM tasks ORDER BY id"
+            "SELECT id, content, completed FROM tasks ORDER BY id"
         ).fetchall()
-    return [Task(id=task_id, content=content) for task_id, content in rows]
+    return [
+        Task(id=task_id, content=content, completed=bool(completed))
+        for task_id, content, completed in rows
+    ]
+
+
+def complete_task(database_path: str | Path, task_id: int) -> CompletionResult:
+    """Complete one task by ID and distinguish idempotency from absence."""
+    if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
+        raise ValueError("task_id must be a positive integer")
+
+    with closing(sqlite3.connect(database_path)) as connection:
+        with connection:
+            row = connection.execute(
+                """UPDATE tasks SET completed = 1
+                   WHERE id = ? AND completed = 0
+                   RETURNING id, content, completed""",
+                (task_id,),
+            ).fetchone()
+            if row is not None:
+                task = Task(id=row[0], content=row[1], completed=bool(row[2]))
+                return CompletionResult(CompletionStatus.COMPLETED, task)
+
+            row = connection.execute(
+                "SELECT id, content, completed FROM tasks WHERE id = ?", (task_id,)
+            ).fetchone()
+            if row is None:
+                return CompletionResult(CompletionStatus.NOT_FOUND, None)
+            task = Task(id=row[0], content=row[1], completed=bool(row[2]))
+            return CompletionResult(CompletionStatus.ALREADY_COMPLETED, task)
