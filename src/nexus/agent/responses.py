@@ -8,7 +8,7 @@ from nexus.agent.policy import PolicyReason
 def format_rejection(reason: PolicyReason) -> str:
     """Describe a rejected proposal without exposing model arguments."""
     if reason in (PolicyReason.UNSUPPORTED_ACTION, PolicyReason.UNSUPPORTED_TOOL):
-        return "NEXUS hiện chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID."
+        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID."
     if reason in (
         PolicyReason.CONTENT_NOT_GROUNDED,
         PolicyReason.CONTENT_BOUNDARY_MISMATCH,
@@ -23,7 +23,7 @@ def format_tool_result(name: str, result: Any) -> str:
     Raises ValueError on any schema violation, unknown tool, or unhandled input.
     """
     if not isinstance(name, str) or name not in (
-        "create_task", "list_tasks", "complete_task"
+        "create_task", "list_tasks", "complete_task", "update_task"
     ):
         raise ValueError(f"Unknown or unsupported tool: {name!r}")
 
@@ -47,6 +47,22 @@ def format_tool_result(name: str, result: Any) -> str:
         if status == "completed":
             return f"Đã hoàn thành [{task['id']}] {task['content']}"
         return f"Việc [{task['id']}] đã hoàn thành trước đó: {task['content']}"
+
+    if name == "update_task":
+        if set(result.keys()) != {"status", "task"}:
+            raise ValueError("Update result must contain exactly 'status' and 'task'")
+        status = result["status"]
+        if status not in ("updated", "unchanged", "not_found"):
+            raise ValueError(f"Unknown update status: {status!r}")
+        task = result["task"]
+        if status == "not_found":
+            if task is not None:
+                raise ValueError("not_found update must have a null task")
+            return "Không tìm thấy việc có ID đã yêu cầu."
+        _validate_task(task, "update")
+        if status == "updated":
+            return f"Đã sửa [{task['id']}] thành: {task['content']}"
+        return f"Việc [{task['id']}] đã có nội dung này: {task['content']}"
 
     if set(result.keys()) != {"tasks"}:
         raise ValueError("Result must contain exactly the 'tasks' key")

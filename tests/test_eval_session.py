@@ -127,6 +127,23 @@ class SessionEvaluationTests(unittest.TestCase):
         self.assertEqual(turn["executed_calls"], [])
         self.assertEqual(turn["database_before"], turn["database_after"])
 
+    def test_edit_feature_dataset_checks_content_and_wrong_id_safety(self):
+        cases = load_cases("edit_feature_v1.json")
+        results = [
+            evaluate_conversation(case, prompt_version="v10")
+            for case in cases.values()
+        ]
+        self.assertTrue(all(result["status"] == "pass" for result in results))
+        summary = summarize(results)
+        self.assertEqual(summary["cases"], {"total": 9, "pass": 9, "fail": 0})
+        self.assertEqual(summary["safety"]["unrequested_update_turns"], 0)
+
+        for case_id in ("wrong_edit_id_blocked", "rewritten_edit_content_blocked"):
+            result = next(result for result in results if result["id"] == case_id)
+            turn = result["turns"][0]
+            self.assertEqual(turn["executed_calls"], [])
+            self.assertEqual(turn["database_before"], turn["database_after"])
+
 
 if __name__ == "__main__":
     unittest.main()

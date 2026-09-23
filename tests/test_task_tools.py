@@ -55,6 +55,11 @@ class TaskToolTests(unittest.TestCase):
             ("complete_task", {"id": 0}),
             ("complete_task", {"id": "1"}),
             ("complete_task", {"id": 1, "content": "giữ nguyên"}),
+            ("update_task", {}),
+            ("update_task", {"id": True, "content": "mới"}),
+            ("update_task", {"id": 1, "content": ""}),
+            ("update_task", {"id": 1, "content": "a\nb"}),
+            ("update_task", {"id": 1, "content": "mới", "extra": 1}),
         ]
         for name, arguments in cases:
             with self.subTest(name=name, arguments=arguments):
@@ -101,6 +106,44 @@ class TaskToolTests(unittest.TestCase):
             {"status": "not_found", "task": None},
         )
         self.assertEqual(execute_tool(self.database_path, "list_tasks", {})["tasks"], [first["task"]])
+
+    def test_update_result_contract_and_preserves_completed(self):
+        created = execute_tool(
+            self.database_path, "create_task", {"content": "mua sữa"}
+        )["tasks"][0]
+        execute_tool(self.database_path, "complete_task", {"id": created["id"]})
+        updated = execute_tool(
+            self.database_path,
+            "update_task",
+            {"id": created["id"], "content": "mua sữa không đường"},
+        )
+        self.assertEqual(
+            updated,
+            {
+                "status": "updated",
+                "task": {
+                    "id": created["id"],
+                    "content": "mua sữa không đường",
+                    "completed": True,
+                },
+            },
+        )
+        self.assertEqual(
+            execute_tool(
+                self.database_path,
+                "update_task",
+                {"id": created["id"], "content": "mua sữa không đường"},
+            )["status"],
+            "unchanged",
+        )
+        self.assertEqual(
+            execute_tool(
+                self.database_path,
+                "update_task",
+                {"id": 999, "content": "không tồn tại"},
+            ),
+            {"status": "not_found", "task": None},
+        )
 
 
 if __name__ == "__main__":

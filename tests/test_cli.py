@@ -91,6 +91,30 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 2)
                 self.assertIn("ID phải là số nguyên dương", result.stderr)
 
+    def test_edit_command_updated_unchanged_not_found_and_validation(self):
+        self.assertEqual(self.run_cli("add", "mua sữa").returncode, 0)
+        self.assertEqual(self.run_cli("complete", "1").returncode, 0)
+
+        updated = self.run_cli("edit", "1", "mua sữa không đường")
+        self.assertEqual(updated.returncode, 0, updated.stderr)
+        self.assertEqual(updated.stdout, "Đã sửa [1] thành: mua sữa không đường\n")
+        self.assertEqual(
+            self.run_cli("list").stdout, "[1] [x] mua sữa không đường\n"
+        )
+
+        unchanged = self.run_cli("edit", "1", "mua sữa không đường")
+        self.assertEqual(unchanged.returncode, 0, unchanged.stderr)
+        self.assertIn("đã có nội dung này", unchanged.stdout)
+
+        missing = self.run_cli("edit", "999", "không tồn tại")
+        self.assertEqual(missing.returncode, 1)
+        self.assertEqual(missing.stdout, "Không tìm thấy việc có ID 999.\n")
+
+        for arguments in (("0", "mới"), ("abc", "mới"), ("1", "")):
+            with self.subTest(arguments=arguments):
+                result = self.run_cli("edit", *arguments)
+                self.assertEqual(result.returncode, 2)
+
     def test_database_error_returns_failure_without_success_message(self):
         self.database_path = Path(self.directory.name) / "missing" / "tasks.db"
         result = self.run_cli("add", "mua sữa")
@@ -417,6 +441,10 @@ class CliTests(unittest.TestCase):
                 "pending_create_after": False,
                 "pending_complete_before": False,
                 "pending_complete_after": False,
+                "pending_edit_id_before": None,
+                "pending_edit_id_after": None,
+                "pending_edit_content_before": None,
+                "pending_edit_content_after": None,
             },
         )
         self.assertFalse(continuation["model"]["called"])

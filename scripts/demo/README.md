@@ -18,6 +18,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `10_session_smoke.sh` | Chạy bảy ca tích hợp nhỏ qua `AgentSession` và Qwen thật | Có |
 | `11_completion_eval.sh` | Chấm scripted COMPLETE theo ID, gồm sai ID và không suy ID từ nội dung | Không |
 | `12_completion_smoke.sh` | Chạy smoke Qwen v9 cho CREATE → COMPLETE → LIST và các nhánh completion | Có |
+| `13_edit_eval.sh` | Chấm scripted EDIT theo ID, gồm continuation, giữ trạng thái và proposal sai | Không |
+| `14_edit_smoke.sh` | Chạy smoke Qwen v10 cho sửa nội dung theo ID | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -28,6 +30,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/08_session.sh
 ./scripts/demo/09_session_eval.sh
 ./scripts/demo/11_completion_eval.sh
+./scripts/demo/13_edit_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -66,6 +69,7 @@ Terminal thứ nhất:
 ./scripts/demo/04_ai.sh
 ./scripts/demo/10_session_smoke.sh
 ./scripts/demo/12_completion_smoke.sh
+./scripts/demo/14_edit_smoke.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,

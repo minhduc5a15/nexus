@@ -313,6 +313,122 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(result["calls"], [])
         self.assertEqual([task.completed for task in list_tasks(self.database_path)], [False, False])
 
+    def test_direct_edit_runs_model_proposal_and_preserves_completion(self):
+        task = create_task(self.database_path, "mua sữa")
+        from nexus.storage.sqlite_db import complete_task
+        complete_task(self.database_path, task.id)
+        generate = Mock(return_value=tool_response(
+            "update_task", '{"id":1,"content":"mua sữa không đường"}'
+        ))
+        result = self.session.run_turn(
+            "Sửa việc 1 thành mua sữa không đường", generate
+        )
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(result["calls"][0]["result"]["status"], "updated")
+        self.assertEqual(list_tasks(self.database_path)[0].content, "mua sữa không đường")
+        self.assertTrue(list_tasks(self.database_path)[0].completed)
+
+    def test_edit_missing_content_uses_free_followup(self):
+        create_task(self.database_path, "mua sữa")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Sửa việc 1", generate)
+        self.assertEqual(first["status"], "needs_clarification")
+        self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_CONTENT)
+        self.assertEqual(self.session.pending_edit_id, 1)
+        self.assertIn("việc 1", first["reply"])
+        second = self.session.run_turn("mua sữa không đường", generate)
+        self.assertEqual(second["status"], "executed")
+        self.assertEqual(second["source"], "session_continuation")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path)[0].content, "mua sữa không đường")
+        generate.assert_not_called()
+
+    def test_edit_missing_id_preserves_content_then_updates_selected_id(self):
+        create_task(self.database_path, "một")
+        create_task(self.database_path, "hai")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Sửa việc thành nội dung mới", generate)
+        self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_ID)
+        self.assertEqual(self.session.pending_edit_content, "nội dung mới")
+        self.assertEqual(first["reply"], "Bạn muốn sửa việc có ID nào?")
+        second = self.session.run_turn("#2", generate)
+        self.assertEqual(second["status"], "executed")
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)],
+            ["một", "nội dung mới"],
+        )
+
+    def test_edit_missing_both_collects_id_then_content(self):
+        create_task(self.database_path, "cũ")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Sửa việc", generate)
+        self.assertEqual(first["session_state_after"], "awaiting_edit_id")
+        second = self.session.run_turn("việc 1", generate)
+        self.assertEqual(second["status"], "needs_clarification")
+        self.assertEqual(second["session_state_after"], "awaiting_edit_content")
+        self.assertIn("việc 1", second["reply"])
+        third = self.session.run_turn("nội dung mới", generate)
+        self.assertEqual(third["status"], "executed")
+        self.assertEqual(list_tasks(self.database_path)[0].content, "nội dung mới")
+
+    def test_edit_multiple_ids_asks_for_one_and_cancel_clears_fields(self):
+        create_task(self.database_path, "một")
+        create_task(self.database_path, "hai")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Sửa việc 1 và 2 thành mới", generate)
+        self.assertEqual(first["status"], "needs_clarification")
+        self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_ID)
+        self.assertEqual(self.session.pending_edit_content, "mới")
+        cancelled = self.session.run_turn("thôi", generate)
+        self.assertEqual(cancelled["status"], "cancelled")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertIsNone(self.session.pending_edit_id)
+        self.assertIsNone(self.session.pending_edit_content)
+        self.assertEqual([task.content for task in list_tasks(self.database_path)], ["một", "hai"])
+
+    def test_new_list_replaces_pending_edit(self):
+        create_task(self.database_path, "cũ")
+        self.session.run_turn("Sửa việc 1", Mock(side_effect=AssertionError))
+        generate = Mock(return_value=tool_response("list_tasks", "{}"))
+        result = self.session.run_turn("Xem danh sách", generate)
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path)[0].content, "cũ")
+
+    def test_edit_database_error_keeps_pending_and_formatter_error_clears_it(self):
+        create_task(self.database_path, "cũ")
+        self.session.run_turn("Sửa việc 1", Mock(side_effect=AssertionError))
+        with patch(
+            "nexus.agent.session.execute_tool",
+            side_effect=sqlite3.OperationalError("before commit"),
+        ):
+            with self.assertRaises(sqlite3.OperationalError):
+                self.session.run_turn("mới", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_CONTENT)
+        self.assertEqual(self.session.pending_edit_id, 1)
+        self.assertEqual(list_tasks(self.database_path)[0].content, "cũ")
+
+        with patch(
+            "nexus.agent.session.format_tool_result", side_effect=ValueError("after commit")
+        ):
+            with self.assertRaises(PostToolExecutionError):
+                self.session.run_turn("mới", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path)[0].content, "mới")
+
+    def test_edit_pending_state_is_not_shared(self):
+        create_task(self.database_path, "cũ")
+        self.session.run_turn("Sửa việc 1", Mock(side_effect=AssertionError))
+        other = AgentSession(self.database_path)
+        response = {"choices": [{
+            "finish_reason": "stop", "message": {"role": "assistant", "content": "Không rõ"}
+        }]}
+        result = other.run_turn("mới", Mock(return_value=response))
+        self.assertEqual(result["status"], "no_tool")
+        self.assertEqual(other.state, SessionState.IDLE)
+        self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_CONTENT)
+        self.assertEqual(list_tasks(self.database_path)[0].content, "cũ")
+
 
 if __name__ == "__main__":
     unittest.main()

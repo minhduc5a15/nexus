@@ -5,7 +5,13 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-from nexus.core.models import CompletionResult, CompletionStatus, Task
+from nexus.core.models import (
+    CompletionResult,
+    CompletionStatus,
+    Task,
+    UpdateResult,
+    UpdateStatus,
+)
 
 
 SCHEMA_VERSION = 1
@@ -174,3 +180,35 @@ def complete_task(database_path: str | Path, task_id: int) -> CompletionResult:
                 return CompletionResult(CompletionStatus.NOT_FOUND, None)
             task = Task(id=row[0], content=row[1], completed=bool(row[2]))
             return CompletionResult(CompletionStatus.ALREADY_COMPLETED, task)
+
+
+def update_task(
+    database_path: str | Path, task_id: int, content: str
+) -> UpdateResult:
+    """Replace one task's content while preserving its completion state."""
+    if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
+        raise ValueError("task_id must be a positive integer")
+    if not isinstance(content, str) or not content.strip():
+        raise ValueError("content must be a nonblank string")
+    if "\n" in content or "\r" in content:
+        raise ValueError("update_task expects one line")
+
+    with closing(sqlite3.connect(database_path)) as connection:
+        with connection:
+            row = connection.execute(
+                """UPDATE tasks SET content = ?
+                   WHERE id = ? AND content <> ?
+                   RETURNING id, content, completed""",
+                (content, task_id, content),
+            ).fetchone()
+            if row is not None:
+                task = Task(id=row[0], content=row[1], completed=bool(row[2]))
+                return UpdateResult(UpdateStatus.UPDATED, task)
+
+            row = connection.execute(
+                "SELECT id, content, completed FROM tasks WHERE id = ?", (task_id,)
+            ).fetchone()
+            if row is None:
+                return UpdateResult(UpdateStatus.NOT_FOUND, None)
+            task = Task(id=row[0], content=row[1], completed=bool(row[2]))
+            return UpdateResult(UpdateStatus.UNCHANGED, task)

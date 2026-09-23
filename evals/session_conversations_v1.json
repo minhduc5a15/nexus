@@ -260,7 +260,7 @@
             "executed_calls": [],
             "created_tasks": [],
             "tasks": [],
-            "reply_contains": ["chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID"]
+            "reply_contains": ["chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID"]
           }
         }
       ],

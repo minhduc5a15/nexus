@@ -13,7 +13,12 @@ from time import perf_counter
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
-from nexus.agent.policy import PolicyResult, PolicyReason, policy_for_tool
+from nexus.agent.policy import (
+    PolicyResult,
+    PolicyReason,
+    edit_request_fields,
+    policy_for_tool,
+)
 from nexus.agent.responses import format_rejection, format_tool_result
 
 ENDPOINT = os.environ.get("QWEN_ENDPOINT", "http://127.0.0.1:8087/v1/chat/completions")
@@ -297,7 +302,15 @@ def run_turn(
                 "reason": decision.reason.value,
             }
         )
-        if decision.reason in (
+        if name == "update_task" and decision.reason in (
+            PolicyReason.MISSING_UPDATE_ID,
+            PolicyReason.MULTIPLE_TASK_IDS,
+        ):
+            reply = "Bạn muốn sửa việc có ID nào?"
+        elif name == "update_task" and decision.reason == PolicyReason.MISSING_UPDATE_CONTENT:
+            task_id, _content = edit_request_fields(prompt)
+            reply = f"Bạn muốn đổi nội dung việc {task_id} thành gì?"
+        elif decision.reason in (
             PolicyReason.MISSING_TASK_ID,
             PolicyReason.MULTIPLE_TASK_IDS,
         ):

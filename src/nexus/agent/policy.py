@@ -16,8 +16,11 @@ class PolicyReason(str, Enum):
     EXPLICIT_CREATE = "explicit_create"
     EXPLICIT_LIST = "explicit_list"
     EXPLICIT_COMPLETE = "explicit_complete"
+    EXPLICIT_UPDATE = "explicit_update"
     MISSING_CONTENT = "missing_content"
     MISSING_TASK_ID = "missing_task_id"
+    MISSING_UPDATE_ID = "missing_update_id"
+    MISSING_UPDATE_CONTENT = "missing_update_content"
     MULTIPLE_TASK_IDS = "multiple_task_ids"
     TASK_ID_MISMATCH = "task_id_mismatch"
     NEGATED_REQUEST = "negated_request"
@@ -38,6 +41,10 @@ class RequestKind(str, Enum):
     COMPLETE = "complete"
     MISSING_COMPLETE = "missing_complete"
     MULTIPLE_COMPLETE = "multiple_complete"
+    EDIT = "edit"
+    MISSING_EDIT_ID = "missing_edit_id"
+    MISSING_EDIT_CONTENT = "missing_edit_content"
+    MULTIPLE_EDIT = "multiple_edit"
     UNSUPPORTED = "unsupported"
     NEGATED = "negated"
     OTHER = "other"
@@ -65,9 +72,12 @@ class ToolDecision:
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
+            (PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT),
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
@@ -177,11 +187,129 @@ _COMPLETE_EXACT = re.compile(
     re.IGNORECASE,
 )
 _ID_TOKEN = re.compile(r"(?<!\w)#?([0-9]+)(?!\w)")
+_EDIT_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
+    rf"(?:sửa|cập{_H}nhật){_H}(?:nội{_H}dung{_H})?(?:việc|task)"
+    rf"|đổi{_H}nội{_H}dung{_H}(?:việc|task))\b",
+    re.IGNORECASE,
+)
+_NEGATED_EDIT_HEAD = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}(?:sửa|cập{_H}nhật|đổi{_H}nội{_H}dung)\b",
+    re.IGNORECASE,
+)
+_EDIT_SEPARATOR = re.compile(rf"{_H}thành(?:{_H}|\s*$)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
 class _CompleteRequest:
     task_id: int
+
+
+@dataclass(frozen=True)
+class _EditRequest:
+    task_id: int
+    content_start: int
+    content_end: int
+
+
+@dataclass(frozen=True)
+class _EditParts:
+    ids: tuple[int, ...]
+    before: str
+    content: str | None
+    content_start: int | None
+    content_end: int | None
+
+
+def _parse_edit_parts(prompt: str) -> _EditParts | None:
+    head = _EDIT_COMMAND_HEAD.match(prompt)
+    if head is None:
+        return None
+    tail = prompt[head.end():]
+    separator = _EDIT_SEPARATOR.search(tail)
+    if separator is None:
+        before = tail.strip().rstrip(".?!").rstrip()
+        content = None
+        content_start = None
+        content_end = None
+    else:
+        before = tail[:separator.start()].strip()
+        content_start = head.end() + separator.end()
+        while content_start < len(prompt) and prompt[content_start].isspace():
+            content_start += 1
+        content_end = len(prompt.rstrip())
+        content = (
+            prompt[content_start:content_end]
+            if content_start < content_end
+            else None
+        )
+    ids = tuple(int(value) for value in _ID_TOKEN.findall(before))
+    return _EditParts(ids, before, content, content_start, content_end)
+
+
+def edit_request_fields(prompt: str) -> tuple[int | None, str | None]:
+    """Return reusable fields from a recognized EDIT framing."""
+    parts = _parse_edit_parts(prompt)
+    if parts is None:
+        return None, None
+    task_id = parts.ids[0] if len(parts.ids) == 1 else None
+    return task_id, parts.content
+
+
+def _authorize_edit(prompt: str) -> _EditRequest | ToolDecision:
+    if _NEGATED_EDIT_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+    parts = _parse_edit_parts(prompt)
+    if parts is None:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    if len(parts.ids) > 1:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
+        )
+    if not parts.ids:
+        if parts.before:
+            return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID
+        )
+    task_id = parts.ids[0]
+    if task_id <= 0 or re.fullmatch(r"#?[0-9]+", parts.before) is None:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    if parts.content is None:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT
+        )
+    return _EditRequest(task_id, parts.content_start, parts.content_end)
+
+
+def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
+    if not isinstance(prompt, str) or not prompt.strip():
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    request = _authorize_edit(prompt)
+    if isinstance(request, ToolDecision):
+        return request
+    if (
+        not isinstance(arguments, dict)
+        or set(arguments) != {"id", "content"}
+        or isinstance(arguments["id"], bool)
+        or not isinstance(arguments["id"], int)
+        or arguments["id"] <= 0
+        or not isinstance(arguments["content"], str)
+        or not arguments["content"].strip()
+        or "\n" in arguments["content"]
+        or "\r" in arguments["content"]
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    if arguments["id"] != request.task_id:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
+    content = arguments["content"]
+    expected = prompt[request.content_start:request.content_end]
+    if content == expected:
+        return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE)
+    if content not in prompt:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
+    return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
 
 
 def _authorize_complete(prompt: str) -> _CompleteRequest | ToolDecision:
@@ -373,6 +501,17 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.MISSING_COMPLETE
     if completed.reason == PolicyReason.MULTIPLE_TASK_IDS:
         return RequestKind.MULTIPLE_COMPLETE
+    edited = _authorize_edit(prompt)
+    if isinstance(edited, _EditRequest):
+        return RequestKind.EDIT
+    if edited.reason == PolicyReason.MISSING_UPDATE_ID:
+        return RequestKind.MISSING_EDIT_ID
+    if edited.reason == PolicyReason.MISSING_UPDATE_CONTENT:
+        return RequestKind.MISSING_EDIT_CONTENT
+    if edited.reason == PolicyReason.MULTIPLE_TASK_IDS:
+        return RequestKind.MULTIPLE_EDIT
+    if edited.reason == PolicyReason.NEGATED_REQUEST:
+        return RequestKind.NEGATED
     listed = policy_for_list_tasks(prompt, {})
     if listed.result == PolicyResult.ALLOW:
         return RequestKind.LIST
@@ -386,6 +525,8 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.LIST
     if _COMPLETE_COMMAND_HEAD.match(prompt):
         return RequestKind.COMPLETE
+    if _EDIT_COMMAND_HEAD.match(prompt):
+        return RequestKind.EDIT
     if _UNSUPPORTED_HEAD.match(prompt):
         return RequestKind.UNSUPPORTED
     return RequestKind.OTHER
@@ -434,5 +575,7 @@ def policy_for_tool(prompt: Any, tool_name: Any, arguments: Any) -> ToolDecision
         return policy_for_list_tasks(prompt, arguments)
     if tool_name == "complete_task":
         return policy_for_complete_task(prompt, arguments)
+    if tool_name == "update_task":
+        return policy_for_update_task(prompt, arguments)
 
     return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL)

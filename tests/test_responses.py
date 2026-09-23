@@ -8,7 +8,7 @@ from nexus.agent.responses import format_rejection, format_tool_result
 class ToolResponseFormatterTests(unittest.TestCase):
     def test_rejection_reply_is_fixed_by_reason(self):
         self.assertEqual(format_rejection(PolicyReason.UNSUPPORTED_ACTION),
-                         "NEXUS hiện chỉ hỗ trợ thêm việc, xem danh sách và hoàn thành việc theo ID.")
+                         "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID.")
         self.assertEqual(format_rejection(PolicyReason.CONTENT_BOUNDARY_MISMATCH),
                          "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
         self.assertEqual(format_rejection(PolicyReason.INVALID_ARGUMENTS),
@@ -278,6 +278,34 @@ class ToolResponseFormatterTests(unittest.TestCase):
         for result in invalid:
             with self.subTest(result=result), self.assertRaises(ValueError):
                 format_tool_result("complete_task", result)
+
+    def test_update_result_formats_all_statuses(self):
+        task = {"id": 3, "content": "mua sữa không đường", "completed": True}
+        self.assertEqual(
+            format_tool_result("update_task", {"status": "updated", "task": task}),
+            "Đã sửa [3] thành: mua sữa không đường",
+        )
+        self.assertEqual(
+            format_tool_result("update_task", {"status": "unchanged", "task": task}),
+            "Việc [3] đã có nội dung này: mua sữa không đường",
+        )
+        self.assertEqual(
+            format_tool_result("update_task", {"status": "not_found", "task": None}),
+            "Không tìm thấy việc có ID đã yêu cầu.",
+        )
+
+    def test_update_result_schema_is_strict(self):
+        valid_task = {"id": 1, "content": "mới", "completed": False}
+        invalid = [
+            {"status": "updated", "task": None},
+            {"status": "not_found", "task": valid_task},
+            {"status": "unknown", "task": valid_task},
+            {"status": "updated", "task": {**valid_task, "completed": 0}},
+            {"status": "updated", "task": valid_task, "extra": True},
+        ]
+        for result in invalid:
+            with self.subTest(result=result), self.assertRaises(ValueError):
+                format_tool_result("update_task", result)
 
 
 if __name__ == "__main__":

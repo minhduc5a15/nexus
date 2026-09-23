@@ -1,0 +1,513 @@
+{
+  "feature": "update_task_by_id",
+  "contract": "one_tool_call_per_turn",
+  "cases": [
+    {
+      "id": "edit_then_list",
+      "category": "happy_path",
+      "initial_tasks": [
+        "mua sữa"
+      ],
+      "expected_final_tasks": [
+        "mua sữa không đường"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "mua sữa không đường",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa việc 1 thành mua sữa không đường",
+          "model": {
+            "calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "mua sữa không đường"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "mua sữa không đường"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [
+              {
+                "id": 1,
+                "content": "mua sữa không đường"
+              }
+            ],
+            "tasks": [
+              "mua sữa không đường"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "mua sữa không đường",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "Đã sửa [1] thành: mua sữa không đường"
+            ]
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [
+              "mua sữa không đường"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "mua sữa không đường",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "[1] [ ] mua sữa không đường"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_preserves_completed",
+      "category": "state_preservation",
+      "initial_tasks": [
+        {
+          "content": "gọi mẹ",
+          "completed": true
+        }
+      ],
+      "expected_final_tasks": [
+        "gọi mẹ tối nay"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "gọi mẹ tối nay",
+          "completed": true
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+          "model": {
+            "calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "gọi mẹ tối nay"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "gọi mẹ tối nay"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [
+              {
+                "id": 1,
+                "content": "gọi mẹ tối nay"
+              }
+            ],
+            "tasks": [
+              "gọi mẹ tối nay"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "gọi mẹ tối nay",
+                "completed": true
+              }
+            ],
+            "reply_contains": [
+              "Đã sửa [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_unchanged",
+      "category": "idempotency",
+      "initial_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "đọc sách",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa task #1 thành đọc sách",
+          "model": {
+            "calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "đọc sách"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "đọc sách"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [
+              "đọc sách"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "đọc sách",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "đã có nội dung này"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_not_found",
+      "category": "not_found",
+      "initial_tasks": [],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "prompt": "Sửa việc 99 thành không tồn tại",
+          "model": {
+            "calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 99,
+                  "content": "không tồn tại"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 99,
+                  "content": "không tồn tại"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [],
+            "task_states": [],
+            "reply_contains": [
+              "Không tìm thấy việc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_missing_content",
+      "category": "continuation",
+      "initial_tasks": [
+        "cũ"
+      ],
+      "expected_final_tasks": [
+        "nội dung mới"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "nội dung mới",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_edit_content",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [
+              "cũ"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "cũ",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "đổi nội dung việc 1"
+            ]
+          }
+        },
+        {
+          "prompt": "nội dung mới",
+          "expected": {
+            "state_before": "awaiting_edit_content",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "nội dung mới"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [
+              {
+                "id": 1,
+                "content": "nội dung mới"
+              }
+            ],
+            "tasks": [
+              "nội dung mới"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "nội dung mới",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "Đã sửa [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_missing_id",
+      "category": "continuation",
+      "initial_tasks": [
+        "cũ"
+      ],
+      "expected_final_tasks": [
+        "nội dung mới"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "nội dung mới",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa việc thành nội dung mới",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_edit_id",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [
+              "cũ"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "cũ",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "sửa việc có ID nào"
+            ]
+          }
+        },
+        {
+          "prompt": "#1",
+          "expected": {
+            "state_before": "awaiting_edit_id",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "nội dung mới"
+                }
+              }
+            ],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [
+              {
+                "id": 1,
+                "content": "nội dung mới"
+              }
+            ],
+            "tasks": [
+              "nội dung mới"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "nội dung mới",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "Đã sửa [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "edit_by_content_not_resolved",
+      "category": "safety",
+      "initial_tasks": [
+        "báo cáo"
+      ],
+      "expected_final_tasks": [
+        "báo cáo"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "báo cáo",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa việc báo cáo thành báo cáo tháng",
+          "model": {
+            "reply": "Bạn cần nêu ID."
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "created_tasks": [],
+            "completed_ids": [],
+            "updated_tasks": [],
+            "tasks": [
+              "báo cáo"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "báo cáo",
+                "completed": false
+              }
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "suite": "live_qwen_smoke"
+}

@@ -13,6 +13,7 @@ from nexus.storage.sqlite_db import (
     create_task,
     initialize_database,
     list_tasks,
+    update_task,
 )
 
 
@@ -31,6 +32,12 @@ def _positive_id(value: str) -> int:
     if task_id <= 0:
         raise argparse.ArgumentTypeError("ID phải là số nguyên dương")
     return task_id
+
+
+def _single_line_content(value: str) -> str:
+    if not value.strip() or "\n" in value or "\r" in value:
+        raise argparse.ArgumentTypeError("Nội dung mới phải là một dòng không trống")
+    return value
 
 
 def print_tool_results(
@@ -59,6 +66,11 @@ def print_tool_results(
                     if result.get("status") == "completed"
                     else "Đã hoàn thành từ trước"
                 )
+                print(f"{prefix} [{task['id']}] {task['content']}", flush=True)
+        elif name == "update_task" and isinstance(result, dict):
+            task = result.get("task")
+            if isinstance(task, dict):
+                prefix = "Đã sửa" if result.get("status") == "updated" else "Không đổi"
                 print(f"{prefix} [{task['id']}] {task['content']}", flush=True)
     return saved_count
 
@@ -122,6 +134,8 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
         state_before = session.state.value
         pending_before = session.pending_create
         pending_complete_before = session.pending_complete
+        pending_edit_id_before = session.pending_edit_id
+        pending_edit_content_before = session.pending_edit_content
         database_before = _database_snapshot(database_path) if trace else None
         model_exchange = {
             "called": False,
@@ -200,7 +214,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                     "model"
                     if model_exchange["called"]
                     else "session_continuation"
-                    if pending_before or pending_complete_before
+                    if state_before != "idle"
                     else "session"
                 )
                 status = "error_after_execution" if isinstance(
@@ -224,6 +238,10 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                         "pending_create_after": session.pending_create,
                         "pending_complete_before": pending_complete_before,
                         "pending_complete_after": session.pending_complete,
+                        "pending_edit_id_before": pending_edit_id_before,
+                        "pending_edit_id_after": session.pending_edit_id,
+                        "pending_edit_content_before": pending_edit_content_before,
+                        "pending_edit_content_after": session.pending_edit_content,
                     },
                     "model": model_exchange,
                     "runtime": {
@@ -279,6 +297,9 @@ def main() -> int:
         "complete", help="Đánh dấu một việc là đã hoàn thành theo ID"
     )
     complete_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
+    edit_parser = commands.add_parser("edit", help="Sửa nội dung một việc theo ID")
+    edit_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
+    edit_parser.add_argument("content", type=_single_line_content, help="Nội dung mới")
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
     chat_parser = commands.add_parser(
@@ -333,6 +354,18 @@ def main() -> int:
                 print(
                     f"Việc [{completion.task.id}] đã hoàn thành trước đó: "
                     f"{completion.task.content}"
+                )
+        elif args.command == "edit":
+            updated = update_task(args.db, args.id, args.content)
+            if updated.status.value == "not_found":
+                print(f"Không tìm thấy việc có ID {args.id}.")
+                return 1
+            if updated.status.value == "updated":
+                print(f"Đã sửa [{updated.task.id}] thành: {updated.task.content}")
+            else:
+                print(
+                    f"Việc [{updated.task.id}] đã có nội dung này: "
+                    f"{updated.task.content}"
                 )
         elif args.command == "ask":
             from nexus.agent.client import PostToolExecutionError, chat, run_turn

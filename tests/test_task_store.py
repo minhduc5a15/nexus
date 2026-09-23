@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nexus.core.models import CompletionStatus, Task
+from nexus.core.models import CompletionStatus, Task, UpdateStatus
 from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     SCHEMA_VERSION,
@@ -13,6 +13,7 @@ from nexus.storage.sqlite_db import (
     create_tasks,
     initialize_database,
     list_tasks,
+    update_task,
 )
 
 
@@ -174,6 +175,45 @@ class TaskStoreTests(unittest.TestCase):
             """)
         with self.assertRaises(sqlite3.IntegrityError):
             complete_task(self.database_path, task.id)
+        self.assertEqual(list_tasks(self.database_path), [task])
+
+    def test_update_success_unchanged_not_found_and_preserves_completion(self):
+        task = create_task(self.database_path, "mua sữa")
+        complete_task(self.database_path, task.id)
+
+        updated = update_task(self.database_path, task.id, "mua sữa không đường")
+        self.assertEqual(updated.status, UpdateStatus.UPDATED)
+        self.assertEqual(updated.task, Task(task.id, "mua sữa không đường", True))
+
+        unchanged = update_task(self.database_path, task.id, "mua sữa không đường")
+        self.assertEqual(unchanged.status, UpdateStatus.UNCHANGED)
+        self.assertEqual(unchanged.task, updated.task)
+
+        missing = update_task(self.database_path, 999, "không tồn tại")
+        self.assertEqual(missing.status, UpdateStatus.NOT_FOUND)
+        self.assertIsNone(missing.task)
+
+    def test_update_validates_id_and_one_line_content(self):
+        task = create_task(self.database_path, "giữ nguyên")
+        cases = [
+            (True, "mới"), (0, "mới"), (-1, "mới"), ("1", "mới"),
+            (task.id, ""), (task.id, "   "), (task.id, "a\nb"),
+            (task.id, 123),
+        ]
+        for task_id, content in cases:
+            with self.subTest(task_id=task_id, content=content), self.assertRaises(ValueError):
+                update_task(self.database_path, task_id, content)
+        self.assertEqual(list_tasks(self.database_path), [task])
+
+    def test_update_rolls_back_when_database_rejects_change(self):
+        task = create_task(self.database_path, "giữ nguyên")
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute("""
+                CREATE TRIGGER fail_content_update BEFORE UPDATE OF content ON tasks
+                BEGIN SELECT RAISE(ABORT, 'failure'); END
+            """)
+        with self.assertRaises(sqlite3.IntegrityError):
+            update_task(self.database_path, task.id, "nội dung mới")
         self.assertEqual(list_tasks(self.database_path), [task])
 
     def test_create_tasks_rolls_back_all_rows(self):

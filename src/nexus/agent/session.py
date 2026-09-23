@@ -1,4 +1,4 @@
-"""In-memory continuation of incomplete CREATE and COMPLETE requests."""
+"""In-memory continuation of incomplete CREATE, COMPLETE and EDIT requests."""
 
 import re
 from copy import deepcopy
@@ -7,7 +7,12 @@ from pathlib import Path
 
 from nexus.agent.client import PostToolExecutionError, TurnStatus, chat, run_turn
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION
-from nexus.agent.policy import PolicyReason, RequestKind, classify_request
+from nexus.agent.policy import (
+    PolicyReason,
+    RequestKind,
+    classify_request,
+    edit_request_fields,
+)
 from nexus.agent.responses import format_rejection, format_tool_result
 from nexus.agent.tools import execute_tool
 
@@ -16,6 +21,7 @@ _CANCEL = re.compile(r"^\s*(?:thôi|hủy|huỷ)[.!]?\s*$", re.IGNORECASE)
 _NO_ACTION = "Không có thao tác nào được thực hiện."
 _ASK_CONTENT = "Bạn muốn thêm việc gì?"
 _ASK_COMPLETE_ID = "Bạn muốn hoàn thành việc có ID nào?"
+_ASK_EDIT_ID = "Bạn muốn sửa việc có ID nào?"
 _COMPLETE_ID_REPLY = re.compile(
     r"^\s*(?:#?(?P<bare>[0-9]+)|(?:việc|task)\s+#?(?P<labelled>[0-9]+))[.!]?\s*$",
     re.IGNORECASE,
@@ -28,6 +34,8 @@ class SessionState(str, Enum):
     IDLE = "idle"
     AWAITING_CREATE_CONTENT = "awaiting_create_content"
     AWAITING_COMPLETE_ID = "awaiting_complete_id"
+    AWAITING_EDIT_ID = "awaiting_edit_id"
+    AWAITING_EDIT_CONTENT = "awaiting_edit_content"
 
 
 def _session_result(
@@ -67,7 +75,22 @@ class AgentSession:
         self.database_path = Path(database_path)
         self.prompt_version = prompt_version
         self.settings = deepcopy(settings)
-        self.state = SessionState.IDLE
+        self.pending_edit_id: int | None = None
+        self.pending_edit_content: str | None = None
+        self._set_state(SessionState.IDLE)
+
+    def _set_state(
+        self,
+        state: SessionState,
+        *,
+        edit_id: int | None = None,
+        edit_content: str | None = None,
+    ) -> None:
+        self.state = state
+        self.pending_edit_id = edit_id if state == SessionState.AWAITING_EDIT_CONTENT else None
+        self.pending_edit_content = (
+            edit_content if state == SessionState.AWAITING_EDIT_ID else None
+        )
 
     @property
     def pending_create(self) -> bool:
@@ -76,13 +99,23 @@ class AgentSession:
 
     @pending_create.setter
     def pending_create(self, value: bool) -> None:
-        self.state = (
+        self._set_state(
             SessionState.AWAITING_CREATE_CONTENT if value else SessionState.IDLE
         )
 
     @property
     def pending_complete(self) -> bool:
         return self.state == SessionState.AWAITING_COMPLETE_ID
+
+    @property
+    def pending_edit(self) -> bool:
+        return self.state in (
+            SessionState.AWAITING_EDIT_ID,
+            SessionState.AWAITING_EDIT_CONTENT,
+        )
+
+    def _edit_content_question(self) -> str:
+        return f"Bạn muốn đổi nội dung việc {self.pending_edit_id} thành gì?"
 
     def _finish(self, result: dict, state_before: SessionState) -> dict:
         """Attach the state transition to every completed turn."""
@@ -103,41 +136,67 @@ class AgentSession:
                 result = _session_result(
                     TurnStatus.NEEDS_CLARIFICATION, _ASK_COMPLETE_ID
                 )
+            elif self.state == SessionState.AWAITING_EDIT_ID:
+                result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_EDIT_ID)
+            elif self.state == SessionState.AWAITING_EDIT_CONTENT:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, self._edit_content_question()
+                )
             else:
                 result = _session_result(TurnStatus.NO_TOOL, _NO_ACTION)
             return self._finish(result, state_before)
 
         if self.state != SessionState.IDLE and _CANCEL.fullmatch(prompt):
             cancelled_state = self.state
-            self.state = SessionState.IDLE
+            self._set_state(SessionState.IDLE)
             if cancelled_state == SessionState.AWAITING_CREATE_CONTENT:
                 reply = "Đã hủy yêu cầu thêm việc. Không có việc nào được lưu."
-            else:
+            elif cancelled_state == SessionState.AWAITING_COMPLETE_ID:
                 reply = "Đã hủy yêu cầu hoàn thành việc. Không có thay đổi nào được lưu."
+            else:
+                reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
             result = _session_result(TurnStatus.CANCELLED, reply)
             return self._finish(result, state_before)
 
         kind = classify_request(prompt)
         if kind == RequestKind.MISSING_CREATE:
-            self.state = SessionState.AWAITING_CREATE_CONTENT
+            self._set_state(SessionState.AWAITING_CREATE_CONTENT)
             result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_CONTENT)
             return self._finish(result, state_before)
 
         if kind in (RequestKind.MISSING_COMPLETE, RequestKind.MULTIPLE_COMPLETE):
-            self.state = SessionState.AWAITING_COMPLETE_ID
+            self._set_state(SessionState.AWAITING_COMPLETE_ID)
             result = _session_result(
                 TurnStatus.NEEDS_CLARIFICATION, _ASK_COMPLETE_ID
             )
             return self._finish(result, state_before)
 
+        if kind in (RequestKind.MISSING_EDIT_ID, RequestKind.MULTIPLE_EDIT):
+            _task_id, content = edit_request_fields(prompt)
+            self._set_state(
+                SessionState.AWAITING_EDIT_ID, edit_content=content
+            )
+            result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_EDIT_ID)
+            return self._finish(result, state_before)
+
+        if kind == RequestKind.MISSING_EDIT_CONTENT:
+            task_id, _content = edit_request_fields(prompt)
+            self._set_state(SessionState.AWAITING_EDIT_CONTENT, edit_id=task_id)
+            result = _session_result(
+                TurnStatus.NEEDS_CLARIFICATION, self._edit_content_question()
+            )
+            return self._finish(result, state_before)
+
         if kind in (RequestKind.UNSUPPORTED, RequestKind.NEGATED):
             pending_state = self.state
-            self.state = SessionState.IDLE
+            self._set_state(SessionState.IDLE)
             if kind == RequestKind.NEGATED and pending_state != SessionState.IDLE:
                 if pending_state == SessionState.AWAITING_CREATE_CONTENT:
                     reply = "Đã hủy yêu cầu thêm việc. Không có việc nào được lưu."
-                else:
+                elif pending_state == SessionState.AWAITING_COMPLETE_ID:
                     reply = "Đã hủy yêu cầu hoàn thành việc. Không có thay đổi nào được lưu."
+                else:
+                    reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
                 result = _session_result(TurnStatus.CANCELLED, reply)
             else:
                 reply = (
@@ -168,8 +227,37 @@ class AgentSession:
                     result = self._complete_followup(task_id)
             return self._finish(result, state_before)
 
-        # A new explicit CREATE/LIST/COMPLETE replaces any pending request.
-        self.state = SessionState.IDLE
+        if self.state == SessionState.AWAITING_EDIT_ID and kind == RequestKind.OTHER:
+            match = _COMPLETE_ID_REPLY.fullmatch(prompt)
+            if match is None:
+                result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_EDIT_ID)
+            else:
+                task_id = int(match.group("bare") or match.group("labelled"))
+                if task_id <= 0:
+                    result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_EDIT_ID)
+                elif self.pending_edit_content is None:
+                    self._set_state(
+                        SessionState.AWAITING_EDIT_CONTENT, edit_id=task_id
+                    )
+                    result = _session_result(
+                        TurnStatus.NEEDS_CLARIFICATION,
+                        self._edit_content_question(),
+                    )
+                else:
+                    result = self._update_followup(task_id, self.pending_edit_content)
+            return self._finish(result, state_before)
+
+        if self.state == SessionState.AWAITING_EDIT_CONTENT and kind == RequestKind.OTHER:
+            if "\n" in prompt or "\r" in prompt or not prompt.strip():
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, self._edit_content_question()
+                )
+            else:
+                result = self._update_followup(self.pending_edit_id, prompt)
+            return self._finish(result, state_before)
+
+        # A new explicit CREATE/LIST/COMPLETE/EDIT replaces any pending request.
+        self._set_state(SessionState.IDLE)
         result = run_turn(
             self.database_path,
             prompt,
@@ -182,9 +270,19 @@ class AgentSession:
                 call.get("reason") for call in result.get("rejected_calls", [])
             }
             if reasons & {"missing_task_id", "multiple_task_ids"}:
-                self.state = SessionState.AWAITING_COMPLETE_ID
+                self._set_state(SessionState.AWAITING_COMPLETE_ID)
+            elif "missing_update_id" in reasons:
+                _task_id, content = edit_request_fields(prompt)
+                self._set_state(
+                    SessionState.AWAITING_EDIT_ID, edit_content=content
+                )
+            elif "missing_update_content" in reasons:
+                task_id, _content = edit_request_fields(prompt)
+                self._set_state(
+                    SessionState.AWAITING_EDIT_CONTENT, edit_id=task_id
+                )
             else:
-                self.state = SessionState.AWAITING_CREATE_CONTENT
+                self._set_state(SessionState.AWAITING_CREATE_CONTENT)
         return self._finish({**result, "source": "model"}, state_before)
 
     def _save_followup(self, content: str) -> dict:
@@ -199,7 +297,7 @@ class AgentSession:
         # so the user may deliberately retry with a new message.
         result = execute_tool(self.database_path, "create_task", arguments)
         calls = [{"name": "create_task", "arguments": arguments, "result": result}]
-        self.state = SessionState.IDLE
+        self._set_state(SessionState.IDLE)
         try:
             reply = format_tool_result("create_task", result)
         except Exception as error:
@@ -228,9 +326,38 @@ class AgentSession:
         # Keep pending if SQLite fails before returning a committed result.
         result = execute_tool(self.database_path, "complete_task", arguments)
         calls = [{"name": "complete_task", "arguments": arguments, "result": result}]
-        self.state = SessionState.IDLE
+        self._set_state(SessionState.IDLE)
         try:
             reply = format_tool_result("complete_task", result)
+        except Exception as error:
+            raise PostToolExecutionError(
+                "response_formatting",
+                calls,
+                error,
+                authorized_calls=authorized_calls,
+            ) from error
+        return _session_result(
+            TurnStatus.EXECUTED,
+            reply,
+            source="session_continuation",
+            calls=calls,
+            authorized_calls=authorized_calls,
+        )
+
+    def _update_followup(self, task_id: int, content: str) -> dict:
+        arguments = {"id": task_id, "content": content}
+        authorized_calls = [{
+            "name": "update_task",
+            "arguments": arguments,
+            "result": "allow",
+            "reason": "session_continuation",
+        }]
+        # Keep the current pending state if SQLite fails before returning.
+        result = execute_tool(self.database_path, "update_task", arguments)
+        calls = [{"name": "update_task", "arguments": arguments, "result": result}]
+        self._set_state(SessionState.IDLE)
+        try:
+            reply = format_tool_result("update_task", result)
         except Exception as error:
             raise PostToolExecutionError(
                 "response_formatting",

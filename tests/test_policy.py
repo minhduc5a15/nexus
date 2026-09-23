@@ -12,11 +12,14 @@ class TestToolDecision(unittest.TestCase):
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_CREATE)
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST)
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE)
+        ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE)
 
         # Needs Clarification
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT)
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID)
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS)
+        ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID)
+        ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT)
 
         # Reject (All 6 reasons)
         ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
@@ -76,6 +79,7 @@ class TestToolDecision(unittest.TestCase):
         self.assertEqual(PolicyReason.EXPLICIT_CREATE.value, "explicit_create")
         self.assertEqual(PolicyReason.EXPLICIT_LIST.value, "explicit_list")
         self.assertEqual(PolicyReason.EXPLICIT_COMPLETE.value, "explicit_complete")
+        self.assertEqual(PolicyReason.EXPLICIT_UPDATE.value, "explicit_update")
         self.assertEqual(PolicyReason.MISSING_CONTENT.value, "missing_content")
         self.assertEqual(PolicyReason.NEGATED_REQUEST.value, "negated_request")
         self.assertEqual(PolicyReason.UNSUPPORTED_ACTION.value, "unsupported_action")
@@ -434,7 +438,6 @@ class TestPolicyForTool(unittest.TestCase):
     def test_unsupported_tool(self):
         for tool_name in [
             "delete_task",
-            "update_task",
             "query_database",
             "random_tool",
         ]:
@@ -546,6 +549,90 @@ class TestPolicyForTool(unittest.TestCase):
             ).result,
             PolicyResult.ALLOW,
         )
+
+    def test_update_requires_exact_id_and_verbatim_complete_content(self):
+        allowed = [
+            ("Sửa việc 3 thành mua sữa không đường", "mua sữa không đường"),
+            ("Sửa task #3 thành Mua SỮA.", "Mua SỮA."),
+            ("Đổi nội dung việc 3 thành gọi mẹ", "gọi mẹ"),
+            ("Cập nhật nội dung task 3 thành a lúc 8:00", "a lúc 8:00"),
+        ]
+        for prompt, content in allowed:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(
+                    policy_for_tool(
+                        prompt, "update_task", {"id": 3, "content": content}
+                    ),
+                    ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE),
+                )
+
+        self.assertEqual(
+            policy_for_tool(
+                "Sửa việc 3 thành nội dung mới",
+                "update_task",
+                {"id": 4, "content": "nội dung mới"},
+            ).reason,
+            PolicyReason.TASK_ID_MISMATCH,
+        )
+        self.assertEqual(
+            policy_for_tool(
+                "Sửa việc 3 thành Nội dung mới",
+                "update_task",
+                {"id": 3, "content": "nội dung mới"},
+            ).reason,
+            PolicyReason.CONTENT_NOT_GROUNDED,
+        )
+        self.assertEqual(
+            policy_for_tool(
+                "Sửa việc 3 thành mua sữa và gọi mẹ",
+                "update_task",
+                {"id": 3, "content": "mua sữa"},
+            ).reason,
+            PolicyReason.CONTENT_BOUNDARY_MISMATCH,
+        )
+
+    def test_update_missing_multiple_negated_and_invalid_arguments(self):
+        cases = [
+            ("Sửa việc thành nội dung mới", PolicyReason.MISSING_UPDATE_ID),
+            ("Sửa việc", PolicyReason.MISSING_UPDATE_ID),
+            ("Sửa việc 3", PolicyReason.MISSING_UPDATE_CONTENT),
+            ("Sửa việc 1 và 2 thành mới", PolicyReason.MULTIPLE_TASK_IDS),
+        ]
+        for prompt, reason in cases:
+            with self.subTest(prompt=prompt):
+                decision = policy_for_tool(
+                    prompt, "update_task", {"id": 3, "content": "mới"}
+                )
+                self.assertEqual(decision.result, PolicyResult.NEEDS_CLARIFICATION)
+                self.assertEqual(decision.reason, reason)
+
+        self.assertEqual(
+            policy_for_tool(
+                "Đừng sửa việc 3 thành mới",
+                "update_task",
+                {"id": 3, "content": "mới"},
+            ).reason,
+            PolicyReason.NEGATED_REQUEST,
+        )
+        self.assertEqual(
+            policy_for_tool(
+                "Sửa việc báo cáo thành mới",
+                "update_task",
+                {"id": 3, "content": "mới"},
+            ).reason,
+            PolicyReason.BARE_STATEMENT,
+        )
+        for arguments in (
+            {}, {"id": True, "content": "mới"}, {"id": 3, "content": ""},
+            {"id": 3, "content": "a\nb"}, {"id": 3, "content": "mới", "x": 1},
+        ):
+            with self.subTest(arguments=arguments):
+                self.assertEqual(
+                    policy_for_tool(
+                        "Sửa việc 3 thành mới", "update_task", arguments
+                    ).reason,
+                    PolicyReason.INVALID_ARGUMENTS,
+                )
 
     def test_no_tool_execution_or_database_access(self):
         with patch("nexus.agent.tools.execute_tool") as mock_exec:

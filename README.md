@@ -1,9 +1,9 @@
 # NEXUS
 
 NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại gồm
-thêm việc, xem danh sách và hoàn thành đúng một việc theo ID. Người dùng có thể
-gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để Qwen3-1.7B chọn một trong
-ba tool. Dữ liệu được lưu cục bộ bằng SQLite.
+thêm việc, xem danh sách, hoàn thành và sửa đúng một việc theo ID. Người dùng có
+thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để Qwen3-1.7B chọn một
+trong bốn tool. Dữ liệu được lưu cục bộ bằng SQLite.
 
 Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
 không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content` và
@@ -21,12 +21,13 @@ python3 -m venv .venv
 ```
 
 Lệnh `--editable` giúp thay đổi trong `src/` có hiệu lực ngay, phù hợp khi học
-và phát triển dự án. Không cần model để dùng hai lệnh cơ bản:
+và phát triển dự án. Không cần model để dùng các lệnh trực tiếp:
 
 ```sh
 .venv/bin/nexus add "mua sữa, gọi mẹ và học Python"
 .venv/bin/nexus list
 .venv/bin/nexus complete 1
+.venv/bin/nexus edit 1 "mua sữa không đường"
 ```
 
 Để thêm nhiều task, bỏ đối số và nhập mỗi task trên một dòng. Nhấn `Ctrl+D`
@@ -108,6 +109,8 @@ NEXUS: Danh sách hiện có 1 việc:
 [1] [ ] mua sữa
 NEXUS > Hoàn thành việc 1
 NEXUS: Đã hoàn thành [1] mua sữa
+NEXUS > Sửa việc 1 thành mua sữa không đường
+NEXUS: Đã sửa [1] thành: mua sữa không đường
 ```
 
 Để xem đầy đủ luồng xử lý của từng lượt:
@@ -130,7 +133,8 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 ```
 
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
-định là v9; v1–v8 vẫn được giữ nguyên để tái tạo các thí nghiệm cũ. Một call
+định vẫn là v9; v1–v10 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT nhưng
+chưa được chọn làm mặc định vì smoke Qwen mới đạt 7/10 lượt. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
@@ -144,10 +148,10 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` riêng cho từng cuộc trò chuyện. State machine có ba trạng thái
-trong bộ nhớ: `idle`, `awaiting_create_content` và `awaiting_complete_id`.
-Trạng thái thứ ba giữ quyền COMPLETE khi người dùng đã yêu cầu hoàn thành nhưng
-chưa nêu ID. Ví dụ khi đã khởi động llama.cpp:
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có năm trạng thái
+trong bộ nhớ: `idle`, `awaiting_create_content`, `awaiting_complete_id`,
+`awaiting_edit_id` và `awaiting_edit_content`. Hai trạng thái EDIT giữ ID hoặc
+content đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
 
 ```python
 from nexus.agent.session import AgentSession
@@ -167,9 +171,9 @@ quả hoàn tất chứa `session_state_before` và `session_state_after`. Nội
 lời được dùng nguyên văn, không được model viết lại.
 
 Khi chờ ID, lượt sau chỉ nhận `3`, `#3`, `việc 3` hoặc `task 3`; không tìm task
-theo nội dung. Tin nhắn trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy
-yêu cầu và về `idle`. Một yêu cầu CREATE/LIST/COMPLETE mới thay thế yêu cầu
-đang chờ. Nếu SQLite lỗi
+theo nội dung. EDIT thiếu ID hoặc content hỏi lại đúng phần còn thiếu. Tin nhắn
+trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về `idle`.
+Một yêu cầu CREATE/LIST/COMPLETE/EDIT mới thay thế yêu cầu đang chờ. Nếu SQLite lỗi
 trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi lỗi
 sau commit, session đã về `idle` để tránh tự lưu trùng. Session không lưu trạng
 thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
@@ -222,7 +226,17 @@ tồn tại, hỏi ID qua hai lượt và yêu cầu theo nội dung:
 ./scripts/demo/12_completion_smoke.sh
 ```
 
-Hai evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git
+EDIT cũng có bộ scripted và smoke riêng. Bộ scripted kiểm tra ID/content chính
+xác, continuation, giữ trạng thái completion và các proposal sai bị chặn. Bộ
+smoke dùng prompt v10; lần đo đầu đạt 7/10 lượt và không có update ngoài yêu
+cầu, nên prompt mặc định vẫn là v9:
+
+```sh
+./scripts/demo/13_edit_eval.sh
+./scripts/demo/14_edit_smoke.sh
+```
+
+Các evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git
 ignore. Exit code `1` nghĩa là ít nhất một ca không đạt contract, không nhất
 thiết là lỗi chương trình.
 
