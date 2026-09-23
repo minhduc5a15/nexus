@@ -29,6 +29,7 @@ class PolicyContractTests(unittest.TestCase):
             ('Thêm việc ví dụ mua sữa', RequestKind.CREATE),
             ('Xem danh sách', RequestKind.LIST),
             ('Xem danh sách việc đã thêm', RequestKind.LIST),
+            ('Hiện tại tôi đang có những việc gì nhỉ?', RequestKind.LIST),
             ('Xóa task cũ', RequestKind.UNSUPPORTED),
             ('Đừng thêm việc sửa xe', RequestKind.NEGATED),
             ('Đừng xem danh sách', RequestKind.NEGATED),
@@ -200,13 +201,17 @@ class PolicyContractTests(unittest.TestCase):
     def test_list_questions_are_about_saved_tasks(self):
         for prompt in ['Danh sách việc của tôi hiện có gì?', 'Danh sách của tui có gì?',
                        'Todo của mình hiện có gì?', 'Mình đã ghi những việc gì rồi nhỉ?',
-                       'Hiển thị danh sách task']:
+                       'Hiển thị danh sách task',
+                       'Hiện tại tôi đang có những việc gì nhỉ?',
+                       'Bây giờ mình có những việc nào?',
+                       'Lúc này tui đang có task nào?']:
             with self.subTest(prompt=prompt):
                 self.assertEqual(policy_for_tool(prompt, 'list_tasks', {}).result, PolicyResult.ALLOW)
         for prompt in ['Bữa sáng có gì?', 'Đây là danh sách của tôi.',
                        'Ví dụ: xem danh sách', '“Xem danh sách” có nghĩa là gì?',
                        'Đừng xem danh sách.', 'Xóa danh sách.',
-                       'Hôm qua tôi xem danh sách.', 'Tôi thích xem danh sách.']:
+                       'Hôm qua tôi xem danh sách.', 'Tôi thích xem danh sách.',
+                       'Hiện tại tôi đang có những món gì?']:
             with self.subTest(prompt=prompt):
                 self.assertEqual(policy_for_tool(prompt, 'list_tasks', {}).result, PolicyResult.REJECT)
 

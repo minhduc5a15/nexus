@@ -14,6 +14,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `06_tests.sh` | Tên từng unit test và kết quả | Không |
 | `07_report.sh` | Đọc report JSON có sẵn, không gọi lại model | Không |
 | `08_session.sh` | CREATE thiếu nội dung → hỏi lại → lưu nhiều dòng → hủy → LIST; cho thấy trạng thái session | Không |
+| `09_session_eval.sh` | Chấm 13 chuỗi hội thoại giả lập theo state, tool, SQLite, reply và ghi ngoài yêu cầu | Không |
+| `10_session_smoke.sh` | Chạy bảy ca tích hợp nhỏ qua `AgentSession` và Qwen thật | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -22,6 +24,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/02_policy.sh
 ./scripts/demo/03_agent_offline.sh
 ./scripts/demo/08_session.sh
+./scripts/demo/09_session_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -40,6 +43,12 @@ dung không gọi model; tin nhắn kế tiếp được lưu nguyên văn thàn
 cho thấy hủy yêu cầu đang chờ và một lệnh LIST mới. Chỉ lượt LIST dùng response
 model giả lập; SQLite và các nhánh session là thật.
 
+`09_session_eval.sh` chạy 13 cuộc hội thoại, tổng cộng 32 lượt, bằng proposal
+model cố định. Báo cáo chấm riêng chuyển state, tool đã chạy, SQLite, reply và
+ghi ngoài yêu cầu. Khi session đang chờ nội dung CREATE, tin nhắn tự do kế tiếp
+được coi là content theo quyền từ lượt trước; chỉ lệnh mới hoặc hủy rõ ràng mới
+thay thế trạng thái chờ.
+
 ## Chạy AI thật
 
 Terminal thứ nhất:
@@ -52,6 +61,7 @@ Terminal thứ nhất:
 
 ```sh
 ./scripts/demo/04_ai.sh
+./scripts/demo/10_session_smoke.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
@@ -66,6 +76,19 @@ xem danh sách, rồi đưa một câu trần thuật. Cấu hình là prompt `v
 
 Gõ `/exit` hoặc nhấn `Ctrl+D` để kết thúc. Đây vẫn là các lượt `run_turn` độc
 lập, chưa phải `AgentSession`; danh sách SQLite được giữ trong suốt phiên demo.
+
+Để dùng hội thoại nhiều lượt thật thay vì demo trace, chạy:
+
+```sh
+.venv/bin/nexus chat
+.venv/bin/nexus chat --trace
+```
+
+Lệnh này giữ một `AgentSession`: “Thêm việc” có thể hỏi lại và dùng tin nhắn kế
+tiếp làm nội dung. Nó dùng database chính mặc định; đặt `--db` trước `chat` nếu
+muốn thử với file riêng. Mỗi dòng là một tin nhắn. Biến thể `--trace` in request
+và response model, quyết định runtime, call, state session trước/sau và SQLite
+của từng lượt; lệnh không có `--trace` chỉ in phản hồi dành cho người dùng.
 
 Có thể đưa câu của bạn:
 

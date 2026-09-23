@@ -1,6 +1,7 @@
-"""Command-line entry point for adding and listing tasks."""
+"""Command-line entry point for task commands and the stateful agent chat."""
 
 import argparse
+import json
 import os
 import sqlite3
 import sys
@@ -16,7 +17,9 @@ def default_database_path() -> Path:
     return base / "nexus" / "nexus.db"
 
 
-def print_tool_results(calls: list[dict]) -> int:
+def print_tool_results(
+    calls: list[dict], *, create_prefix: str = "Đã thêm qua AI"
+) -> int:
     """Print completed tool effects and return the number of created tasks."""
     saved_count = 0
     for call in calls:
@@ -25,11 +28,209 @@ def print_tool_results(calls: list[dict]) -> int:
         tasks = result.get("tasks", []) if isinstance(result, dict) else []
         if name == "create_task":
             for task in tasks:
-                print(f"Đã thêm qua AI [{task['id']}] {task['content']}")
+                print(
+                    f"{create_prefix} [{task['id']}] {task['content']}",
+                    flush=True,
+                )
                 saved_count += 1
         elif name == "list_tasks":
-            print(f"AI đã xem {len(tasks)} việc trong danh sách.")
+            print(f"AI đã xem {len(tasks)} việc trong danh sách.", flush=True)
     return saved_count
+
+
+def _database_snapshot(database_path: Path) -> list[dict] | dict:
+    """Return a JSON-safe diagnostic snapshot without breaking the chat."""
+    try:
+        return [
+            {"id": task.id, "content": task.content}
+            for task in list_tasks(database_path)
+        ]
+    except (sqlite3.Error, OSError) as error:
+        return {"error": type(error).__name__, "message": str(error)}
+
+
+def _print_chat_trace(record: dict) -> None:
+    """Write one complete turn trace to stderr, separate from user output."""
+    print(f"\n=== TRACE TURN {record['turn']} ===", file=sys.stderr)
+    print(json.dumps(record, ensure_ascii=False, indent=2), file=sys.stderr)
+    print("=== END TRACE ===", file=sys.stderr)
+
+
+def run_chat(database_path: Path, *, trace: bool = False) -> int:
+    """Run one in-memory AgentSession until EOF or the local /exit command."""
+    import urllib.error
+
+    from nexus.agent.client import ENDPOINT, PostToolExecutionError, chat
+    from nexus.agent.session import AgentSession
+
+    session = AgentSession(database_path)
+    interactive = sys.stdin.isatty()
+    had_error = False
+    turn_number = 0
+    if interactive:
+        print(
+            "NEXUS chat đã bắt đầu. Mỗi dòng là một tin nhắn; "
+            "gõ /exit hoặc nhấn Ctrl+D để thoát.",
+            file=sys.stderr,
+        )
+
+    while True:
+        try:
+            if interactive:
+                print("NEXUS > ", end="", flush=True)
+            line = sys.stdin.readline()
+        except KeyboardInterrupt:
+            if interactive:
+                print()
+            return 130
+
+        if line == "":
+            if interactive:
+                print()
+            break
+
+        prompt = line.rstrip("\r\n")
+        if prompt.strip().lower() == "/exit":
+            break
+
+        turn_number += 1
+        state_before = session.state.value
+        pending_before = session.pending_create
+        database_before = _database_snapshot(database_path) if trace else None
+        model_exchange = {
+            "called": False,
+            "endpoint": ENDPOINT,
+            "request": None,
+            "response": None,
+        }
+        result = None
+        trace_error = None
+
+        def generate(payload: dict) -> dict:
+            model_exchange["called"] = True
+            model_exchange["request"] = payload
+            response = chat(payload)
+            model_exchange["response"] = response
+            return response
+
+        try:
+            result = session.run_turn(prompt, generate)
+            print(f"NEXUS: {result['reply']}", flush=True)
+        except PostToolExecutionError as error:
+            print_tool_results(error.executed_calls, create_prefix="Đã thêm")
+            if error.stage == "response_formatting":
+                stage_message = "Chương trình không định dạng được câu trả lời"
+            else:
+                stage_message = "NEXUS không hoàn tất toàn bộ các thao tác"
+            print(
+                f"{stage_message}, nhưng các thao tác được liệt kê phía trên "
+                "đã hoàn tất. Chương trình không tự thử lại.",
+                file=sys.stderr,
+            )
+            print(f"Chi tiết: {error.cause}", file=sys.stderr)
+            trace_error = {
+                "type": type(error).__name__,
+                "stage": error.stage,
+                "message": str(error),
+                "cause": str(error.cause),
+                "proposed_calls": error.proposed_calls,
+                "authorized_calls": error.authorized_calls,
+                "rejected_calls": error.rejected_calls,
+                "executed_calls": error.executed_calls,
+            }
+            had_error = True
+        except urllib.error.URLError as error:
+            print(
+                f"Lỗi kết nối tới AI (llama-server đã chạy chưa?): {error}",
+                file=sys.stderr,
+            )
+            trace_error = {
+                "type": type(error).__name__,
+                "stage": "model_request",
+                "message": str(error),
+            }
+            had_error = True
+        except (sqlite3.Error, OSError, RuntimeError, ValueError) as error:
+            print(f"Lỗi khi xử lý hội thoại: {error}", file=sys.stderr)
+            trace_error = {
+                "type": type(error).__name__,
+                "stage": "turn_processing",
+                "message": str(error),
+            }
+            had_error = True
+
+        if trace:
+            if result is not None:
+                source = result.get("source")
+                status = result.get("status")
+                model_reply = result.get("model_reply")
+                proposed_calls = result.get("proposed_calls", [])
+                authorized_calls = result.get("authorized_calls", [])
+                rejected_calls = result.get("rejected_calls", [])
+                executed_calls = result.get("calls", [])
+                application_reply = result.get("reply")
+            else:
+                source = (
+                    "model"
+                    if model_exchange["called"]
+                    else "session_continuation"
+                    if pending_before
+                    else "session"
+                )
+                status = "error_after_execution" if isinstance(
+                    trace_error, dict
+                ) and trace_error.get("executed_calls") else "error"
+                model_reply = None
+                proposed_calls = (trace_error or {}).get("proposed_calls", [])
+                authorized_calls = (trace_error or {}).get("authorized_calls", [])
+                rejected_calls = (trace_error or {}).get("rejected_calls", [])
+                executed_calls = (trace_error or {}).get("executed_calls", [])
+                application_reply = None
+
+            _print_chat_trace(
+                {
+                    "turn": turn_number,
+                    "input": prompt,
+                    "session": {
+                        "state_before": state_before,
+                        "state_after": session.state.value,
+                        "pending_create_before": pending_before,
+                        "pending_create_after": session.pending_create,
+                    },
+                    "model": model_exchange,
+                    "runtime": {
+                        "source": source,
+                        "status": status,
+                        "model_reply": model_reply,
+                    },
+                    "proposed_calls": proposed_calls,
+                    "contract_validation": {
+                        "max_tool_calls": 1,
+                        "proposal_count": len(proposed_calls),
+                        "status": (
+                            "rejected"
+                            if any(
+                                call.get("reason") == "invalid_arguments"
+                                for call in rejected_calls
+                            )
+                            else "passed"
+                            if proposed_calls
+                            else "not_applicable"
+                        ),
+                    },
+                    "authorized_calls": authorized_calls,
+                    "rejected_calls": rejected_calls,
+                    "executed_calls": executed_calls,
+                    "database": {
+                        "before": database_before,
+                        "after": _database_snapshot(database_path),
+                    },
+                    "application_reply": application_reply,
+                    "error": trace_error,
+                }
+            )
+
+    return 1 if had_error else 0
 
 
 def main() -> int:
@@ -48,6 +249,15 @@ def main() -> int:
     commands.add_parser("list", help="Xem các việc đã lưu")
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
+    chat_parser = commands.add_parser(
+        "chat",
+        help="Hội thoại nhiều lượt trong một session (cần chạy llama-server)",
+    )
+    chat_parser.add_argument(
+        "--trace",
+        action="store_true",
+        help="Hiện trace model, policy, tool, session và SQLite cho từng lượt",
+    )
     args = parser.parse_args()
 
     uses_default_database = args.db is None
@@ -126,6 +336,8 @@ def main() -> int:
             except Exception as error:
                 print(f"Lỗi khi xử lý qua AI: {error}", file=sys.stderr)
                 return 1
+        elif args.command == "chat":
+            return run_chat(args.db, trace=args.trace)
         else:
             tasks = list_tasks(args.db)
             if not tasks:

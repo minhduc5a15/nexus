@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from nexus.agent.client import PostToolExecutionError
-from nexus.agent.session import AgentSession
+from nexus.agent.session import AgentSession, SessionState
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 
@@ -32,9 +32,13 @@ class AgentSessionTests(unittest.TestCase):
         generate = Mock(side_effect=AssertionError("model must not be called"))
         first = self.session.run_turn("Thêm việc.", generate)
         self.assertEqual(first["status"], "needs_clarification")
+        self.assertEqual(first["session_state_before"], "idle")
+        self.assertEqual(first["session_state_after"], "awaiting_create_content")
         self.assertTrue(self.session.pending_create)
         second = self.session.run_turn("mua sữa\ngọi mẹ", generate)
         self.assertEqual(second["status"], "executed")
+        self.assertEqual(second["session_state_before"], "awaiting_create_content")
+        self.assertEqual(second["session_state_after"], "idle")
         self.assertEqual(second["source"], "session_continuation")
         self.assertEqual(second["proposed_calls"], [])
         self.assertEqual(second["authorized_calls"][0]["reason"], "session_continuation")
@@ -48,9 +52,13 @@ class AgentSessionTests(unittest.TestCase):
         self.session.run_turn("Ghi việc:", generate)
         blank = self.session.run_turn(" \n ", generate)
         self.assertEqual(blank["status"], "needs_clarification")
+        self.assertEqual(blank["session_state_before"], "awaiting_create_content")
+        self.assertEqual(blank["session_state_after"], "awaiting_create_content")
         self.assertTrue(self.session.pending_create)
         cancelled = self.session.run_turn("Thôi.", generate)
         self.assertEqual(cancelled["status"], "cancelled")
+        self.assertEqual(cancelled["session_state_before"], "awaiting_create_content")
+        self.assertEqual(cancelled["session_state_after"], "idle")
         self.assertFalse(self.session.pending_create)
         self.assertEqual(list_tasks(self.database_path), [])
         generate.assert_not_called()
@@ -64,8 +72,29 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(result["status"], "executed")
         self.assertIn("việc cũ", result["reply"])
         self.assertFalse(self.session.pending_create)
+        self.assertEqual(result["session_state_before"], "awaiting_create_content")
+        self.assertEqual(result["session_state_after"], "idle")
         generate.assert_called_once()
         self.assertEqual([t.content for t in list_tasks(self.database_path)], ["việc cũ"])
+
+    def test_natural_list_question_replaces_pending_instead_of_becoming_task(self):
+        create_task(self.database_path, "ăn cơm lúc 8 giờ sáng")
+        self.session.run_turn("Thêm việc giúp tôi", Mock(side_effect=AssertionError))
+        generate = Mock(return_value=tool_response("list_tasks", "{}"))
+
+        result = self.session.run_turn(
+            "Hiện tại tôi đang có những việc gì nhỉ?", generate
+        )
+
+        self.assertEqual(result["source"], "model")
+        self.assertEqual(result["status"], "executed")
+        self.assertIn("ăn cơm lúc 8 giờ sáng", result["reply"])
+        self.assertFalse(self.session.pending_create)
+        generate.assert_called_once()
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)],
+            ["ăn cơm lúc 8 giờ sáng"],
+        )
 
     def test_list_framing_rejected_by_policy_is_not_saved_as_followup(self):
         self.session.run_turn("Thêm việc", Mock(side_effect=AssertionError))
@@ -134,10 +163,13 @@ class AgentSessionTests(unittest.TestCase):
             """)
         with self.assertRaises(sqlite3.IntegrityError):
             self.session.run_turn("việc mới\nlỗi", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.AWAITING_CREATE_CONTENT)
         self.assertTrue(self.session.pending_create)
         self.assertEqual(list_tasks(self.database_path), [])
         retried = self.session.run_turn("việc mới", Mock(side_effect=AssertionError))
         self.assertEqual(retried["status"], "executed")
+        self.assertEqual(retried["session_state_before"], "awaiting_create_content")
+        self.assertEqual(retried["session_state_after"], "idle")
         self.assertEqual([t.content for t in list_tasks(self.database_path)], ["việc mới"])
 
     def test_formatter_failure_after_commit_clears_pending(self):
@@ -148,6 +180,7 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(raised.exception.stage, "response_formatting")
         self.assertEqual(len(raised.exception.executed_calls), 1)
         self.assertFalse(self.session.pending_create)
+        self.assertEqual(self.session.state, SessionState.IDLE)
         self.assertEqual([t.content for t in list_tasks(self.database_path)], ["mua sữa"])
 
     def test_pending_state_is_local_to_one_session(self):
@@ -159,6 +192,8 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(direct["status"], "no_tool")
         self.assertFalse(other.pending_create)
         self.assertTrue(self.session.pending_create)
+        self.assertEqual(other.state, SessionState.IDLE)
+        self.assertEqual(self.session.state, SessionState.AWAITING_CREATE_CONTENT)
         self.assertEqual(list_tasks(self.database_path), [])
 
 

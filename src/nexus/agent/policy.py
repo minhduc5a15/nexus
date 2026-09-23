@@ -140,6 +140,13 @@ _LIST_COMMAND_HEAD = re.compile(
     rf"việc{_H}đã{_H}(?:ghi|lưu|note))\b",
     re.IGNORECASE,
 )
+_LIST_STATE_QUESTION = re.compile(
+    rf"^(?:(?:hiện{_H}tại|hiện{_H}giờ|bây{_H}giờ|lúc{_H}này){_H})?"
+    rf"{_PRONOUN}{_H}(?:đang{_H})?có{_H}"
+    rf"(?:(?:những|các){_H})?(?:việc|task|todo){_H}(?:nào|gì)"
+    rf"(?:{_H}(?:rồi|nhỉ|vậy|thế))?[.?!]*$",
+    re.IGNORECASE,
+)
 
 
 def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
@@ -167,6 +174,12 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
 
     if _META.search(p):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+
+    # Questions about the caller's current tasks are explicit LIST requests.
+    # Keep this anchored so a task-related phrase inside a longer story does
+    # not grant read authorization.
+    if _LIST_STATE_QUESTION.fullmatch(p):
+        return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST)
 
     # Demand a request/question opening, rather than a verb anywhere in a story.
     opening = re.match(

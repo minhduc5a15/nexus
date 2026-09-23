@@ -91,7 +91,33 @@ song, sáu CPU thread và offload nhiều layer nhất có thể sang GPU. Reque
 ```sh
 .venv/bin/nexus ask "thêm việc mua sữa"
 .venv/bin/nexus ask "xem danh sách của tôi"
+.venv/bin/nexus chat
 ```
+
+`chat` giữ một `AgentSession` trong suốt tiến trình. Mỗi dòng nhập là một tin
+nhắn; gõ `/exit` hoặc nhấn `Ctrl+D` để thoát. Ví dụ:
+
+```text
+NEXUS > Thêm việc
+NEXUS: Bạn muốn thêm việc gì?
+NEXUS > mua sữa
+NEXUS: Đã thêm [1] mua sữa
+NEXUS > Xem danh sách
+NEXUS: Danh sách hiện có 1 việc:
+[1] mua sữa
+```
+
+Để xem đầy đủ luồng xử lý của từng lượt:
+
+```sh
+.venv/bin/nexus chat --trace
+```
+
+Trace được in trên stderr, tách khỏi câu trả lời người dùng trên stdout. Mỗi
+khối chứa input, state session trước/sau, request/response model, nguồn và
+trạng thái runtime, proposal, kiểm tra contract một tool call, call được cấp
+quyền hoặc từ chối, tool đã thực thi, SQLite trước/sau, reply và lỗi. Request
+model chứa system prompt và tool schema thật; chỉ bật trace khi cần chẩn đoán.
 
 Nếu đổi port server, đặt endpoint tương ứng trước khi chạy ứng dụng, ví dụ:
 
@@ -114,9 +140,9 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` cho từng người dùng. Session giữ trong bộ nhớ đúng một trạng thái:
-CREATE đã được yêu cầu rõ nhưng còn thiếu nội dung. Ví dụ khi đã khởi động
-llama.cpp:
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có hai trạng thái
+trong bộ nhớ: `idle` và `awaiting_create_content` (CREATE đã được yêu cầu rõ
+nhưng còn thiếu nội dung). Ví dụ khi đã khởi động llama.cpp:
 
 ```python
 from nexus.agent.session import AgentSession
@@ -129,14 +155,21 @@ print(session.run_turn("Thêm việc")["reply"])
 print(session.run_turn("mua sữa\ngọi mẹ")["reply"])
 ```
 
-Lượt đầu hỏi lại mà không gọi model; lượt thứ hai dùng quyền CREATE từ lượt
-trước, lưu mỗi dòng thành một task trong cùng transaction và trả
-`source="session_continuation"`. Nội dung trả lời này được dùng nguyên văn, không
-được model viết lại. Tin nhắn trống tiếp tục hỏi; `thôi` hoặc `hủy` trả
-`cancelled` và không ghi gì. Một yêu cầu CREATE/LIST mới thay thế yêu cầu đang
-chờ. Session không lưu trạng thái qua lần khởi động lại, không tự giữ lịch sử
-model và không được dùng chung cho nhiều người. `nexus ask` và hàm `run_turn`
-cũ vẫn là các lượt độc lập; CLI chưa có chế độ hội thoại nhiều lượt. Bộ nhận
+Lượt đầu chuyển `idle → awaiting_create_content` mà không gọi model; lượt thứ
+hai dùng quyền CREATE từ lượt trước, lưu mỗi dòng thành một task trong cùng
+transaction rồi chuyển về `idle` và trả `source="session_continuation"`. Mỗi kết
+quả hoàn tất chứa `session_state_before` và `session_state_after`. Nội dung trả
+lời được dùng nguyên văn, không được model viết lại.
+
+Tin nhắn trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về
+`idle`. Một yêu cầu CREATE/LIST mới thay thế yêu cầu đang chờ. Nếu SQLite lỗi
+trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi lỗi
+sau commit, session đã về `idle` để tránh tự lưu trùng. Session không lưu trạng
+thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
+cho nhiều người. `nexus chat` tạo đúng một
+session cho tiến trình CLI; `nexus ask` và hàm `run_turn` vẫn là các lượt độc
+lập. CLI chat hiện coi mỗi dòng là một tin nhắn, nên chưa nhập được một tin nhắn
+nhiều dòng trực tiếp; API `AgentSession` vẫn hỗ trợ content nhiều dòng. Bộ nhận
 diện lệnh mới có grammar hữu hạn, nên câu mơ hồ giữa lệnh và nội dung task vẫn
 cần người dùng diễn đạt rõ hơn.
 
@@ -147,6 +180,31 @@ Toàn bộ unit test chạy offline, không cần model:
 ```sh
 PYTHONPATH=src python3 -B -m unittest discover -s tests -v
 ```
+
+Runtime hội thoại có evaluator riêng. Bản scripted dùng proposal cố định nên
+không cần server và đo trực tiếp state, tool, SQLite, reply cùng ghi ngoài yêu
+cầu:
+
+```sh
+./scripts/demo/09_session_eval.sh
+```
+
+Dataset [session_conversations_v1.json](evals/session_conversations_v1.json)
+gồm 13 cuộc hội thoại và 32 lượt. Nó bao phủ bổ sung content, nhiều dòng, hủy,
+tin nhắn trống, lệnh mới thay thế trạng thái chờ, batch hai call, rollback,
+lỗi formatter và hai session độc lập. Khi đang chờ CREATE, tin nhắn tự do kế
+tiếp được xem là content theo quyền từ lượt trước; người dùng dùng `thôi`, `hủy`
+hoặc một lệnh mới rõ ràng để thay thế yêu cầu đang chờ.
+
+Sau khi chạy llama.cpp, smoke suite Qwen thật dùng bảy ca nhỏ:
+
+```sh
+./scripts/demo/10_session_smoke.sh
+```
+
+Hai evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git
+ignore. Exit code `1` nghĩa là ít nhất một ca không đạt contract, không nhất
+thiết là lỗi chương trình.
 
 Các dataset đầu vào được giữ trong Git tại `evals/`. Bộ
 `current_scope_tasks_v2.json` có 20 ca và áp dụng contract một tool call mỗi

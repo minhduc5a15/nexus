@@ -1,5 +1,6 @@
 import contextlib
 import io
+import json
 import os
 import subprocess
 import sys
@@ -238,6 +239,187 @@ class CliTests(unittest.TestCase):
         self.assertEqual(
             [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
         )
+
+    def test_chat_keeps_one_session_for_clarification_create_and_list(self):
+        list_response = {"choices": [{"finish_reason": "tool_calls", "message": {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [{
+                "id": "call-list",
+                "type": "function",
+                "function": {"name": "list_tasks", "arguments": "{}"},
+            }],
+        }}]}
+        stdin = io.StringIO(
+            "Thêm việc\nmua sữa\nThêm việc giúp tôi\n"
+            "Hiện tại tôi đang có những việc gì nhỉ?\n/exit\n"
+        )
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "chat"]
+
+        with (
+            patch.object(sys, "argv", argv),
+            patch.object(sys, "stdin", stdin),
+            patch("nexus.agent.client.chat", return_value=list_response) as mocked_chat,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_chat.assert_called_once()
+        self.assertEqual(
+            stdout.getvalue(),
+            "NEXUS: Bạn muốn thêm việc gì?\n"
+            "NEXUS: Đã thêm [1] mua sữa\n"
+            "NEXUS: Bạn muốn thêm việc gì?\n"
+            "NEXUS: Danh sách hiện có 1 việc:\n"
+            "[1] mua sữa\n",
+        )
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
+        )
+
+    def test_chat_exit_is_local_and_does_not_call_model(self):
+        stdin = io.StringIO("/exit\n")
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "chat"]
+
+        with (
+            patch.object(sys, "argv", argv),
+            patch.object(sys, "stdin", stdin),
+            patch("nexus.agent.client.chat") as mocked_chat,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_chat.assert_not_called()
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_chat_reports_continuation_commit_without_claiming_model_did_it(self):
+        stdin = io.StringIO("Thêm việc\nmua sữa\n/exit\n")
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "chat", "--trace"]
+
+        with (
+            patch.object(sys, "argv", argv),
+            patch.object(sys, "stdin", stdin),
+            patch("nexus.agent.client.chat") as mocked_chat,
+            patch(
+                "nexus.agent.session.format_tool_result",
+                side_effect=ValueError("formatting error"),
+            ),
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 1)
+        mocked_chat.assert_not_called()
+        self.assertIn("NEXUS: Bạn muốn thêm việc gì?", stdout.getvalue())
+        self.assertIn("Đã thêm [1] mua sữa", stdout.getvalue())
+        self.assertNotIn("qua AI", stdout.getvalue())
+        self.assertIn("đã hoàn tất", stderr.getvalue())
+        self.assertIn('"status": "error_after_execution"', stderr.getvalue())
+        self.assertIn('"stage": "response_formatting"', stderr.getvalue())
+        self.assertEqual(
+            [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
+        )
+
+    def test_chat_trace_explains_session_model_policy_tool_and_database(self):
+        list_response = {"choices": [{"finish_reason": "tool_calls", "message": {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [{
+                "id": "call-list",
+                "type": "function",
+                "function": {"name": "list_tasks", "arguments": "{}"},
+            }],
+        }}]}
+        stdin = io.StringIO("Thêm việc\nmua sữa\nXem danh sách\n/exit\n")
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = ["nexus", "--db", str(self.database_path), "chat", "--trace"]
+
+        with (
+            patch.object(sys, "argv", argv),
+            patch.object(sys, "stdin", stdin),
+            patch("nexus.agent.client.chat", return_value=list_response) as mocked_chat,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        mocked_chat.assert_called_once()
+        self.assertIn("NEXUS: Đã thêm [1] mua sữa", stdout.getvalue())
+
+        blocks = stderr.getvalue().split("=== TRACE TURN ")[1:]
+        self.assertEqual(len(blocks), 3)
+        traces = []
+        for block in blocks:
+            _, json_and_end = block.split(" ===\n", 1)
+            raw_json, _ = json_and_end.split("\n=== END TRACE ===", 1)
+            traces.append(json.loads(raw_json))
+
+        first, continuation, listed = traces
+        self.assertEqual(first["runtime"]["status"], "needs_clarification")
+        self.assertEqual(first["runtime"]["source"], "session")
+        self.assertFalse(first["model"]["called"])
+        self.assertFalse(first["session"]["pending_create_before"])
+        self.assertTrue(first["session"]["pending_create_after"])
+        self.assertEqual(first["session"]["state_before"], "idle")
+        self.assertEqual(
+            first["session"]["state_after"], "awaiting_create_content"
+        )
+        self.assertEqual(first["database"], {"before": [], "after": []})
+
+        self.assertEqual(continuation["runtime"]["source"], "session_continuation")
+        self.assertEqual(
+            continuation["session"],
+            {
+                "state_before": "awaiting_create_content",
+                "state_after": "idle",
+                "pending_create_before": True,
+                "pending_create_after": False,
+            },
+        )
+        self.assertFalse(continuation["model"]["called"])
+        self.assertEqual(
+            continuation["authorized_calls"][0]["reason"],
+            "session_continuation",
+        )
+        self.assertEqual(continuation["database"]["before"], [])
+        self.assertEqual(
+            continuation["database"]["after"],
+            [{"id": 1, "content": "mua sữa"}],
+        )
+
+        self.assertEqual(listed["runtime"]["source"], "model")
+        self.assertEqual(listed["session"]["state_before"], "idle")
+        self.assertEqual(listed["session"]["state_after"], "idle")
+        self.assertTrue(listed["model"]["called"])
+        self.assertEqual(
+            listed["model"]["request"]["messages"][-1]["content"],
+            "Xem danh sách",
+        )
+        self.assertEqual(listed["proposed_calls"][0]["name"], "list_tasks")
+        self.assertEqual(listed["contract_validation"]["status"], "passed")
+        self.assertEqual(listed["contract_validation"]["proposal_count"], 1)
+        self.assertEqual(
+            listed["authorized_calls"][0]["reason"], "explicit_list"
+        )
+        self.assertEqual(listed["executed_calls"][0]["name"], "list_tasks")
+        self.assertEqual(listed["database"]["before"], listed["database"]["after"])
+        self.assertEqual(listed["error"], None)
 
 
 if __name__ == "__main__":
