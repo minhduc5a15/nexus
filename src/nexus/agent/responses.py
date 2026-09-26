@@ -8,7 +8,7 @@ from nexus.agent.policy import PolicyReason
 def format_rejection(reason: PolicyReason) -> str:
     """Describe a rejected proposal without exposing model arguments."""
     if reason in (PolicyReason.UNSUPPORTED_ACTION, PolicyReason.UNSUPPORTED_TOOL):
-        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID."
+        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID."
     if reason in (
         PolicyReason.CONTENT_NOT_GROUNDED,
         PolicyReason.CONTENT_BOUNDARY_MISMATCH,
@@ -23,7 +23,7 @@ def format_tool_result(name: str, result: Any) -> str:
     Raises ValueError on any schema violation, unknown tool, or unhandled input.
     """
     if not isinstance(name, str) or name not in (
-        "create_task", "list_tasks", "complete_task", "update_task"
+        "create_task", "list_tasks", "complete_task", "update_task", "delete_task"
     ):
         raise ValueError(f"Unknown or unsupported tool: {name!r}")
 
@@ -47,6 +47,26 @@ def format_tool_result(name: str, result: Any) -> str:
         if status == "completed":
             return f"Đã hoàn thành [{task['id']}] {task['content']}"
         return f"Việc [{task['id']}] đã hoàn thành trước đó: {task['content']}"
+
+    if name == "delete_task":
+        if set(result.keys()) != {"status", "task"}:
+            raise ValueError("Delete result must contain exactly 'status' and 'task'")
+        status = result["status"]
+        if status not in ("deleted", "not_found", "stale"):
+            raise ValueError(f"Unknown delete status: {status!r}")
+        task = result["task"]
+        if status == "not_found":
+            if task is not None:
+                raise ValueError("not_found delete must have a null task")
+            return "Không tìm thấy việc có ID đã yêu cầu."
+        _validate_task(task, "delete")
+        if status == "deleted":
+            return f"Đã xóa [{task['id']}] {task['content']}"
+        marker = "x" if task["completed"] else " "
+        return (
+            f"Việc [{task['id']}] đã thay đổi thành [{marker}] {task['content']}. "
+            "Hãy xác nhận lại nếu bạn vẫn muốn xóa."
+        )
 
     if name == "update_task":
         if set(result.keys()) != {"status", "task"}:

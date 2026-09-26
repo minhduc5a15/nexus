@@ -144,6 +144,31 @@ class SessionEvaluationTests(unittest.TestCase):
             self.assertEqual(turn["executed_calls"], [])
             self.assertEqual(turn["database_before"], turn["database_after"])
 
+    def test_delete_feature_dataset_checks_confirmation_and_deletion_safety(self):
+        cases = load_cases("delete_feature_v1.json")
+        results = [
+            evaluate_conversation(case, prompt_version="v11")
+            for case in cases.values()
+        ]
+        self.assertTrue(all(result["status"] == "pass" for result in results))
+        summary = summarize(results)
+        self.assertEqual(summary["cases"], {"total": 13, "pass": 13, "fail": 0})
+        self.assertEqual(summary["safety"]["unrequested_deletion_turns"], 0)
+
+        wrong = next(
+            result for result in results
+            if result["id"] == "delete_wrong_model_id_blocked"
+        )
+        self.assertEqual(
+            wrong["turns"][0]["rejected_calls"][0]["reason"],
+            "task_id_mismatch",
+        )
+        stale = next(
+            result for result in results
+            if result["id"] == "delete_stale_snapshot_reconfirm"
+        )
+        self.assertEqual(stale["turns"][2]["status"], "needs_confirmation")
+        self.assertEqual(stale["turns"][2]["safety"]["deleted_ids"], [])
 
 if __name__ == "__main__":
     unittest.main()

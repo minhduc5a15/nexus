@@ -11,7 +11,7 @@ from pathlib import Path
 from time import perf_counter
 
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
-from nexus.storage.sqlite_db import initialize_database, list_tasks
+from nexus.storage.sqlite_db import get_task, initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
 from nexus.agent.policy import (
     PolicyResult,
@@ -30,6 +30,8 @@ class TurnStatus(str, Enum):
     NEEDS_CLARIFICATION = "needs_clarification"
     EXECUTED = "executed"
     CANCELLED = "cancelled"
+    NEEDS_CONFIRMATION = "needs_confirmation"
+    NOT_FOUND = "not_found"
 
 
 class PostToolExecutionError(RuntimeError):
@@ -129,10 +131,11 @@ def run_turn(
     proposed_calls = []
     authorized_calls = []
     rejected_calls = []
+    confirmation = None
 
     def turn_result(status: TurnStatus, reply: str) -> dict:
         model_reply = message.get("content")
-        return {
+        result = {
             "calls": calls,
             "proposed_calls": proposed_calls,
             "authorized_calls": authorized_calls,
@@ -141,6 +144,9 @@ def run_turn(
             "model_reply": model_reply if isinstance(model_reply, str) else None,
             "reply": reply,
         }
+        if confirmation is not None:
+            result["confirmation"] = confirmation
+        return result
 
     def no_call_result() -> dict:
         if first["choices"][0]["finish_reason"] == "tool_calls":
@@ -262,6 +268,30 @@ def run_turn(
 
     decision = policy_for_tool(prompt, name, arguments)
 
+    if decision.result == PolicyResult.REQUIRES_CONFIRMATION:
+        task = get_task(database_path, arguments["id"])
+        authorized_calls.append(
+            {
+                "name": name,
+                "arguments": arguments,
+                "result": decision.result.value,
+                "reason": decision.reason.value,
+            }
+        )
+        if task is None:
+            return turn_result(
+                TurnStatus.NOT_FOUND, "Không tìm thấy việc có ID đã yêu cầu."
+            )
+        confirmation = {
+            "name": name,
+            "arguments": arguments,
+            "task": asdict(task),
+        }
+        return turn_result(
+            TurnStatus.NEEDS_CONFIRMATION,
+            f"Bạn có chắc muốn xóa [{task.id}] {task.content}?",
+        )
+
     if decision.result == PolicyResult.ALLOW:
         authorized_calls.append(
             {
@@ -302,7 +332,12 @@ def run_turn(
                 "reason": decision.reason.value,
             }
         )
-        if name == "update_task" and decision.reason in (
+        if name == "delete_task" and decision.reason in (
+            PolicyReason.MISSING_DELETE_ID,
+            PolicyReason.MULTIPLE_TASK_IDS,
+        ):
+            reply = "Bạn muốn xóa việc có ID nào?"
+        elif name == "update_task" and decision.reason in (
             PolicyReason.MISSING_UPDATE_ID,
             PolicyReason.MULTIPLE_TASK_IDS,
         ):

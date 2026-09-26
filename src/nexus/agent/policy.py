@@ -10,6 +10,7 @@ class PolicyResult(str, Enum):
     ALLOW = "allow"
     REJECT = "reject"
     NEEDS_CLARIFICATION = "needs_clarification"
+    REQUIRES_CONFIRMATION = "requires_confirmation"
 
 
 class PolicyReason(str, Enum):
@@ -17,10 +18,12 @@ class PolicyReason(str, Enum):
     EXPLICIT_LIST = "explicit_list"
     EXPLICIT_COMPLETE = "explicit_complete"
     EXPLICIT_UPDATE = "explicit_update"
+    EXPLICIT_DELETE = "explicit_delete"
     MISSING_CONTENT = "missing_content"
     MISSING_TASK_ID = "missing_task_id"
     MISSING_UPDATE_ID = "missing_update_id"
     MISSING_UPDATE_CONTENT = "missing_update_content"
+    MISSING_DELETE_ID = "missing_delete_id"
     MULTIPLE_TASK_IDS = "multiple_task_ids"
     TASK_ID_MISMATCH = "task_id_mismatch"
     NEGATED_REQUEST = "negated_request"
@@ -45,6 +48,9 @@ class RequestKind(str, Enum):
     MISSING_EDIT_ID = "missing_edit_id"
     MISSING_EDIT_CONTENT = "missing_edit_content"
     MULTIPLE_EDIT = "multiple_edit"
+    DELETE = "delete"
+    MISSING_DELETE_ID = "missing_delete_id"
+    MULTIPLE_DELETE = "multiple_delete"
     UNSUPPORTED = "unsupported"
     NEGATED = "negated"
     OTHER = "other"
@@ -73,11 +79,13 @@ class ToolDecision:
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE),
+            (PolicyResult.REQUIRES_CONFIRMATION, PolicyReason.EXPLICIT_DELETE),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DELETE_ID),
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
@@ -199,10 +207,33 @@ _NEGATED_EDIT_HEAD = re.compile(
     re.IGNORECASE,
 )
 _EDIT_SEPARATOR = re.compile(rf"{_H}thành(?:{_H}|\s*$)", re.IGNORECASE)
+_DELETE_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?"
+    rf"(?:xóa|xoá|bỏ){_H}(?:việc|task)\b",
+    re.IGNORECASE,
+)
+_NEGATED_DELETE_HEAD = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}(?:xóa|xoá|bỏ)\b",
+    re.IGNORECASE,
+)
+_DELETE_EXACT = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
+    rf"(?:xóa|xoá){_H}(?:việc|task){_H}\#?(?P<delete_id>[0-9]+)"
+    rf"|bỏ{_H}(?:việc|task){_H}\#?(?P<drop_id>[0-9]+)"
+    rf"(?:{_H}khỏi{_H}danh{_H}sách)?"
+    rf")(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
 class _CompleteRequest:
+    task_id: int
+
+
+@dataclass(frozen=True)
+class _DeleteRequest:
     task_id: int
 
 
@@ -310,6 +341,53 @@ def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
     if content not in prompt:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
     return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
+
+
+def _authorize_delete(prompt: str) -> _DeleteRequest | ToolDecision:
+    if _NEGATED_DELETE_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+    head = _DELETE_COMMAND_HEAD.match(prompt)
+    if head is None:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+
+    ids = [int(value) for value in _ID_TOKEN.findall(prompt)]
+    unique_ids = list(dict.fromkeys(ids))
+    if not unique_ids:
+        remainder = prompt[head.end():].strip().rstrip(".?!").strip()
+        if remainder:
+            return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DELETE_ID
+        )
+    if len(unique_ids) != 1 or len(ids) != 1:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
+        )
+    exact = _DELETE_EXACT.fullmatch(prompt)
+    if exact is None or unique_ids[0] <= 0:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    return _DeleteRequest(unique_ids[0])
+
+
+def policy_for_delete_task(prompt: Any, arguments: Any) -> ToolDecision:
+    if not isinstance(prompt, str) or not prompt.strip():
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    request = _authorize_delete(prompt)
+    if isinstance(request, ToolDecision):
+        return request
+    if (
+        not isinstance(arguments, dict)
+        or set(arguments) != {"id"}
+        or isinstance(arguments["id"], bool)
+        or not isinstance(arguments["id"], int)
+        or arguments["id"] <= 0
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    if arguments["id"] != request.task_id:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
+    return ToolDecision(
+        PolicyResult.REQUIRES_CONFIRMATION, PolicyReason.EXPLICIT_DELETE
+    )
 
 
 def _authorize_complete(prompt: str) -> _CompleteRequest | ToolDecision:
@@ -512,6 +590,15 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.MULTIPLE_EDIT
     if edited.reason == PolicyReason.NEGATED_REQUEST:
         return RequestKind.NEGATED
+    deleted = _authorize_delete(prompt)
+    if isinstance(deleted, _DeleteRequest):
+        return RequestKind.DELETE
+    if deleted.reason == PolicyReason.MISSING_DELETE_ID:
+        return RequestKind.MISSING_DELETE_ID
+    if deleted.reason == PolicyReason.MULTIPLE_TASK_IDS:
+        return RequestKind.MULTIPLE_DELETE
+    if deleted.reason == PolicyReason.NEGATED_REQUEST:
+        return RequestKind.NEGATED
     listed = policy_for_list_tasks(prompt, {})
     if listed.result == PolicyResult.ALLOW:
         return RequestKind.LIST
@@ -527,6 +614,8 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.COMPLETE
     if _EDIT_COMMAND_HEAD.match(prompt):
         return RequestKind.EDIT
+    if _DELETE_COMMAND_HEAD.match(prompt):
+        return RequestKind.DELETE
     if _UNSUPPORTED_HEAD.match(prompt):
         return RequestKind.UNSUPPORTED
     return RequestKind.OTHER
@@ -577,5 +666,7 @@ def policy_for_tool(prompt: Any, tool_name: Any, arguments: Any) -> ToolDecision
         return policy_for_complete_task(prompt, arguments)
     if tool_name == "update_task":
         return policy_for_update_task(prompt, arguments)
+    if tool_name == "delete_task":
+        return policy_for_delete_task(prompt, arguments)
 
     return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL)

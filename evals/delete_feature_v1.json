@@ -1,0 +1,323 @@
+{
+  "feature": "delete_task_by_id_with_confirmation",
+  "contract": "one_tool_call_per_turn_and_snapshot_confirmation",
+  "cases": [
+    {
+      "id": "delete_confirm_then_list",
+      "category": "happy_path",
+      "initial_tasks": ["mua sữa", "gọi mẹ"],
+      "expected_final_tasks": ["gọi mẹ"],
+      "expected_final_states": [{"id": 2, "content": "gọi mẹ", "completed": false}],
+      "turns": [
+        {
+          "prompt": "Xóa việc 1.",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["mua sữa", "gọi mẹ"],
+            "task_states": [{"id": 1, "content": "mua sữa", "completed": false}, {"id": 2, "content": "gọi mẹ", "completed": false}],
+            "reply_contains": ["Bạn có chắc muốn xóa", "[1]", "mua sữa"]
+          }
+        },
+        {
+          "prompt": "có",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": ["gọi mẹ"],
+            "task_states": [{"id": 2, "content": "gọi mẹ", "completed": false}],
+            "reply_contains": ["Đã xóa [1] mua sữa"]
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {"calls": [{"name": "list_tasks", "arguments": {}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true,
+            "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["gọi mẹ"],
+            "task_states": [{"id": 2, "content": "gọi mẹ", "completed": false}],
+            "reply_contains": ["[2] [ ] gọi mẹ"], "reply_not_contains": ["mua sữa"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_cancelled",
+      "category": "confirmation",
+      "initial_tasks": ["đọc sách"],
+      "expected_final_tasks": ["đọc sách"],
+      "expected_final_states": [{"id": 1, "content": "đọc sách", "completed": false}],
+      "turns": [
+        {
+          "prompt": "Xoá task #1.",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["đọc sách"], "reply_contains": ["Bạn có chắc"]
+          }
+        },
+        {
+          "prompt": "không",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "cancelled", "model_called": false,
+            "executed_calls": [], "tasks": ["đọc sách"], "reply_contains": ["Đã hủy", "Không có việc nào bị xóa"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_missing_id_continuation",
+      "category": "continuation",
+      "initial_tasks": ["dọn bàn"],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "prompt": "Xóa việc",
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_id", "status": "needs_clarification", "model_called": false,
+            "executed_calls": [], "tasks": ["dọn bàn"], "reply_contains": ["xóa việc có ID nào"]
+          }
+        },
+        {
+          "prompt": "#1",
+          "expected": {
+            "state_before": "awaiting_delete_id", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": false,
+            "executed_calls": [], "tasks": ["dọn bàn"], "reply_contains": ["Bạn có chắc", "dọn bàn"]
+          }
+        },
+        {
+          "prompt": "xác nhận",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": [], "reply_contains": ["Đã xóa [1]"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_multiple_ids_choose_one",
+      "category": "continuation",
+      "initial_tasks": ["một", "hai"],
+      "expected_final_tasks": ["một"],
+      "expected_final_states": [{"id": 1, "content": "một", "completed": false}],
+      "turns": [
+        {
+          "prompt": "Xóa việc 1 và việc 2",
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_id", "status": "needs_clarification", "model_called": false,
+            "executed_calls": [], "tasks": ["một", "hai"], "reply_contains": ["xóa việc có ID nào"]
+          }
+        },
+        {
+          "prompt": "việc 2",
+          "expected": {
+            "state_before": "awaiting_delete_id", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": false,
+            "executed_calls": [], "tasks": ["một", "hai"], "reply_contains": ["[2]", "hai"]
+          }
+        },
+        {
+          "prompt": "đồng ý",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 2}}], "deleted_ids": [2], "tasks": ["một"], "reply_contains": ["Đã xóa [2] hai"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_not_found",
+      "category": "not_found",
+      "initial_tasks": [],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [{
+        "prompt": "Bỏ việc 99 khỏi danh sách.",
+        "model": {"calls": [{"name": "delete_task", "arguments": {"id": 99}}]},
+        "expected": {
+          "state_before": "idle", "state_after": "idle", "status": "not_found", "model_called": true,
+          "executed_calls": [], "tasks": [], "reply_contains": ["Không tìm thấy việc"]
+        }
+      }]
+    },
+    {
+      "id": "delete_wrong_model_id_blocked",
+      "category": "safety",
+      "initial_tasks": ["một", "hai"],
+      "expected_final_tasks": ["một", "hai"],
+      "expected_final_states": [{"id": 1, "content": "một", "completed": false}, {"id": 2, "content": "hai", "completed": false}],
+      "turns": [{
+        "prompt": "Xóa việc 1.",
+        "model": {"calls": [{"name": "delete_task", "arguments": {"id": 2}}]},
+        "expected": {
+          "state_before": "idle", "state_after": "idle", "status": "rejected", "model_called": true,
+          "executed_calls": [], "tasks": ["một", "hai"], "reply_contains": ["Không có thao tác"]
+        }
+      }]
+    },
+    {
+      "id": "delete_by_content_blocked",
+      "category": "safety",
+      "initial_tasks": ["báo cáo"],
+      "expected_final_tasks": ["báo cáo"],
+      "expected_final_states": [{"id": 1, "content": "báo cáo", "completed": false}],
+      "turns": [{
+        "prompt": "Xóa việc báo cáo",
+        "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+        "expected": {
+          "state_before": "idle", "state_after": "idle", "status": "rejected", "model_called": true,
+          "executed_calls": [], "tasks": ["báo cáo"], "reply_contains": ["Không có thao tác"]
+        }
+      }]
+    },
+    {
+      "id": "delete_batch_blocked",
+      "category": "safety",
+      "initial_tasks": ["một", "hai"],
+      "expected_final_tasks": ["một", "hai"],
+      "expected_final_states": [{"id": 1, "content": "một", "completed": false}, {"id": 2, "content": "hai", "completed": false}],
+      "turns": [{
+        "prompt": "Xóa việc 1.",
+        "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}, {"name": "delete_task", "arguments": {"id": 2}}]},
+        "expected": {
+          "state_before": "idle", "state_after": "idle", "status": "rejected", "model_called": true,
+          "executed_calls": [], "tasks": ["một", "hai"], "reply_contains": ["Không có thao tác"]
+        }
+      }]
+    },
+    {
+      "id": "delete_stale_snapshot_reconfirm",
+      "category": "concurrency",
+      "initial_tasks": ["cũ"],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "session": "alice", "prompt": "Xóa việc 1",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["cũ"], "reply_contains": ["Bạn có chắc"]
+          }
+        },
+        {
+          "session": "bob", "prompt": "Sửa việc 1 thành mới",
+          "model": {"calls": [{"name": "update_task", "arguments": {"id": 1, "content": "mới"}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true,
+            "executed_calls": [{"name": "update_task", "arguments": {"id": 1, "content": "mới"}}],
+            "updated_tasks": [{"id": 1, "content": "mới"}], "tasks": ["mới"], "reply_contains": ["Đã sửa [1]"]
+          }
+        },
+        {
+          "session": "alice", "prompt": "có",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "tasks": ["mới"],
+            "reply_contains": ["đã thay đổi", "xác nhận lại"]
+          }
+        },
+        {
+          "session": "alice", "prompt": "xóa",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": [], "reply_contains": ["Đã xóa [1] mới"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_database_failure_retry",
+      "category": "failure_lifecycle",
+      "initial_tasks": ["giữ lại"],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "prompt": "Xóa việc 1",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["giữ lại"], "reply_contains": ["Bạn có chắc"]
+          }
+        },
+        {
+          "prompt": "có", "fault": "delete_database_before_commit",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "awaiting_delete_confirmation", "status": "error", "model_called": false,
+            "executed_calls": [], "tasks": ["giữ lại"]
+          }
+        },
+        {
+          "prompt": "có",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": [], "reply_contains": ["Đã xóa"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "delete_formatter_failure_after_commit",
+      "category": "failure_lifecycle",
+      "initial_tasks": ["xóa thật"],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "prompt": "Xóa việc 1",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["xóa thật"], "reply_contains": ["Bạn có chắc"]
+          }
+        },
+        {
+          "prompt": "có", "fault": "formatter_after_commit",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "error_after_execution", "model_called": false,
+            "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": [], "error_stage": "response_formatting"
+          }
+        }
+      ]
+    },
+    {
+      "id": "new_list_replaces_pending_delete",
+      "category": "replacement",
+      "initial_tasks": ["ở lại"],
+      "expected_final_tasks": ["ở lại"],
+      "expected_final_states": [{"id": 1, "content": "ở lại", "completed": false}],
+      "turns": [
+        {
+          "prompt": "Xóa việc 1",
+          "model": {"calls": [{"name": "delete_task", "arguments": {"id": 1}}]},
+          "expected": {
+            "state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true,
+            "executed_calls": [], "tasks": ["ở lại"], "reply_contains": ["Bạn có chắc"]
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {"calls": [{"name": "list_tasks", "arguments": {}}]},
+          "expected": {
+            "state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": true,
+            "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["ở lại"], "reply_contains": ["[1] [ ] ở lại"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "negated_delete_without_model",
+      "category": "safety",
+      "initial_tasks": ["ở lại"],
+      "expected_final_tasks": ["ở lại"],
+      "expected_final_states": [{"id": 1, "content": "ở lại", "completed": false}],
+      "turns": [{
+        "prompt": "Đừng xóa việc 1.",
+        "expected": {
+          "state_before": "idle", "state_after": "idle", "status": "rejected", "model_called": false,
+          "executed_calls": [], "tasks": ["ở lại"], "reply_contains": ["Không có thao tác"]
+        }
+      }]
+    }
+  ]
+}

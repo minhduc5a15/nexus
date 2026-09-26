@@ -3,7 +3,14 @@
 from dataclasses import asdict
 from pathlib import Path
 
-from nexus.storage.sqlite_db import complete_task, create_tasks, list_tasks, update_task
+from nexus.core.models import Task
+from nexus.storage.sqlite_db import (
+    complete_task,
+    create_tasks,
+    delete_task,
+    list_tasks,
+    update_task,
+)
 
 
 # Internal tool descriptions. A provider adapter can wrap these as needed.
@@ -83,19 +90,47 @@ TOOL_DEFINITIONS = [
             "additionalProperties": False,
         },
     },
+    {
+        "name": "delete_task",
+        "description": (
+            "Yêu cầu xóa vĩnh viễn đúng một task khi người dùng nêu rõ ID. "
+            "Ứng dụng sẽ hỏi xác nhận trước khi thực thi. Không tìm task theo nội dung."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "ID chính xác do người dùng nêu.",
+                }
+            },
+            "required": ["id"],
+            "additionalProperties": False,
+        },
+    },
+
 ]
 
 
 def execute_tool(
-    database_path: str | Path, name: str, arguments: object
+    database_path: str | Path,
+    name: str,
+    arguments: object,
+    *,
+    confirmed_task: Task | None = None,
 ) -> dict:
     """Validate one decoded call and execute it against an initialized database.
 
     Invalid calls raise ValueError before touching storage. Database errors
     propagate to the caller. This validates structure, not user intent.
     """
-    if name not in ("create_task", "list_tasks", "complete_task", "update_task"):
+    if name not in (
+        "create_task", "list_tasks", "complete_task", "update_task", "delete_task"
+    ):
         raise ValueError("Unknown tool")
+    if name != "delete_task" and confirmed_task is not None:
+        raise ValueError("confirmed_task is only valid for delete_task")
     if not isinstance(arguments, dict):
         raise ValueError("Tool arguments must be an object")
 
@@ -116,6 +151,22 @@ def execute_tool(
         if arguments:
             raise ValueError("list_tasks does not accept arguments")
         return {"tasks": [asdict(task) for task in list_tasks(database_path)]}
+
+    if name == "delete_task":
+        if set(arguments) != {"id"}:
+            raise ValueError("delete_task requires exactly one argument: id")
+        task_id = arguments["id"]
+        if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
+            raise ValueError("id must be a positive integer")
+        if confirmed_task is None:
+            raise ValueError("delete_task requires a confirmed task snapshot")
+        deleted = delete_task(
+            database_path, task_id, expected_task=confirmed_task
+        )
+        return {
+            "status": deleted.status.value,
+            "task": asdict(deleted.task) if deleted.task is not None else None,
+        }
 
     if name == "complete_task":
         if set(arguments) != {"id"}:

@@ -145,6 +145,43 @@ class TaskToolTests(unittest.TestCase):
             {"status": "not_found", "task": None},
         )
 
+    def test_delete_requires_internal_confirmation_snapshot(self):
+        from nexus.core.models import Task
+        created = execute_tool(
+            self.database_path, "create_task", {"content": "mua sữa"}
+        )["tasks"][0]
+        task = Task(**created)
+        with self.assertRaisesRegex(ValueError, "confirmed task snapshot"):
+            execute_tool(self.database_path, "delete_task", {"id": task.id})
+        self.assertEqual(len(list_tasks(self.database_path)), 1)
+
+        result = execute_tool(
+            self.database_path,
+            "delete_task",
+            {"id": task.id},
+            confirmed_task=task,
+        )
+        self.assertEqual(result, {"status": "deleted", "task": created})
+        self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_delete_stale_snapshot_cannot_remove_changed_task(self):
+        from nexus.core.models import Task
+        from nexus.storage.sqlite_db import update_task
+        created = execute_tool(
+            self.database_path, "create_task", {"content": "cũ"}
+        )["tasks"][0]
+        snapshot = Task(**created)
+        update_task(self.database_path, snapshot.id, "mới")
+        result = execute_tool(
+            self.database_path,
+            "delete_task",
+            {"id": snapshot.id},
+            confirmed_task=snapshot,
+        )
+        self.assertEqual(result["status"], "stale")
+        self.assertEqual(result["task"]["content"], "mới")
+        self.assertEqual(list_tasks(self.database_path)[0].content, "mới")
+
 
 if __name__ == "__main__":
     unittest.main()

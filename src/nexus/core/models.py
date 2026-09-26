@@ -30,3 +30,15 @@ class UpdateStatus(str, Enum):
 class UpdateResult:
     status: UpdateStatus
     task: Task | None
+
+
+class DeleteStatus(str, Enum):
+    DELETED = "deleted"
+    NOT_FOUND = "not_found"
+    STALE = "stale"
+
+
+@dataclass(frozen=True)
+class DeleteResult:
+    status: DeleteStatus
+    task: Task | None

@@ -135,7 +135,7 @@ class AgentSessionTests(unittest.TestCase):
     def test_unsupported_command_replaces_pending_without_saving(self):
         self.session.run_turn("Thêm việc", Mock(side_effect=AssertionError))
         generate = Mock(side_effect=AssertionError("model must not be called"))
-        result = self.session.run_turn("Xóa task cũ", generate)
+        result = self.session.run_turn("Sắp xếp task cũ", generate)
         self.assertEqual(result["status"], "rejected")
         self.assertIn("chỉ hỗ trợ", result["reply"])
         self.assertFalse(self.session.pending_create)
@@ -428,6 +428,132 @@ class AgentSessionTests(unittest.TestCase):
         self.assertEqual(other.state, SessionState.IDLE)
         self.assertEqual(self.session.state, SessionState.AWAITING_EDIT_CONTENT)
         self.assertEqual(list_tasks(self.database_path)[0].content, "cũ")
+
+    def test_delete_direct_request_requires_confirmation_then_deletes(self):
+        task = create_task(self.database_path, "mua sữa")
+        generate = Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        first = self.session.run_turn("Xóa việc 1.", generate)
+        self.assertEqual(first["status"], "needs_confirmation")
+        self.assertEqual(first["calls"], [])
+        self.assertEqual(first["session_state_after"], "awaiting_delete_confirmation")
+        self.assertEqual(self.session.pending_delete_task, task)
+        self.assertEqual(list_tasks(self.database_path), [task])
+
+        second = self.session.run_turn(
+            "Đồng ý.", Mock(side_effect=AssertionError("model must not be called"))
+        )
+        self.assertEqual(second["status"], "executed")
+        self.assertEqual(second["calls"][0]["result"]["status"], "deleted")
+        self.assertEqual(second["session_state_after"], "idle")
+        self.assertEqual(list_tasks(self.database_path), [])
+        generate.assert_called_once()
+
+    def test_delete_confirmation_rejects_free_text_and_accepts_cancel_words(self):
+        task = create_task(self.database_path, "mua sữa")
+        self.session.run_turn(
+            "Xóa việc 1", Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        )
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        repeated = self.session.run_turn("chắc vậy", generate)
+        self.assertEqual(repeated["status"], "needs_confirmation")
+        self.assertEqual(self.session.pending_delete_task, task)
+        self.assertEqual(list_tasks(self.database_path), [task])
+        cancelled = self.session.run_turn("không", generate)
+        self.assertEqual(cancelled["status"], "cancelled")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path), [task])
+        generate.assert_not_called()
+
+    def test_delete_missing_or_multiple_id_collects_one_id_before_confirmation(self):
+        task = create_task(self.database_path, "mua sữa")
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        first = self.session.run_turn("Xóa việc 1 và 2", generate)
+        self.assertEqual(first["status"], "needs_clarification")
+        self.assertEqual(self.session.state, SessionState.AWAITING_DELETE_ID)
+        second = self.session.run_turn("#1", generate)
+        self.assertEqual(second["status"], "needs_confirmation")
+        self.assertEqual(self.session.pending_delete_task, task)
+        self.assertEqual(list_tasks(self.database_path), [task])
+        generate.assert_not_called()
+
+    def test_delete_missing_id_reports_not_found_without_confirmation(self):
+        generate = Mock(side_effect=AssertionError("model must not be called"))
+        self.session.run_turn("Xóa việc", generate)
+        result = self.session.run_turn("99", generate)
+        self.assertEqual(result["status"], "not_found")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertIsNone(self.session.pending_delete_task)
+        generate.assert_not_called()
+
+    def test_delete_stale_snapshot_requires_confirmation_again(self):
+        from nexus.storage.sqlite_db import update_task
+        task = create_task(self.database_path, "cũ")
+        self.session.run_turn(
+            "Xóa việc 1", Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        )
+        update_task(self.database_path, task.id, "mới")
+        stale = self.session.run_turn(
+            "có", Mock(side_effect=AssertionError("model must not be called"))
+        )
+        self.assertEqual(stale["status"], "needs_confirmation")
+        self.assertEqual(self.session.pending_delete_task.content, "mới")
+        self.assertEqual(list_tasks(self.database_path)[0].content, "mới")
+        deleted = self.session.run_turn(
+            "xác nhận", Mock(side_effect=AssertionError("model must not be called"))
+        )
+        self.assertEqual(deleted["status"], "executed")
+        self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_delete_disappeared_task_reports_not_found(self):
+        from nexus.storage.sqlite_db import delete_task
+        task = create_task(self.database_path, "cũ")
+        self.session.run_turn(
+            "Xóa việc 1", Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        )
+        delete_task(self.database_path, task.id)
+        result = self.session.run_turn(
+            "xóa", Mock(side_effect=AssertionError("model must not be called"))
+        )
+        self.assertEqual(result["status"], "not_found")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+
+    def test_delete_database_error_keeps_pending_formatter_error_clears_it(self):
+        task = create_task(self.database_path, "cũ")
+        response = Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        self.session.run_turn("Xóa việc 1", response)
+        with patch(
+            "nexus.agent.session.execute_tool",
+            side_effect=sqlite3.OperationalError("before commit"),
+        ):
+            with self.assertRaises(sqlite3.OperationalError):
+                self.session.run_turn("có", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.AWAITING_DELETE_CONFIRMATION)
+        self.assertEqual(list_tasks(self.database_path), [task])
+
+        with patch(
+            "nexus.agent.session.format_tool_result",
+            side_effect=ValueError("after commit"),
+        ):
+            with self.assertRaises(PostToolExecutionError):
+                self.session.run_turn("có", Mock(side_effect=AssertionError))
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_new_list_replaces_pending_delete_and_sessions_do_not_share_it(self):
+        task = create_task(self.database_path, "cũ")
+        self.session.run_turn(
+            "Xóa việc 1", Mock(return_value=tool_response("delete_task", '{"id":1}'))
+        )
+        other = AgentSession(self.database_path)
+        self.assertEqual(other.state, SessionState.IDLE)
+        self.assertIsNone(other.pending_delete_task)
+
+        result = self.session.run_turn(
+            "Xem danh sách", Mock(return_value=tool_response("list_tasks", '{}'))
+        )
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(self.session.state, SessionState.IDLE)
+        self.assertEqual(list_tasks(self.database_path), [task])
 
 
 if __name__ == "__main__":

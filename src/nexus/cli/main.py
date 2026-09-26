@@ -11,6 +11,7 @@ from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     complete_task,
     create_task,
+    delete_task,
     initialize_database,
     list_tasks,
     update_task,
@@ -72,6 +73,10 @@ def print_tool_results(
             if isinstance(task, dict):
                 prefix = "Đã sửa" if result.get("status") == "updated" else "Không đổi"
                 print(f"{prefix} [{task['id']}] {task['content']}", flush=True)
+        elif name == "delete_task" and isinstance(result, dict):
+            task = result.get("task")
+            if result.get("status") == "deleted" and isinstance(task, dict):
+                print(f"Đã xóa [{task['id']}] {task['content']}", flush=True)
     return saved_count
 
 
@@ -93,14 +98,17 @@ def _print_chat_trace(record: dict) -> None:
     print("=== END TRACE ===", file=sys.stderr)
 
 
-def run_chat(database_path: Path, *, trace: bool = False) -> int:
+def run_chat(
+    database_path: Path, *, trace: bool = False, prompt_version: str | None = None
+) -> int:
     """Run one in-memory AgentSession until EOF or the local /exit command."""
     import urllib.error
 
     from nexus.agent.client import ENDPOINT, PostToolExecutionError, chat
     from nexus.agent.session import AgentSession
 
-    session = AgentSession(database_path)
+    session_kwargs = {} if prompt_version is None else {"prompt_version": prompt_version}
+    session = AgentSession(database_path, **session_kwargs)
     interactive = sys.stdin.isatty()
     had_error = False
     turn_number = 0
@@ -136,6 +144,15 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
         pending_complete_before = session.pending_complete
         pending_edit_id_before = session.pending_edit_id
         pending_edit_content_before = session.pending_edit_content
+        pending_delete_before = (
+            {
+                "id": session.pending_delete_task.id,
+                "content": session.pending_delete_task.content,
+                "completed": session.pending_delete_task.completed,
+            }
+            if session.pending_delete_task is not None
+            else None
+        )
         database_before = _database_snapshot(database_path) if trace else None
         model_exchange = {
             "called": False,
@@ -207,6 +224,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                 proposed_calls = result.get("proposed_calls", [])
                 authorized_calls = result.get("authorized_calls", [])
                 rejected_calls = result.get("rejected_calls", [])
+                confirmation = result.get("confirmation")
                 executed_calls = result.get("calls", [])
                 application_reply = result.get("reply")
             else:
@@ -224,6 +242,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                 proposed_calls = (trace_error or {}).get("proposed_calls", [])
                 authorized_calls = (trace_error or {}).get("authorized_calls", [])
                 rejected_calls = (trace_error or {}).get("rejected_calls", [])
+                confirmation = None
                 executed_calls = (trace_error or {}).get("executed_calls", [])
                 application_reply = None
 
@@ -242,6 +261,16 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                         "pending_edit_id_after": session.pending_edit_id,
                         "pending_edit_content_before": pending_edit_content_before,
                         "pending_edit_content_after": session.pending_edit_content,
+                        "pending_delete_before": pending_delete_before,
+                        "pending_delete_after": (
+                            {
+                                "id": session.pending_delete_task.id,
+                                "content": session.pending_delete_task.content,
+                                "completed": session.pending_delete_task.completed,
+                            }
+                            if session.pending_delete_task is not None
+                            else None
+                        ),
                     },
                     "model": model_exchange,
                     "runtime": {
@@ -266,6 +295,7 @@ def run_chat(database_path: Path, *, trace: bool = False) -> int:
                     },
                     "authorized_calls": authorized_calls,
                     "rejected_calls": rejected_calls,
+                    "confirmation": confirmation,
                     "executed_calls": executed_calls,
                     "database": {
                         "before": database_before,
@@ -300,11 +330,26 @@ def main() -> int:
     edit_parser = commands.add_parser("edit", help="Sửa nội dung một việc theo ID")
     edit_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
     edit_parser.add_argument("content", type=_single_line_content, help="Nội dung mới")
+    delete_parser = commands.add_parser("delete", help="Xóa vĩnh viễn một việc theo ID")
+    delete_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
+    from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, SYSTEM_PROMPTS
+    ask_parser.add_argument(
+        "--prompt-version",
+        choices=sorted(SYSTEM_PROMPTS),
+        default=DEFAULT_PROMPT_VERSION,
+        help="Phiên bản system prompt cho agent",
+    )
     chat_parser = commands.add_parser(
         "chat",
         help="Hội thoại nhiều lượt trong một session (cần chạy llama-server)",
+    )
+    chat_parser.add_argument(
+        "--prompt-version",
+        choices=sorted(SYSTEM_PROMPTS),
+        default=DEFAULT_PROMPT_VERSION,
+        help="Phiên bản system prompt cho agent",
     )
     chat_parser.add_argument(
         "--trace",
@@ -367,6 +412,12 @@ def main() -> int:
                     f"Việc [{updated.task.id}] đã có nội dung này: "
                     f"{updated.task.content}"
                 )
+        elif args.command == "delete":
+            deleted = delete_task(args.db, args.id)
+            if deleted.status.value == "not_found":
+                print(f"Không tìm thấy việc có ID {args.id}.")
+                return 1
+            print(f"Đã xóa [{deleted.task.id}] {deleted.task.content}")
         elif args.command == "ask":
             from nexus.agent.client import PostToolExecutionError, chat, run_turn
             import urllib.error
@@ -387,13 +438,22 @@ def main() -> int:
 
             print("Đang xử lý qua AI...", file=sys.stderr)
             try:
-                result = run_turn(args.db, prompt, chat)
+                result = run_turn(
+                    args.db,
+                    prompt,
+                    chat,
+                    prompt_version=args.prompt_version,
+                )
                 for call in result.get("calls", []):
                     if call.get("name") == "create_task":
                         call_result = call.get("result")
                         if isinstance(call_result, dict):
                             saved_count += len(call_result.get("tasks", []))
                 print(f"\nAI: {result['reply']}")
+                if result.get("status") == "needs_confirmation":
+                    print(
+                        "Lệnh ask không giữ session; hãy dùng nexus chat để xác nhận."
+                    )
             except PostToolExecutionError as error:
                 saved_count += print_tool_results(error.executed_calls)
                 if error.stage == "response_formatting":
@@ -414,7 +474,9 @@ def main() -> int:
                 print(f"Lỗi khi xử lý qua AI: {error}", file=sys.stderr)
                 return 1
         elif args.command == "chat":
-            return run_chat(args.db, trace=args.trace)
+            return run_chat(
+                args.db, trace=args.trace, prompt_version=args.prompt_version
+            )
         else:
             tasks = list_tasks(args.db)
             if not tasks:

@@ -1,4 +1,4 @@
-"""In-memory continuation of incomplete CREATE, COMPLETE and EDIT requests."""
+"""In-memory continuation of incomplete CREATE, COMPLETE, EDIT and DELETE requests."""
 
 import re
 from copy import deepcopy
@@ -15,6 +15,8 @@ from nexus.agent.policy import (
 )
 from nexus.agent.responses import format_rejection, format_tool_result
 from nexus.agent.tools import execute_tool
+from nexus.core.models import Task
+from nexus.storage.sqlite_db import get_task
 
 
 _CANCEL = re.compile(r"^\s*(?:thôi|hủy|huỷ)[.!]?\s*$", re.IGNORECASE)
@@ -22,6 +24,13 @@ _NO_ACTION = "Không có thao tác nào được thực hiện."
 _ASK_CONTENT = "Bạn muốn thêm việc gì?"
 _ASK_COMPLETE_ID = "Bạn muốn hoàn thành việc có ID nào?"
 _ASK_EDIT_ID = "Bạn muốn sửa việc có ID nào?"
+_ASK_DELETE_ID = "Bạn muốn xóa việc có ID nào?"
+_CONFIRM_DELETE_YES = re.compile(
+    r"^\s*(?:có|đồng ý|xác nhận|xóa|xoá)[.!]?\s*$", re.IGNORECASE
+)
+_CONFIRM_DELETE_NO = re.compile(
+    r"^\s*(?:không|thôi|hủy|huỷ)[.!]?\s*$", re.IGNORECASE
+)
 _COMPLETE_ID_REPLY = re.compile(
     r"^\s*(?:#?(?P<bare>[0-9]+)|(?:việc|task)\s+#?(?P<labelled>[0-9]+))[.!]?\s*$",
     re.IGNORECASE,
@@ -36,6 +45,8 @@ class SessionState(str, Enum):
     AWAITING_COMPLETE_ID = "awaiting_complete_id"
     AWAITING_EDIT_ID = "awaiting_edit_id"
     AWAITING_EDIT_CONTENT = "awaiting_edit_content"
+    AWAITING_DELETE_ID = "awaiting_delete_id"
+    AWAITING_DELETE_CONFIRMATION = "awaiting_delete_confirmation"
 
 
 def _session_result(
@@ -45,8 +56,9 @@ def _session_result(
     source: str = "session",
     calls: list[dict] | None = None,
     authorized_calls: list[dict] | None = None,
+    confirmation: dict | None = None,
 ) -> dict:
-    return {
+    result = {
         "calls": calls if calls is not None else [],
         "proposed_calls": [],
         "authorized_calls": authorized_calls if authorized_calls is not None else [],
@@ -56,6 +68,9 @@ def _session_result(
         "source": source,
         "reply": reply,
     }
+    if confirmation is not None:
+        result["confirmation"] = confirmation
+    return result
 
 
 class AgentSession:
@@ -77,6 +92,7 @@ class AgentSession:
         self.settings = deepcopy(settings)
         self.pending_edit_id: int | None = None
         self.pending_edit_content: str | None = None
+        self.pending_delete_task: Task | None = None
         self._set_state(SessionState.IDLE)
 
     def _set_state(
@@ -85,11 +101,17 @@ class AgentSession:
         *,
         edit_id: int | None = None,
         edit_content: str | None = None,
+        delete_task: Task | None = None,
     ) -> None:
         self.state = state
         self.pending_edit_id = edit_id if state == SessionState.AWAITING_EDIT_CONTENT else None
         self.pending_edit_content = (
             edit_content if state == SessionState.AWAITING_EDIT_ID else None
+        )
+        self.pending_delete_task = (
+            delete_task
+            if state == SessionState.AWAITING_DELETE_CONFIRMATION
+            else None
         )
 
     @property
@@ -117,6 +139,13 @@ class AgentSession:
     def _edit_content_question(self) -> str:
         return f"Bạn muốn đổi nội dung việc {self.pending_edit_id} thành gì?"
 
+    def _delete_confirmation_question(self) -> str:
+        task = self.pending_delete_task
+        if task is None:
+            raise RuntimeError("delete confirmation requires a task snapshot")
+        marker = "x" if task.completed else " "
+        return f"Bạn có chắc muốn xóa [{task.id}] [{marker}] {task.content}?"
+
     def _finish(self, result: dict, state_before: SessionState) -> dict:
         """Attach the state transition to every completed turn."""
         return {
@@ -142,6 +171,16 @@ class AgentSession:
                 result = _session_result(
                     TurnStatus.NEEDS_CLARIFICATION, self._edit_content_question()
                 )
+            elif self.state == SessionState.AWAITING_DELETE_ID:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DELETE_ID
+                )
+            elif self.state == SessionState.AWAITING_DELETE_CONFIRMATION:
+                result = _session_result(
+                    TurnStatus.NEEDS_CONFIRMATION,
+                    self._delete_confirmation_question(),
+                    confirmation=self._delete_confirmation_payload(),
+                )
             else:
                 result = _session_result(TurnStatus.NO_TOOL, _NO_ACTION)
             return self._finish(result, state_before)
@@ -153,10 +192,26 @@ class AgentSession:
                 reply = "Đã hủy yêu cầu thêm việc. Không có việc nào được lưu."
             elif cancelled_state == SessionState.AWAITING_COMPLETE_ID:
                 reply = "Đã hủy yêu cầu hoàn thành việc. Không có thay đổi nào được lưu."
-            else:
+            elif cancelled_state in (
+                SessionState.AWAITING_EDIT_ID, SessionState.AWAITING_EDIT_CONTENT
+            ):
                 reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
+            else:
+                reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
             result = _session_result(TurnStatus.CANCELLED, reply)
             return self._finish(result, state_before)
+
+        if self.state == SessionState.AWAITING_DELETE_CONFIRMATION:
+            if _CONFIRM_DELETE_YES.fullmatch(prompt):
+                result = self._delete_followup()
+                return self._finish(result, state_before)
+            if _CONFIRM_DELETE_NO.fullmatch(prompt):
+                self._set_state(SessionState.IDLE)
+                result = _session_result(
+                    TurnStatus.CANCELLED,
+                    "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa.",
+                )
+                return self._finish(result, state_before)
 
         kind = classify_request(prompt)
         if kind == RequestKind.MISSING_CREATE:
@@ -187,6 +242,13 @@ class AgentSession:
             )
             return self._finish(result, state_before)
 
+        if kind in (RequestKind.MISSING_DELETE_ID, RequestKind.MULTIPLE_DELETE):
+            self._set_state(SessionState.AWAITING_DELETE_ID)
+            result = _session_result(
+                TurnStatus.NEEDS_CLARIFICATION, _ASK_DELETE_ID
+            )
+            return self._finish(result, state_before)
+
         if kind in (RequestKind.UNSUPPORTED, RequestKind.NEGATED):
             pending_state = self.state
             self._set_state(SessionState.IDLE)
@@ -195,8 +257,12 @@ class AgentSession:
                     reply = "Đã hủy yêu cầu thêm việc. Không có việc nào được lưu."
                 elif pending_state == SessionState.AWAITING_COMPLETE_ID:
                     reply = "Đã hủy yêu cầu hoàn thành việc. Không có thay đổi nào được lưu."
-                else:
+                elif pending_state in (
+                    SessionState.AWAITING_EDIT_ID, SessionState.AWAITING_EDIT_CONTENT
+                ):
                     reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
+                else:
+                    reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
                 result = _session_result(TurnStatus.CANCELLED, reply)
             else:
                 reply = (
@@ -225,6 +291,22 @@ class AgentSession:
                     )
                 else:
                     result = self._complete_followup(task_id)
+            return self._finish(result, state_before)
+
+        if self.state == SessionState.AWAITING_DELETE_ID and kind == RequestKind.OTHER:
+            match = _COMPLETE_ID_REPLY.fullmatch(prompt)
+            if match is None:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DELETE_ID
+                )
+            else:
+                task_id = int(match.group("bare") or match.group("labelled"))
+                if task_id <= 0:
+                    result = _session_result(
+                        TurnStatus.NEEDS_CLARIFICATION, _ASK_DELETE_ID
+                    )
+                else:
+                    result = self._prepare_delete(task_id)
             return self._finish(result, state_before)
 
         if self.state == SessionState.AWAITING_EDIT_ID and kind == RequestKind.OTHER:
@@ -256,7 +338,18 @@ class AgentSession:
                 result = self._update_followup(self.pending_edit_id, prompt)
             return self._finish(result, state_before)
 
-        # A new explicit CREATE/LIST/COMPLETE/EDIT replaces any pending request.
+        if (
+            self.state == SessionState.AWAITING_DELETE_CONFIRMATION
+            and kind == RequestKind.OTHER
+        ):
+            result = _session_result(
+                TurnStatus.NEEDS_CONFIRMATION,
+                self._delete_confirmation_question(),
+                confirmation=self._delete_confirmation_payload(),
+            )
+            return self._finish(result, state_before)
+
+        # A new explicit command replaces any pending request.
         self._set_state(SessionState.IDLE)
         result = run_turn(
             self.database_path,
@@ -265,6 +358,15 @@ class AgentSession:
             prompt_version=self.prompt_version,
             settings=self.settings,
         )
+        if result["status"] == TurnStatus.NEEDS_CONFIRMATION.value:
+            confirmation = result.get("confirmation")
+            task_data = confirmation.get("task") if isinstance(confirmation, dict) else None
+            if not isinstance(task_data, dict):
+                raise RuntimeError("delete confirmation is missing its task snapshot")
+            self._set_state(
+                SessionState.AWAITING_DELETE_CONFIRMATION,
+                delete_task=Task(**task_data),
+            )
         if result["status"] == TurnStatus.NEEDS_CLARIFICATION.value:
             reasons = {
                 call.get("reason") for call in result.get("rejected_calls", [])
@@ -281,6 +383,8 @@ class AgentSession:
                 self._set_state(
                     SessionState.AWAITING_EDIT_CONTENT, edit_id=task_id
                 )
+            elif "missing_delete_id" in reasons:
+                self._set_state(SessionState.AWAITING_DELETE_ID)
             else:
                 self._set_state(SessionState.AWAITING_CREATE_CONTENT)
         return self._finish({**result, "source": "model"}, state_before)
@@ -369,6 +473,100 @@ class AgentSession:
             TurnStatus.EXECUTED,
             reply,
             source="session_continuation",
+            calls=calls,
+            authorized_calls=authorized_calls,
+        )
+
+    def _delete_confirmation_payload(self) -> dict:
+        task = self.pending_delete_task
+        if task is None:
+            raise RuntimeError("delete confirmation requires a task snapshot")
+        return {
+            "name": "delete_task",
+            "arguments": {"id": task.id},
+            "task": {
+                "id": task.id,
+                "content": task.content,
+                "completed": task.completed,
+            },
+        }
+
+    def _prepare_delete(self, task_id: int) -> dict:
+        task = get_task(self.database_path, task_id)
+        if task is None:
+            self._set_state(SessionState.IDLE)
+            return _session_result(
+                TurnStatus.NOT_FOUND, "Không tìm thấy việc có ID đã yêu cầu."
+            )
+        self._set_state(
+            SessionState.AWAITING_DELETE_CONFIRMATION, delete_task=task
+        )
+        return _session_result(
+            TurnStatus.NEEDS_CONFIRMATION,
+            self._delete_confirmation_question(),
+            source="session_continuation",
+            authorized_calls=[{
+                "name": "delete_task",
+                "arguments": {"id": task_id},
+                "result": "requires_confirmation",
+                "reason": "session_continuation",
+            }],
+            confirmation=self._delete_confirmation_payload(),
+        )
+
+    def _delete_followup(self) -> dict:
+        snapshot = self.pending_delete_task
+        if snapshot is None:
+            raise RuntimeError("delete confirmation requires a task snapshot")
+        arguments = {"id": snapshot.id}
+        authorized_calls = [{
+            "name": "delete_task",
+            "arguments": arguments,
+            "result": "allow",
+            "reason": "session_confirmation",
+        }]
+        result = execute_tool(
+            self.database_path,
+            "delete_task",
+            arguments,
+            confirmed_task=snapshot,
+        )
+        calls = [{"name": "delete_task", "arguments": arguments, "result": result}]
+        status = result.get("status")
+        if status == "stale":
+            task_data = result.get("task")
+            if not isinstance(task_data, dict):
+                raise RuntimeError("stale delete result requires the current task")
+            self._set_state(
+                SessionState.AWAITING_DELETE_CONFIRMATION,
+                delete_task=Task(**task_data),
+            )
+            reply = format_tool_result("delete_task", result)
+            return _session_result(
+                TurnStatus.NEEDS_CONFIRMATION,
+                reply,
+                source="session_confirmation",
+                calls=calls,
+                authorized_calls=authorized_calls,
+                confirmation=self._delete_confirmation_payload(),
+            )
+
+        self._set_state(SessionState.IDLE)
+        try:
+            reply = format_tool_result("delete_task", result)
+        except Exception as error:
+            if status == "deleted":
+                raise PostToolExecutionError(
+                    "response_formatting",
+                    calls,
+                    error,
+                    authorized_calls=authorized_calls,
+                ) from error
+            raise
+        return _session_result(
+            TurnStatus.EXECUTED if status == "deleted" else TurnStatus.NOT_FOUND,
+            reply,
+            source="session_confirmation",
             calls=calls,
             authorized_calls=authorized_calls,
         )

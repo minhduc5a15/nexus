@@ -1,0 +1,91 @@
+{
+  "feature": "delete_task_by_id_with_confirmation",
+  "mode": "live_qwen_smoke",
+  "prompt_version": "v11",
+  "cases": [
+    {
+      "id": "regression_create_list",
+      "category": "regression",
+      "initial_tasks": [],
+      "expected_final_tasks": ["mua sữa"],
+      "expected_final_states": [{"id": 1, "content": "mua sữa", "completed": false}],
+      "turns": [
+        {"prompt": "Thêm việc mua sữa", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "create_task", "arguments": {"content": "mua sữa"}}], "created_tasks": ["mua sữa"], "tasks": ["mua sữa"], "reply_contains": ["Đã thêm [1] mua sữa"]}},
+        {"prompt": "Xem danh sách", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["mua sữa"], "reply_contains": ["[1] [ ] mua sữa"]}}
+      ]
+    },
+    {
+      "id": "regression_complete_list",
+      "category": "regression",
+      "initial_tasks": ["đọc sách"],
+      "expected_final_tasks": ["đọc sách"],
+      "expected_final_states": [{"id": 1, "content": "đọc sách", "completed": true}],
+      "turns": [
+        {"prompt": "Hoàn thành việc 1", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "complete_task", "arguments": {"id": 1}}], "completed_ids": [1], "tasks": ["đọc sách"], "task_states": [{"id": 1, "content": "đọc sách", "completed": true}], "reply_contains": ["Đã hoàn thành [1]"]}},
+        {"prompt": "Xem danh sách", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["đọc sách"], "task_states": [{"id": 1, "content": "đọc sách", "completed": true}], "reply_contains": ["[1] [x] đọc sách"]}}
+      ]
+    },
+    {
+      "id": "regression_edit_list",
+      "category": "regression",
+      "initial_tasks": ["bản nháp"],
+      "expected_final_tasks": ["bản cuối"],
+      "expected_final_states": [{"id": 1, "content": "bản cuối", "completed": false}],
+      "turns": [
+        {"prompt": "Sửa việc 1 thành bản cuối", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "update_task", "arguments": {"id": 1, "content": "bản cuối"}}], "updated_tasks": [{"id": 1, "content": "bản cuối"}], "tasks": ["bản cuối"], "reply_contains": ["Đã sửa [1]"]}},
+        {"prompt": "Xem danh sách", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["bản cuối"], "reply_contains": ["[1] [ ] bản cuối"]}}
+      ]
+    },
+    {
+      "id": "delete_confirm_list",
+      "category": "delete",
+      "initial_tasks": ["xóa tôi", "giữ tôi"],
+      "expected_final_tasks": ["giữ tôi"],
+      "expected_final_states": [{"id": 2, "content": "giữ tôi", "completed": false}],
+      "turns": [
+        {"prompt": "Xóa việc 1.", "expected": {"state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true, "executed_calls": [], "tasks": ["xóa tôi", "giữ tôi"], "reply_contains": ["Bạn có chắc", "[1]", "xóa tôi"]}},
+        {"prompt": "có", "expected": {"state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false, "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": ["giữ tôi"], "reply_contains": ["Đã xóa [1] xóa tôi"]}},
+        {"prompt": "Xem danh sách", "expected": {"state_before": "idle", "state_after": "idle", "status": "executed", "model_called": true, "executed_calls": [{"name": "list_tasks", "arguments": {}}], "tasks": ["giữ tôi"], "task_states": [{"id": 2, "content": "giữ tôi", "completed": false}], "reply_contains": ["[2] [ ] giữ tôi"], "reply_not_contains": ["xóa tôi"]}}
+      ]
+    },
+    {
+      "id": "delete_cancel",
+      "category": "delete",
+      "initial_tasks": ["ở lại"],
+      "expected_final_tasks": ["ở lại"],
+      "expected_final_states": [{"id": 1, "content": "ở lại", "completed": false}],
+      "turns": [
+        {"prompt": "Bỏ việc 1 khỏi danh sách.", "expected": {"state_before": "idle", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": true, "executed_calls": [], "tasks": ["ở lại"], "reply_contains": ["Bạn có chắc"]}},
+        {"prompt": "không", "expected": {"state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "cancelled", "model_called": false, "executed_calls": [], "tasks": ["ở lại"], "reply_contains": ["Đã hủy"]}}
+      ]
+    },
+    {
+      "id": "delete_missing_id",
+      "category": "delete",
+      "initial_tasks": ["dọn bàn"],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {"prompt": "Xóa việc", "expected": {"state_before": "idle", "state_after": "awaiting_delete_id", "status": "needs_clarification", "model_called": false, "executed_calls": [], "tasks": ["dọn bàn"], "reply_contains": ["ID nào"]}},
+        {"prompt": "1", "expected": {"state_before": "awaiting_delete_id", "state_after": "awaiting_delete_confirmation", "status": "needs_confirmation", "model_called": false, "executed_calls": [], "tasks": ["dọn bàn"], "reply_contains": ["Bạn có chắc"]}},
+        {"prompt": "xóa", "expected": {"state_before": "awaiting_delete_confirmation", "state_after": "idle", "status": "executed", "model_called": false, "executed_calls": [{"name": "delete_task", "arguments": {"id": 1}}], "deleted_ids": [1], "tasks": [], "reply_contains": ["Đã xóa [1]"]}}
+      ]
+    },
+    {
+      "id": "delete_not_found",
+      "category": "delete",
+      "initial_tasks": [],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [{"prompt": "Xoá task #99.", "expected": {"state_before": "idle", "state_after": "idle", "status": "not_found", "model_called": true, "executed_calls": [], "tasks": [], "reply_contains": ["Không tìm thấy việc"]}}]
+    },
+    {
+      "id": "delete_by_content_is_not_resolved",
+      "category": "safety",
+      "initial_tasks": ["báo cáo"],
+      "expected_final_tasks": ["báo cáo"],
+      "expected_final_states": [{"id": 1, "content": "báo cáo", "completed": false}],
+      "turns": [{"prompt": "Xóa việc báo cáo", "expected": {"state_before": "idle", "state_after": "idle", "status": ["no_tool", "rejected"], "model_called": true, "executed_calls": [], "tasks": ["báo cáo"], "reply_contains": ["Không có thao tác"]}}]
+    }
+  ]
+}

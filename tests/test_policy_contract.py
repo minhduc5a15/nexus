@@ -38,7 +38,7 @@ class PolicyContractTests(unittest.TestCase):
             ('Sửa việc 3', RequestKind.MISSING_EDIT_CONTENT),
             ('Sửa việc thành mua sữa', RequestKind.MISSING_EDIT_ID),
             ('Sửa việc 1 và 2 thành mua sữa', RequestKind.MULTIPLE_EDIT),
-            ('Xóa task cũ', RequestKind.UNSUPPORTED),
+            ('Sắp xếp task cũ', RequestKind.UNSUPPORTED),
             ('Đừng thêm việc sửa xe', RequestKind.NEGATED),
             ('Đừng xem danh sách', RequestKind.NEGATED),
             ('đừng quên mua sữa', RequestKind.OTHER),

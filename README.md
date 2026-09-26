@@ -1,9 +1,9 @@
 # NEXUS
 
 NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại gồm
-thêm việc, xem danh sách, hoàn thành và sửa đúng một việc theo ID. Người dùng có
+thêm việc, xem danh sách, hoàn thành, sửa và xóa đúng một việc theo ID. Người dùng có
 thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để Qwen3-1.7B chọn một
-trong bốn tool. Dữ liệu được lưu cục bộ bằng SQLite.
+trong năm tool. Dữ liệu được lưu cục bộ bằng SQLite.
 
 Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
 không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content` và
@@ -28,6 +28,7 @@ và phát triển dự án. Không cần model để dùng các lệnh trực ti
 .venv/bin/nexus list
 .venv/bin/nexus complete 1
 .venv/bin/nexus edit 1 "mua sữa không đường"
+.venv/bin/nexus delete 1
 ```
 
 Để thêm nhiều task, bỏ đối số và nhập mỗi task trên một dòng. Nhấn `Ctrl+D`
@@ -111,6 +112,10 @@ NEXUS > Hoàn thành việc 1
 NEXUS: Đã hoàn thành [1] mua sữa
 NEXUS > Sửa việc 1 thành mua sữa không đường
 NEXUS: Đã sửa [1] thành: mua sữa không đường
+NEXUS > Xóa việc 1
+NEXUS: Bạn có chắc muốn xóa [1] [x] mua sữa không đường?
+NEXUS > có
+NEXUS: Đã xóa [1] mua sữa không đường
 ```
 
 Để xem đầy đủ luồng xử lý của từng lượt:
@@ -133,13 +138,15 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 ```
 
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
-định vẫn là v9; v1–v10 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT nhưng
-chưa được chọn làm mặc định vì smoke Qwen mới đạt 7/10 lượt. Một call
+định vẫn là v9; v1–v11 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, còn
+v11 thêm DELETE có xác nhận. V11 chưa được chọn làm mặc định vì smoke Qwen đạt
+12/16 lượt. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
 được giữ trong trace chẩn đoán, không dùng làm lời xác nhận cho người dùng.
-`run_turn` trả `status` (`no_tool`, `rejected`, `needs_clarification`, `executed`)
+`run_turn` trả `status` (`no_tool`, `rejected`, `needs_clarification`, `needs_confirmation`,
+`not_found`, `executed`)
 cùng trace các call. Khi policy từ chối, ứng dụng báo rõ thao tác chưa được hỗ
 trợ hoặc nội dung không khớp lời người dùng; các lỗi định dạng và lượt không có
 tool vẫn dùng câu báo không thực hiện thao tác. Một tool có thể đã commit vào
@@ -148,9 +155,10 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` riêng cho từng cuộc trò chuyện. State machine có năm trạng thái
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có bảy trạng thái
 trong bộ nhớ: `idle`, `awaiting_create_content`, `awaiting_complete_id`,
-`awaiting_edit_id` và `awaiting_edit_content`. Hai trạng thái EDIT giữ ID hoặc
+`awaiting_edit_id`, `awaiting_edit_content`, `awaiting_delete_id` và
+`awaiting_delete_confirmation`. Hai trạng thái EDIT giữ ID hoặc
 content đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
 
 ```python
@@ -173,10 +181,11 @@ lời được dùng nguyên văn, không được model viết lại.
 Khi chờ ID, lượt sau chỉ nhận `3`, `#3`, `việc 3` hoặc `task 3`; không tìm task
 theo nội dung. EDIT thiếu ID hoặc content hỏi lại đúng phần còn thiếu. Tin nhắn
 trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về `idle`.
-Một yêu cầu CREATE/LIST/COMPLETE/EDIT mới thay thế yêu cầu đang chờ. Nếu SQLite lỗi
-trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi lỗi
-sau commit, session đã về `idle` để tránh tự lưu trùng. Session không lưu trạng
-thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
+Một yêu cầu CREATE/LIST/COMPLETE/EDIT/DELETE mới thay thế yêu cầu đang chờ. DELETE
+trong agent luôn hiển thị snapshot task và chờ một xác nhận hẹp; `nexus delete ID` là lệnh cấu trúc nên xóa trực tiếp. Nếu task đổi giữa hai lượt, NEXUS cập
+nhật snapshot và hỏi lại; nếu task đã biến mất, NEXUS không xóa gì. Nếu SQLite
+lỗi trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi
+lỗi sau commit, session đã về `idle` để tránh tự thực thi lại. Session không lưu trạng thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
 cho nhiều người. `nexus chat` tạo đúng một
 session cho tiến trình CLI; `nexus ask` và hàm `run_turn` vẫn là các lượt độc
 lập. CLI chat hiện coi mỗi dòng là một tin nhắn, nên chưa nhập được một tin nhắn
@@ -184,9 +193,11 @@ nhiều dòng trực tiếp; API `AgentSession` vẫn hỗ trợ content nhiều
 diện lệnh mới có grammar hữu hạn, nên câu mơ hồ giữa lệnh và nội dung task vẫn
 cần người dùng diễn đạt rõ hơn.
 
-SQLite dùng schema version 1. Database cũ chỉ có `id/content` được migration
-trong một transaction và mọi task cũ bắt đầu ở trạng thái chưa hoàn thành.
-Ứng dụng dừng với lỗi rõ khi gặp schema lạ hoặc database có version mới hơn.
+SQLite dùng schema version 2 và khóa chính `INTEGER PRIMARY KEY AUTOINCREMENT`.
+Database legacy chỉ có `id/content` và database version 1 có thêm `completed`
+được migration trong một transaction, giữ nguyên ID, content và trạng thái. ID
+đã xóa không được cấp lại sau khi dùng schema v2. Ứng dụng dừng với lỗi rõ khi
+gặp schema lạ hoặc database có version mới hơn.
 
 ## Kiểm thử và benchmark hiện tại
 
@@ -234,6 +245,18 @@ cầu, nên prompt mặc định vẫn là v9:
 ```sh
 ./scripts/demo/13_edit_eval.sh
 ./scripts/demo/14_edit_smoke.sh
+```
+
+DELETE có bộ scripted 13 case/27 lượt kiểm tra xác nhận, hủy, thiếu/nhiều ID,
+snapshot stale, lỗi trước/sau commit và proposal sai. Bộ này đạt toàn bộ. Smoke
+Qwen v11 đạt 6/8 case, 12/16 lượt và không có mutation ngoài yêu cầu; model viết
+hoa content CREATE và bỏ tool ở một cách nói DELETE hợp lệ. Theo quy tắc rollout,
+prompt mặc định vẫn là v9 và v11 chỉ dùng qua `--prompt-version v11`:
+
+```sh
+./scripts/demo/15_delete_eval.sh
+./scripts/demo/16_delete_smoke.sh
+.venv/bin/nexus chat --prompt-version v11 --trace
 ```
 
 Các evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git

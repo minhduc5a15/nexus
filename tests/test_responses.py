@@ -8,7 +8,7 @@ from nexus.agent.responses import format_rejection, format_tool_result
 class ToolResponseFormatterTests(unittest.TestCase):
     def test_rejection_reply_is_fixed_by_reason(self):
         self.assertEqual(format_rejection(PolicyReason.UNSUPPORTED_ACTION),
-                         "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID.")
+                         "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID.")
         self.assertEqual(format_rejection(PolicyReason.CONTENT_BOUNDARY_MISMATCH),
                          "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
         self.assertEqual(format_rejection(PolicyReason.INVALID_ARGUMENTS),
@@ -306,6 +306,34 @@ class ToolResponseFormatterTests(unittest.TestCase):
         for result in invalid:
             with self.subTest(result=result), self.assertRaises(ValueError):
                 format_tool_result("update_task", result)
+
+    def test_delete_result_formats_all_statuses(self):
+        task = {"id": 3, "content": "gọi mẹ", "completed": False}
+        self.assertEqual(
+            format_tool_result("delete_task", {"status": "deleted", "task": task}),
+            "Đã xóa [3] gọi mẹ",
+        )
+        self.assertEqual(
+            format_tool_result("delete_task", {"status": "not_found", "task": None}),
+            "Không tìm thấy việc có ID đã yêu cầu.",
+        )
+        stale = format_tool_result(
+            "delete_task",
+            {"status": "stale", "task": {**task, "completed": True}},
+        )
+        self.assertIn("đã thay đổi", stale)
+        self.assertIn("[x]", stale)
+
+    def test_delete_result_schema_is_strict(self):
+        task = {"id": 1, "content": "mới", "completed": False}
+        for result in (
+            {"status": "deleted", "task": None},
+            {"status": "not_found", "task": task},
+            {"status": "unknown", "task": task},
+            {"status": "deleted", "task": task, "extra": True},
+        ):
+            with self.subTest(result=result), self.assertRaises(ValueError):
+                format_tool_result("delete_task", result)
 
 
 if __name__ == "__main__":

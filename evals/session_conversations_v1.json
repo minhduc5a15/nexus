@@ -251,7 +251,7 @@
           }
         },
         {
-          "prompt": "Xóa task cũ",
+          "prompt": "Sắp xếp task cũ",
           "expected": {
             "state_before": "awaiting_create_content",
             "state_after": "idle",
@@ -260,7 +260,7 @@
             "executed_calls": [],
             "created_tasks": [],
             "tasks": [],
-            "reply_contains": ["chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID"]
+            "reply_contains": ["chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID"]
           }
         }
       ],

@@ -20,7 +20,7 @@ def response(message, reason="stop"):
 
 
 class LocalProbeTests(unittest.TestCase):
-    def test_default_runtime_uses_v9_and_exposes_four_tools(self):
+    def test_default_runtime_uses_v9_and_exposes_five_tools(self):
         requests = []
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "test.db"
@@ -37,7 +37,7 @@ class LocalProbeTests(unittest.TestCase):
         self.assertEqual(payload["messages"][0]["content"], SYSTEM_PROMPTS["v9"])
         self.assertEqual(
             [tool["function"]["name"] for tool in payload["tools"]],
-            ["create_task", "list_tasks", "complete_task", "update_task"],
+            ["create_task", "list_tasks", "complete_task", "update_task", "delete_task"],
         )
 
     def test_probe_executes_tool_with_single_model_call_in_tool_round(self):
@@ -500,13 +500,13 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
                     {
                         "type": "function",
                         "id": "call-1",
-                        "function": {"name": "delete_task", "arguments": '{"id":1}'},
+                        "function": {"name": "archive_task", "arguments": '{"id":1}'},
                     }
                 ],
             },
             "tool_calls",
         )
-        turn = run_turn(self.db_path, "Xóa task mua sữa.", lambda _: call_resp)
+        turn = run_turn(self.db_path, "Lưu trữ task 1.", lambda _: call_resp)
         self.assertEqual(turn["calls"], [])
         self.assertEqual(turn["authorized_calls"], [])
         self.assertEqual(len(turn["rejected_calls"]), 1)
@@ -514,7 +514,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(turn["rejected_calls"][0]["reason"], "unsupported_tool")
         self.assertEqual(
             turn["reply"],
-            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành và sửa việc theo ID.",
+            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID.",
         )
         self.assertEqual(list_tasks(self.db_path), [])
 
@@ -1008,6 +1008,48 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(diag["model"], "qwen3-1.7b-q8_0")
         self.assertEqual(diag["usage"]["total_tokens"], 15)
         self.assertEqual(diag["timings"]["predicted_per_second"], 35.0)
+
+    def test_delete_proposal_requires_confirmation_without_mutating_database(self):
+        from nexus.storage.sqlite_db import create_task
+        task = create_task(self.db_path, "mua sữa")
+        call_resp = response(
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "type": "function",
+                    "id": "call-delete",
+                    "function": {"name": "delete_task", "arguments": '{"id":1}'},
+                }],
+            },
+            "tool_calls",
+        )
+        turn = run_turn(self.db_path, "Xóa việc 1.", lambda _: call_resp)
+        self.assertEqual(turn["status"], "needs_confirmation")
+        self.assertEqual(turn["calls"], [])
+        self.assertEqual(turn["confirmation"]["task"]["content"], "mua sữa")
+        self.assertEqual(list_tasks(self.db_path), [task])
+
+    def test_delete_wrong_model_id_is_rejected_without_confirmation(self):
+        from nexus.storage.sqlite_db import create_task
+        task = create_task(self.db_path, "mua sữa")
+        call_resp = response(
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "type": "function",
+                    "id": "call-delete",
+                    "function": {"name": "delete_task", "arguments": '{"id":2}'},
+                }],
+            },
+            "tool_calls",
+        )
+        turn = run_turn(self.db_path, "Xóa việc 1.", lambda _: call_resp)
+        self.assertEqual(turn["status"], "rejected")
+        self.assertNotIn("confirmation", turn)
+        self.assertEqual(turn["rejected_calls"][0]["reason"], "task_id_mismatch")
+        self.assertEqual(list_tasks(self.db_path), [task])
 
 
 if __name__ == "__main__":

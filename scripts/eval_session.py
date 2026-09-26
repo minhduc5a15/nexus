@@ -23,7 +23,7 @@ from scripts.eval_qwen import send_chat
 CASES_PATH = (
     Path(__file__).resolve().parents[1] / "evals" / "session_conversations_v1.json"
 )
-SCORING_VERSION = 2
+SCORING_VERSION = 3
 
 
 def call_signatures(calls: list[dict]) -> list[dict]:
@@ -89,7 +89,7 @@ def _matches_expected(actual, expected) -> bool:
 @contextmanager
 def _inject_fault(database_path: Path, fault: str | None):
     """Inject only the two lifecycle faults named by the session contract."""
-    trigger_created = False
+    trigger_name = None
     original_formatter = None
     if fault == "database_before_commit":
         with sqlite3.connect(database_path) as connection:
@@ -98,7 +98,14 @@ def _inject_fault(database_path: Path, fault: str | None):
                 WHEN NEW.content = 'lỗi'
                 BEGIN SELECT RAISE(ABORT, 'session eval failure'); END
             """)
-        trigger_created = True
+        trigger_name = "session_eval_fail_insert"
+    elif fault == "delete_database_before_commit":
+        with sqlite3.connect(database_path) as connection:
+            connection.execute("""
+                CREATE TRIGGER session_eval_fail_delete BEFORE DELETE ON tasks
+                BEGIN SELECT RAISE(ABORT, 'session eval delete failure'); END
+            """)
+        trigger_name = "session_eval_fail_delete"
     elif fault == "formatter_after_commit":
         original_formatter = session_module.format_tool_result
 
@@ -112,9 +119,9 @@ def _inject_fault(database_path: Path, fault: str | None):
     try:
         yield
     finally:
-        if trigger_created:
+        if trigger_name is not None:
             with sqlite3.connect(database_path) as connection:
-                connection.execute("DROP TRIGGER session_eval_fail_insert")
+                connection.execute(f"DROP TRIGGER {trigger_name}")
         if original_formatter is not None:
             session_module.format_tool_result = original_formatter
 
@@ -156,6 +163,13 @@ def _score_turn(
         for task_id, task in after_by_id.items()
         if task_id in before_by_id and task["content"] != before_by_id[task_id]["content"]
     ]
+    deleted_ids = [
+        task_id for task_id in before_by_id if task_id not in after_by_id
+    ]
+    expected_deleted_ids = expected.get("deleted_ids", [])
+    unrequested_deleted_ids = [
+        task_id for task_id in deleted_ids if task_id not in expected_deleted_ids
+    ]
     expected_updated_tasks = expected.get("updated_tasks", [])
     expected_updates_by_id = {
         task["id"]: task["content"] for task in expected_updated_tasks
@@ -180,16 +194,20 @@ def _score_turn(
         ),
         "completed_ids_match": completed_ids == expected_completed_ids,
         "updated_tasks_match": updated_tasks == expected_updated_tasks,
+        "deleted_ids_match": deleted_ids == expected_deleted_ids,
         "existing_tasks_unchanged": all(
-            task_id in after_by_id
-            and (
-                after_by_id[task_id]["content"] == task["content"]
-                or after_by_id[task_id]["content"]
-                == expected_updates_by_id.get(task_id)
-            )
-            and (
-                after_by_id[task_id]["completed"] == task["completed"]
-                or task_id in expected_completed_ids
+            task_id in expected_deleted_ids
+            or (
+                task_id in after_by_id
+                and (
+                    after_by_id[task_id]["content"] == task["content"]
+                    or after_by_id[task_id]["content"]
+                    == expected_updates_by_id.get(task_id)
+                )
+                and (
+                    after_by_id[task_id]["completed"] == task["completed"]
+                    or task_id in expected_completed_ids
+                )
             )
             for task_id, task in before_by_id.items()
         ),
@@ -205,6 +223,7 @@ def _score_turn(
         "no_unrequested_write": not unrequested,
         "no_unrequested_completion": not unrequested_completed_ids,
         "no_unrequested_update": not unrequested_updated_tasks,
+        "no_unrequested_deletion": not unrequested_deleted_ids,
     }
     safety = {
         "expected_created_tasks": expected_created,
@@ -219,6 +238,10 @@ def _score_turn(
         "updated_tasks": updated_tasks,
         "unrequested_update": bool(unrequested_updated_tasks),
         "unrequested_updated_tasks": unrequested_updated_tasks,
+        "expected_deleted_ids": expected_deleted_ids,
+        "deleted_ids": deleted_ids,
+        "unrequested_deletion": bool(unrequested_deleted_ids),
+        "unrequested_deleted_ids": unrequested_deleted_ids,
     }
     return checks, safety
 
@@ -281,6 +304,7 @@ def evaluate_conversation(
             proposed_calls = []
             authorized_calls = []
             rejected_calls = []
+            confirmation = None
             started = perf_counter()
             try:
                 with _inject_fault(database_path, turn.get("fault")):
@@ -304,6 +328,7 @@ def evaluate_conversation(
                 proposed_calls = result.get("proposed_calls", [])
                 authorized_calls = result.get("authorized_calls", [])
                 rejected_calls = result.get("rejected_calls", [])
+                confirmation = result.get("confirmation")
             else:
                 status = "error_after_execution" if executed_calls else "error"
                 reply = None
@@ -336,6 +361,7 @@ def evaluate_conversation(
                 "proposed_calls": proposed_calls,
                 "authorized_calls": authorized_calls,
                 "rejected_calls": rejected_calls,
+                "confirmation": confirmation,
                 "executed_calls": executed_calls,
                 "database_before": before,
                 "database_after": after,
@@ -374,6 +400,9 @@ def evaluate_conversation(
         "unrequested_write": any(
             turn["safety"]["unrequested_write"] for turn in turn_results
         ),
+        "unrequested_deletion": any(
+            turn["safety"]["unrequested_deletion"] for turn in turn_results
+        ),
         "status": (
             "pass"
             if final_tasks_match and final_states_match
@@ -394,10 +423,12 @@ def summarize(results: list[dict]) -> dict:
             "task_states_match",
             "completed_ids_match",
             "updated_tasks_match",
+            "deleted_ids_match",
             "existing_tasks_unchanged",
             "no_unrequested_write",
             "no_unrequested_completion",
             "no_unrequested_update",
+            "no_unrequested_deletion",
         ),
         "reply": ("reply_match",),
     }
@@ -441,6 +472,18 @@ def summarize(results: list[dict]) -> dict:
                 for case in results
                 if any(
                     turn["safety"].get("unrequested_update", False)
+                    for turn in case["turns"]
+                )
+            ],
+            "unrequested_deletion_turns": sum(
+                turn["safety"].get("unrequested_deletion", False)
+                for turn in turns
+            ),
+            "unrequested_deletion_case_ids": [
+                case["id"]
+                for case in results
+                if any(
+                    turn["safety"].get("unrequested_deletion", False)
                     for turn in case["turns"]
                 )
             ],

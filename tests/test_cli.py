@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nexus.agent.client import PostToolExecutionError
-from nexus.cli.main import default_database_path, main
+from nexus.cli.main import default_database_path, main, print_tool_results
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
 
@@ -183,6 +183,34 @@ class CliTests(unittest.TestCase):
             [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
         )
 
+    def test_ask_passes_prompt_version_and_explains_stateless_confirmation(self):
+        turn = {
+            "calls": [],
+            "proposed_calls": [{"name": "delete_task", "arguments": {"id": 1}}],
+            "authorized_calls": [],
+            "rejected_calls": [],
+            "status": "needs_confirmation",
+            "reply": "Bạn có chắc muốn xóa [1] mua sữa?",
+        }
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        argv = [
+            "nexus", "--db", str(self.database_path), "ask",
+            "--prompt-version", "v11", "Xóa việc 1",
+        ]
+        with (
+            patch.object(sys, "argv", argv),
+            patch("nexus.agent.client.run_turn", return_value=turn) as mocked_turn,
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            result = main()
+
+        self.assertEqual(result, 0)
+        self.assertEqual(mocked_turn.call_args.kwargs["prompt_version"], "v11")
+        self.assertIn("Bạn có chắc muốn xóa", stdout.getvalue())
+        self.assertIn("ask không giữ session", stdout.getvalue())
+
     def test_ask_list_success_prints_only_formatter_output_without_stats(self):
         initialize_database(self.database_path)
         create_task(self.database_path, "mua sữa")
@@ -288,6 +316,21 @@ class CliTests(unittest.TestCase):
         self.assertEqual(
             [task.content for task in list_tasks(self.database_path)], ["mua sữa"]
         )
+
+    def test_print_tool_results_reports_a_committed_delete(self):
+        stdout = io.StringIO()
+        calls = [{
+            "name": "delete_task",
+            "arguments": {"id": 3},
+            "result": {
+                "status": "deleted",
+                "task": {"id": 3, "content": "bản nháp", "completed": False},
+            },
+        }]
+        with contextlib.redirect_stdout(stdout):
+            saved_count = print_tool_results(calls)
+        self.assertEqual(saved_count, 0)
+        self.assertEqual(stdout.getvalue(), "Đã xóa [3] bản nháp\n")
 
     def test_chat_keeps_one_session_for_clarification_create_and_list(self):
         list_response = {"choices": [{"finish_reason": "tool_calls", "message": {
@@ -445,6 +488,8 @@ class CliTests(unittest.TestCase):
                 "pending_edit_id_after": None,
                 "pending_edit_content_before": None,
                 "pending_edit_content_after": None,
+                "pending_delete_before": None,
+                "pending_delete_after": None,
             },
         )
         self.assertFalse(continuation["model"]["called"])
@@ -475,6 +520,21 @@ class CliTests(unittest.TestCase):
         self.assertEqual(listed["executed_calls"][0]["name"], "list_tasks")
         self.assertEqual(listed["database"]["before"], listed["database"]["after"])
         self.assertEqual(listed["error"], None)
+
+    def test_delete_command_is_direct_and_does_not_reuse_id(self):
+        self.assertEqual(self.run_cli("add", "mua sữa").returncode, 0)
+        deleted = self.run_cli("delete", "1")
+        self.assertEqual(deleted.returncode, 0, deleted.stderr)
+        self.assertEqual(deleted.stdout, "Đã xóa [1] mua sữa\n")
+        self.assertEqual(self.run_cli("list").stdout, "Danh sách trống.\n")
+
+        self.assertEqual(self.run_cli("add", "gọi mẹ").stdout, "Đã thêm [2] gọi mẹ\n")
+        missing = self.run_cli("delete", "999")
+        self.assertEqual(missing.returncode, 1)
+        self.assertEqual(missing.stdout, "Không tìm thấy việc có ID 999.\n")
+        for invalid in ("0", "-1", "abc"):
+            with self.subTest(invalid=invalid):
+                self.assertEqual(self.run_cli("delete", invalid).returncode, 2)
 
 
 if __name__ == "__main__":

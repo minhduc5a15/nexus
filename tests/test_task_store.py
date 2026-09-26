@@ -4,13 +4,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nexus.core.models import CompletionStatus, Task, UpdateStatus
+from nexus.core.models import CompletionStatus, DeleteStatus, Task, UpdateStatus
 from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     SCHEMA_VERSION,
     complete_task,
     create_task,
     create_tasks,
+    delete_task,
+    get_task,
     initialize_database,
     list_tasks,
     update_task,
@@ -82,9 +84,17 @@ class TaskStoreTests(unittest.TestCase):
         )
         initialize_database(legacy)
         with sqlite3.connect(legacy) as connection:
-            self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 1)
+            self.assertEqual(
+                connection.execute("PRAGMA user_version").fetchone()[0],
+                SCHEMA_VERSION,
+            )
             names = [row[1] for row in connection.execute("PRAGMA table_info(tasks)")]
         self.assertEqual(names.count("completed"), 1)
+        with sqlite3.connect(legacy) as connection:
+            sql = connection.execute(
+                "SELECT sql FROM sqlite_master WHERE name = 'tasks'"
+            ).fetchone()[0]
+        self.assertIn("AUTOINCREMENT", sql.upper())
 
     def test_rejects_newer_or_unrecognized_schema(self):
         newer = Path(self.directory.name) / "newer.db"
@@ -233,6 +243,68 @@ class TaskStoreTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     create_task(self.database_path, content)
         self.assertEqual(list_tasks(self.database_path), [])
+
+    def test_migrates_version_1_to_autoincrement_and_preserves_state(self):
+        version_1 = Path(self.directory.name) / "version-1.db"
+        with sqlite3.connect(version_1) as connection:
+            connection.execute("""CREATE TABLE tasks (
+                id INTEGER PRIMARY KEY,
+                content TEXT NOT NULL,
+                completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0, 1))
+            )""")
+            connection.execute(
+                "INSERT INTO tasks (id, content, completed) VALUES (7, 'đã xong', 1)"
+            )
+            connection.execute("PRAGMA user_version = 1")
+        initialize_database(version_1)
+        self.assertEqual(list_tasks(version_1), [Task(7, "đã xong", True)])
+        created = create_task(version_1, "mới")
+        self.assertEqual(created.id, 8)
+
+    def test_delete_success_not_found_stale_and_id_is_not_reused(self):
+        first = create_task(self.database_path, "một")
+        second = create_task(self.database_path, "hai")
+        self.assertEqual(get_task(self.database_path, second.id), second)
+
+        stale_snapshot = second
+        update_task(self.database_path, second.id, "hai mới")
+        stale = delete_task(
+            self.database_path, second.id, expected_task=stale_snapshot
+        )
+        self.assertEqual(stale.status, DeleteStatus.STALE)
+        self.assertEqual(stale.task, Task(second.id, "hai mới", False))
+
+        deleted = delete_task(
+            self.database_path, second.id, expected_task=stale.task
+        )
+        self.assertEqual(deleted.status, DeleteStatus.DELETED)
+        self.assertEqual(deleted.task, stale.task)
+        self.assertIsNone(get_task(self.database_path, second.id))
+        self.assertEqual(delete_task(self.database_path, second.id).status, DeleteStatus.NOT_FOUND)
+
+        next_task = create_task(self.database_path, "ba")
+        self.assertGreater(next_task.id, second.id)
+        self.assertEqual(list_tasks(self.database_path), [first, next_task])
+
+    def test_delete_validates_id_snapshot_and_rolls_back(self):
+        task = create_task(self.database_path, "giữ nguyên")
+        for task_id in (True, 0, -1, "1", None):
+            with self.subTest(task_id=task_id), self.assertRaises(ValueError):
+                delete_task(self.database_path, task_id)
+        with self.assertRaises(ValueError):
+            delete_task(
+                self.database_path,
+                task.id,
+                expected_task=Task(task.id + 1, task.content),
+            )
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute("""
+                CREATE TRIGGER fail_delete BEFORE DELETE ON tasks
+                BEGIN SELECT RAISE(ABORT, 'failure'); END
+            """)
+        with self.assertRaises(sqlite3.IntegrityError):
+            delete_task(self.database_path, task.id, expected_task=task)
+        self.assertEqual(list_tasks(self.database_path), [task])
 
 
 if __name__ == "__main__":

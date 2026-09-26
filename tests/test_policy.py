@@ -13,6 +13,9 @@ class TestToolDecision(unittest.TestCase):
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST)
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE)
         ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE)
+        ToolDecision(
+            PolicyResult.REQUIRES_CONFIRMATION, PolicyReason.EXPLICIT_DELETE
+        )
 
         # Needs Clarification
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT)
@@ -20,6 +23,7 @@ class TestToolDecision(unittest.TestCase):
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS)
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID)
         ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT)
+        ToolDecision(PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DELETE_ID)
 
         # Reject (All 6 reasons)
         ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
@@ -74,12 +78,16 @@ class TestToolDecision(unittest.TestCase):
         self.assertEqual(PolicyResult.ALLOW.value, "allow")
         self.assertEqual(PolicyResult.REJECT.value, "reject")
         self.assertEqual(PolicyResult.NEEDS_CLARIFICATION.value, "needs_clarification")
+        self.assertEqual(
+            PolicyResult.REQUIRES_CONFIRMATION.value, "requires_confirmation"
+        )
 
         # All 9 Reasons
         self.assertEqual(PolicyReason.EXPLICIT_CREATE.value, "explicit_create")
         self.assertEqual(PolicyReason.EXPLICIT_LIST.value, "explicit_list")
         self.assertEqual(PolicyReason.EXPLICIT_COMPLETE.value, "explicit_complete")
         self.assertEqual(PolicyReason.EXPLICIT_UPDATE.value, "explicit_update")
+        self.assertEqual(PolicyReason.EXPLICIT_DELETE.value, "explicit_delete")
         self.assertEqual(PolicyReason.MISSING_CONTENT.value, "missing_content")
         self.assertEqual(PolicyReason.NEGATED_REQUEST.value, "negated_request")
         self.assertEqual(PolicyReason.UNSUPPORTED_ACTION.value, "unsupported_action")
@@ -437,7 +445,7 @@ class TestPolicyForTool(unittest.TestCase):
 
     def test_unsupported_tool(self):
         for tool_name in [
-            "delete_task",
+            "archive_task",
             "query_database",
             "random_tool",
         ]:
@@ -640,6 +648,44 @@ class TestPolicyForTool(unittest.TestCase):
             policy_for_tool("Xem danh sách", "list_tasks", {})
             policy_for_tool("Xóa task", "delete_task", {})
             mock_exec.assert_not_called()
+
+    def test_delete_requires_confirmation_for_one_exact_user_id(self):
+        for prompt in (
+            "Xóa việc 3.",
+            "Xoá task #3.",
+            "Bỏ việc 3 khỏi danh sách.",
+        ):
+            with self.subTest(prompt=prompt):
+                decision = policy_for_tool(prompt, "delete_task", {"id": 3})
+                self.assertEqual(decision.result, PolicyResult.REQUIRES_CONFIRMATION)
+                self.assertEqual(decision.reason, PolicyReason.EXPLICIT_DELETE)
+
+        self.assertEqual(
+            policy_for_tool("Xóa việc 3", "delete_task", {"id": 4}).reason,
+            PolicyReason.TASK_ID_MISMATCH,
+        )
+        self.assertEqual(
+            policy_for_tool("Đừng xóa việc 3", "delete_task", {"id": 3}).reason,
+            PolicyReason.NEGATED_REQUEST,
+        )
+        self.assertEqual(
+            policy_for_tool("Xóa việc báo cáo", "delete_task", {"id": 3}).reason,
+            PolicyReason.BARE_STATEMENT,
+        )
+
+    def test_delete_missing_multiple_and_invalid_arguments(self):
+        missing = policy_for_tool("Xóa việc", "delete_task", {"id": 3})
+        self.assertEqual(missing.result, PolicyResult.NEEDS_CLARIFICATION)
+        self.assertEqual(missing.reason, PolicyReason.MISSING_DELETE_ID)
+        multiple = policy_for_tool("Xóa việc 1 và 2", "delete_task", {"id": 1})
+        self.assertEqual(multiple.result, PolicyResult.NEEDS_CLARIFICATION)
+        self.assertEqual(multiple.reason, PolicyReason.MULTIPLE_TASK_IDS)
+        for arguments in ({}, {"id": True}, {"id": 0}, {"id": "3"}, {"id": 3, "x": 1}):
+            with self.subTest(arguments=arguments):
+                self.assertEqual(
+                    policy_for_tool("Xóa việc 3", "delete_task", arguments).reason,
+                    PolicyReason.INVALID_ARGUMENTS,
+                )
 
 
 if __name__ == "__main__":
