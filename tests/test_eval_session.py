@@ -98,7 +98,7 @@ class SessionEvaluationTests(unittest.TestCase):
         self.assertEqual(alice_second["session_state_before"], "awaiting_create_content")
 
     def test_external_generator_runs_the_live_smoke_contract(self):
-        smoke = load_cases("session_smoke_v1.json")["live_create_direct"]
+        smoke = load_cases("session_smoke_v2.json")["live_create_direct"]
         requests = []
 
         def generate(payload):
@@ -112,6 +112,18 @@ class SessionEvaluationTests(unittest.TestCase):
         self.assertEqual(
             requests[0]["messages"][-1]["content"], "Thêm việc: mua sữa"
         )
+
+    def test_current_smoke_accepts_natural_create_without_terminal_punctuation(self):
+        smoke = load_cases("session_smoke_v2.json")["live_create_natural_sentence"]
+        result = evaluate_conversation(
+            smoke,
+            lambda _: tool_response("create_task", {"content": "mua sữa"}),
+            prompt_version="v9",
+        )
+
+        self.assertEqual(result["status"], "pass")
+        self.assertEqual(result["database_after"][0]["content"], "mua sữa")
+        self.assertFalse(result["unrequested_write"])
 
     def test_completion_feature_dataset_checks_state_and_wrong_id_safety(self):
         cases = load_cases("completion_feature_v1.json")

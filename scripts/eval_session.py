@@ -13,7 +13,12 @@ from pathlib import Path
 from time import perf_counter, sleep
 
 import nexus.agent.session as session_module
-from nexus.agent.client import ENDPOINT, PostToolExecutionError, response_diagnostics
+from nexus.agent.client import (
+    DEFAULT_MODEL_ID,
+    ENDPOINT,
+    PostToolExecutionError,
+    response_diagnostics,
+)
 from nexus.agent.prompts import SYSTEM_PROMPTS
 from nexus.agent.session import AgentSession
 from nexus.storage.sqlite_db import (
@@ -611,6 +616,7 @@ def main() -> int:
     parser.add_argument("--mode", choices=("scripted", "live"), default="scripted")
     parser.add_argument("--endpoint", default=ENDPOINT)
     parser.add_argument("--prompt-version", choices=SYSTEM_PROMPTS, default="v1")
+    parser.add_argument("--model", default=DEFAULT_MODEL_ID, help="Model ID gửi tới llama.cpp")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--request-interval", type=float, default=0.0)
     args = parser.parse_args()
@@ -626,7 +632,7 @@ def main() -> int:
         cases = [case for case in cases if case["id"] in args.case_ids]
 
     settings = {
-        "model": "qwen3-1.7b-q8_0",
+        "model": args.model,
         "temperature": args.temperature,
         "top_p": 0.8,
         "top_k": 20,

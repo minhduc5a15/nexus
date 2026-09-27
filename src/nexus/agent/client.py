@@ -24,6 +24,24 @@ from nexus.agent.policy import (
 from nexus.agent.responses import format_rejection, format_tool_result
 
 ENDPOINT = os.environ.get("QWEN_ENDPOINT", "http://127.0.0.1:8087/v1/chat/completions")
+DEFAULT_MODEL_ID = os.environ.get(
+    "NEXUS_MODEL_ID", "qwen3-4b-instruct-2507-q4_k_m"
+)
+
+
+def default_model_settings(
+    *, model_id: str | None = None, temperature: float = 0.7
+) -> dict:
+    """Return a fresh llama.cpp request configuration for one model."""
+    return {
+        "model": model_id or DEFAULT_MODEL_ID,
+        "temperature": temperature,
+        "top_p": 0.8,
+        "top_k": 20,
+        "min_p": 0,
+        "max_tokens": 256,
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
 
 
 class TurnStatus(str, Enum):
@@ -113,15 +131,7 @@ def run_turn(
 ) -> dict:
     """Run one turn against the local model with at most one tool batch."""
     turn_reference = vietnam_now(reference_time)
-    common = settings or {
-        "model": "qwen3-1.7b-q8_0",
-        "temperature": 0.7,
-        "top_p": 0.8,
-        "top_k": 20,
-        "min_p": 0,
-        "max_tokens": 256,
-        "chat_template_kwargs": {"enable_thinking": False},
-    }
+    common = settings or default_model_settings()
     payload = {
         **common,
         "messages": build_messages(prompt_version, prompt),
@@ -401,15 +411,7 @@ def run_turn(
 
 def run_probe(generate=chat) -> dict:
     """All mutations are confined to a disposable database."""
-    common = {
-        "model": "qwen3-1.7b-q8_0",
-        "temperature": 0.7,
-        "top_p": 0.8,
-        "top_k": 20,
-        "min_p": 0,
-        "max_tokens": 256,
-        "chat_template_kwargs": {"enable_thinking": False},
-    }
+    common = default_model_settings()
     started = perf_counter()
     greeting = generate(
         {

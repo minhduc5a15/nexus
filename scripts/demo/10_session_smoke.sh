@@ -11,14 +11,14 @@ for demo_arg in "$@"; do
 done
 new_demo_directory session-smoke
 demo_report="${demo_run_dir}/report.json"
-heading 'Smoke test AgentSession với Qwen thật'
+heading 'Smoke AgentSession contract hiện tại với Qwen thật'
 printf 'Cần chạy scripts/start_qwen.sh ở terminal khác.\n'
 cd -- "${demo_root}"
 demo_status=0
 "${demo_python}" -m scripts.eval_session \
   --mode live \
-  --cases "${demo_root}/evals/session_smoke_v1.json" \
-  --prompt-version v1 --temperature 0 \
+  --cases "${demo_root}/evals/session_smoke_v2.json" \
+  --prompt-version v9 --temperature 0 \
   "$@" --output "${demo_report}" || demo_status=$?
 printf '\nReport: %s\n' "${demo_report}"
 printf 'Exit code evaluator: %s (1 nghĩa là có ca trượt; xem trace trong report).\n' "${demo_status}"

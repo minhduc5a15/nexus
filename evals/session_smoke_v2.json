@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "purpose": "Current AgentSession live smoke suite for the one-call contract and default v9 prompt.",
+  "cases": [
+    {
+      "id": "live_create_direct",
+      "category": "create",
+      "initial_tasks": [],
+      "turns": [
+        {
+          "prompt": "Thêm việc: mua sữa",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "mua sữa"
+                }
+              }
+            ],
+            "created_tasks": [
+              "mua sữa"
+            ],
+            "tasks": [
+              "mua sữa"
+            ],
+            "reply_contains": [
+              "Đã thêm [1] mua sữa"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "mua sữa"
+      ]
+    },
+    {
+      "id": "live_create_continuation",
+      "category": "continuation",
+      "initial_tasks": [],
+      "turns": [
+        {
+          "prompt": "Thêm việc",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_create_content",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "created_tasks": [],
+            "tasks": [],
+            "reply_contains": [
+              "Bạn muốn thêm việc gì?"
+            ]
+          }
+        },
+        {
+          "prompt": "gọi mẹ",
+          "expected": {
+            "state_before": "awaiting_create_content",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "gọi mẹ"
+                }
+              }
+            ],
+            "created_tasks": [
+              "gọi mẹ"
+            ],
+            "tasks": [
+              "gọi mẹ"
+            ],
+            "reply_contains": [
+              "Đã thêm [1] gọi mẹ"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "gọi mẹ"
+      ]
+    },
+    {
+      "id": "live_create_multiline",
+      "category": "create",
+      "initial_tasks": [],
+      "turns": [
+        {
+          "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nđọc sách\ntưới cây",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "đọc sách\ntưới cây"
+                }
+              }
+            ],
+            "created_tasks": [
+              "đọc sách",
+              "tưới cây"
+            ],
+            "tasks": [
+              "đọc sách",
+              "tưới cây"
+            ],
+            "reply_contains": [
+              "Đã thêm 2 việc",
+              "[1] đọc sách",
+              "[2] tưới cây"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "đọc sách",
+        "tưới cây"
+      ]
+    },
+    {
+      "id": "live_cancel_continuation",
+      "category": "cancellation",
+      "initial_tasks": [],
+      "turns": [
+        {
+          "prompt": "Thêm việc",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_create_content",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "created_tasks": [],
+            "tasks": []
+          }
+        },
+        {
+          "prompt": "thôi",
+          "expected": {
+            "state_before": "awaiting_create_content",
+            "state_after": "idle",
+            "status": "cancelled",
+            "model_called": false,
+            "executed_calls": [],
+            "created_tasks": [],
+            "tasks": [],
+            "reply_contains": [
+              "Đã hủy yêu cầu thêm việc"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": []
+    },
+    {
+      "id": "live_list",
+      "category": "list",
+      "initial_tasks": [
+        "học C++",
+        "mua sữa"
+      ],
+      "turns": [
+        {
+          "prompt": "Xem danh sách",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "created_tasks": [],
+            "tasks": [
+              "học C++",
+              "mua sữa"
+            ],
+            "reply_contains": [
+              "Danh sách hiện có 2 việc",
+              "[1] [ ] học C++",
+              "[2] [ ] mua sữa"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "học C++",
+        "mua sữa"
+      ]
+    },
+    {
+      "id": "live_create_natural_sentence",
+      "category": "create",
+      "initial_tasks": [],
+      "turns": [
+        {
+          "prompt": "Thêm việc mua sữa.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "mua sữa"
+                }
+              }
+            ],
+            "created_tasks": [
+              "mua sữa"
+            ],
+            "tasks": [
+              "mua sữa"
+            ],
+            "reply_contains": [
+              "Đã thêm [1] mua sữa"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "mua sữa"
+      ]
+    },
+    {
+      "id": "live_no_action",
+      "category": "no_action",
+      "initial_tasks": [
+        "giữ nguyên"
+      ],
+      "turns": [
+        {
+          "prompt": "Chào bạn!",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "created_tasks": [],
+            "tasks": [
+              "giữ nguyên"
+            ],
+            "reply_contains": [
+              "Không có thao tác nào được thực hiện"
+            ]
+          }
+        }
+      ],
+      "expected_final_tasks": [
+        "giữ nguyên"
+      ]
+    }
+  ]
+}

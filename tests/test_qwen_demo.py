@@ -6,8 +6,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nexus.agent.client import (
+    DEFAULT_MODEL_ID,
     PostToolExecutionError,
     build_messages,
+    default_model_settings,
     run_probe,
     run_turn,
 )
@@ -20,7 +22,17 @@ def response(message, reason="stop"):
 
 
 class LocalProbeTests(unittest.TestCase):
-    def test_default_runtime_uses_v9_and_exposes_six_tools(self):
+    def test_default_model_settings_use_qwen4_and_return_fresh_payloads(self):
+        first = default_model_settings(temperature=0.0)
+        second = default_model_settings()
+
+        self.assertEqual(first["model"], DEFAULT_MODEL_ID)
+        self.assertEqual(first["temperature"], 0.0)
+        self.assertEqual(second["temperature"], 0.7)
+        self.assertIsNot(first, second)
+        self.assertIsNot(first["chat_template_kwargs"], second["chat_template_kwargs"])
+
+    def test_default_runtime_uses_v9_and_exposes_seven_tools(self):
         requests = []
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "test.db"
@@ -34,10 +46,11 @@ class LocalProbeTests(unittest.TestCase):
                 ),
             )
         payload = requests[0]
+        self.assertEqual(payload["model"], DEFAULT_MODEL_ID)
         self.assertEqual(payload["messages"][0]["content"], SYSTEM_PROMPTS["v9"])
         self.assertEqual(
             [tool["function"]["name"] for tool in payload["tools"]],
-            ["create_task", "list_tasks", "complete_task", "update_task", "delete_task", "set_task_deadline"],
+            ["create_task", "list_tasks", "list_tasks_by_deadline", "complete_task", "update_task", "delete_task", "set_task_deadline"],
         )
 
     def test_probe_executes_tool_with_single_model_call_in_tool_round(self):

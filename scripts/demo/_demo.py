@@ -4,7 +4,12 @@ from dataclasses import asdict
 import json
 from pathlib import Path
 
-from nexus.agent.client import ENDPOINT, PostToolExecutionError, run_turn
+from nexus.agent.client import (
+    DEFAULT_MODEL_ID,
+    ENDPOINT,
+    PostToolExecutionError,
+    run_turn,
+)
 from nexus.agent.policy import policy_for_tool
 from nexus.agent.session import AgentSession
 from nexus.storage.sqlite_db import initialize_database, list_tasks
@@ -66,7 +71,7 @@ def interactive_examples():
 def agent_demo(directory, live, prompt, interactive=False):
     database = directory / 'tasks.db'
     initialize_database(database)
-    settings = {'model': 'qwen3-1.7b-q8_0', 'temperature': 0,
+    settings = {'model': DEFAULT_MODEL_ID, 'temperature': 0,
                 'top_p': 0.8, 'top_k': 20, 'min_p': 0, 'max_tokens': 256,
                 'chat_template_kwargs': {'enable_thinking': False}}
     if live:

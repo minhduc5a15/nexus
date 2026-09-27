@@ -1,4 +1,4 @@
-"""Evaluate local Qwen3-1.7B via llama.cpp on task datasets."""
+"""Evaluate a local llama.cpp model on task datasets."""
 
 import argparse
 import hashlib
@@ -15,6 +15,7 @@ from time import perf_counter, sleep
 
 from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.agent.client import (
+    DEFAULT_MODEL_ID,
     ENDPOINT,
     PostToolExecutionError,
     response_diagnostics,
@@ -510,7 +511,7 @@ def send_chat(endpoint: str, payload: dict, timeout: float = 120.0) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Đánh giá Qwen3-1.7B trên bộ ca Todo")
+    parser = argparse.ArgumentParser(description="Đánh giá model local trên bộ ca Todo")
     parser.add_argument(
         "--output", type=Path, required=True, help="File JSON mới để lưu kết quả"
     )
@@ -525,6 +526,7 @@ def main() -> int:
         "--endpoint", default=ENDPOINT, help="llama.cpp server endpoint"
     )
     parser.add_argument("--prompt-version", choices=SYSTEM_PROMPTS, default="v1")
+    parser.add_argument("--model", default=DEFAULT_MODEL_ID, help="Model ID gửi tới llama.cpp")
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument(
         "--request-interval",
@@ -547,7 +549,7 @@ def main() -> int:
         cases = [case for case in cases if case["id"] in args.case_ids]
 
     common_settings = {
-        "model": "qwen3-1.7b-q8_0",
+        "model": args.model,
         "temperature": args.temperature,
         "top_p": 0.8,
         "top_k": 20,
@@ -557,7 +559,7 @@ def main() -> int:
     }
 
     report = {
-        "model": "qwen3-1.7b-q8_0",
+        "model": args.model,
         "endpoint": args.endpoint,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "prompt_version": args.prompt_version,

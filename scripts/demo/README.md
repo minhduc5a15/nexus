@@ -15,7 +15,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `07_report.sh` | Đọc report JSON có sẵn, không gọi lại model | Không |
 | `08_session.sh` | CREATE thiếu nội dung → hỏi lại → lưu nhiều dòng → hủy → LIST; cho thấy trạng thái session | Không |
 | `09_session_eval.sh` | Chấm 13 chuỗi hội thoại giả lập theo state, tool, SQLite, reply và ghi ngoài yêu cầu | Không |
-| `10_session_smoke.sh` | Chạy bảy ca tích hợp nhỏ qua `AgentSession` và Qwen thật | Có |
+| `10_session_smoke.sh` | Chạy bảy ca tích hợp hiện hành qua `AgentSession`, Qwen và prompt v9 | Có |
 | `11_completion_eval.sh` | Chấm scripted COMPLETE theo ID, gồm sai ID và không suy ID từ nội dung | Không |
 | `12_completion_smoke.sh` | Chạy smoke Qwen v9 cho CREATE → COMPLETE → LIST và các nhánh completion | Có |
 | `13_edit_eval.sh` | Chấm scripted EDIT theo ID, gồm continuation, giữ trạng thái và proposal sai | Không |
@@ -24,6 +24,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `16_delete_smoke.sh` | Chạy smoke Qwen v11 cho DELETE có xác nhận và regression bốn hành động cũ | Có |
 | `17_deadline_eval.sh` | Chấm scripted DEADLINE, parser, continuation, rollback và safety | Không |
 | `18_deadline_smoke.sh` | Chạy smoke Qwen v12 cho DEADLINE và regression năm hành động cũ | Có |
+| `19_deadline_query_eval.sh` | Chấm scripted query hôm nay/ngày mai/quá hạn, pending scope và safety | Không |
+| `20_deadline_query_smoke.sh` | Chạy smoke Qwen v13 cho query deadline và toàn bộ regression | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -37,6 +39,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/13_edit_eval.sh
 ./scripts/demo/15_delete_eval.sh
 ./scripts/demo/17_deadline_eval.sh
+./scripts/demo/19_deadline_query_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -64,20 +67,30 @@ thay thế trạng thái chờ.
 `15_delete_eval.sh` chạy 13 case/27 lượt bằng proposal cố định. Nó kiểm tra DELETE
 không chạy trước xác nhận, chọn đúng một ID, snapshot bị stale, rollback, lỗi
 formatter sau commit, batch call và xóa ngoài yêu cầu. `16_delete_smoke.sh` chạy
-Qwen thật với prompt v11; báo cáo đầu tiên đạt 6/8 case, 12/16 lượt và không có
-mutation ngoài yêu cầu, nên v9 vẫn là prompt mặc định.
+Qwen 4B với prompt v11; lần đo hiện tại đạt 7/8 case, 14/16 lượt và không có
+mutation ngoài yêu cầu. Các ca DELETE đều đạt; regression EDIT trượt, nên v9
+vẫn là prompt mặc định.
 
 `17_deadline_eval.sh` chạy 14 case/29 lượt và kiểm tra deadline trước/sau từng
-lượt cùng `unrequested_deadline_change`. `18_deadline_smoke.sh` chạy Qwen thật
-với prompt v12; lượt đã xác minh đạt 8/9 case, 13/15 lượt, không có mutation
-ngoài yêu cầu. Ca trượt là CREATE bị model viết hoa và policy chặn an toàn, nên
-v9 vẫn là prompt mặc định.
+lượt cùng `unrequested_deadline_change`. `18_deadline_smoke.sh` chạy Qwen 4B
+với prompt v12; lượt đã xác minh đạt 8/9 case, 14/15 lượt, không có mutation
+ngoài yêu cầu. Ca trượt là regression EDIT không gọi tool, nên v9 vẫn là prompt
+mặc định.
+
+
+`19_deadline_query_eval.sh` chạy 9 case/18 lượt cho ba scope, ranh giới chồng
+lấp hôm nay–quá hạn, completed/null deadline, pending, isolation, scope bị đổi
+và batch call. `20_deadline_query_smoke.sh` chạy Qwen 4B với prompt v13; lượt
+đã xác minh đạt 12/13 case, 19/20 lượt. Cả ba luồng query mới và regression
+CREATE đều đạt, không có mutation ngoài yêu cầu; regression EDIT không gọi
+tool, nên v9 tiếp tục là mặc định.
 
 ## Chạy AI thật
 
 Terminal thứ nhất:
 
 ```sh
+./scripts/download_qwen4.sh  # chỉ cần lần đầu
 ./scripts/start_qwen.sh
 ```
 
@@ -90,6 +103,7 @@ Terminal thứ nhất:
 ./scripts/demo/14_edit_smoke.sh
 ./scripts/demo/16_delete_smoke.sh
 ./scripts/demo/18_deadline_smoke.sh
+./scripts/demo/20_deadline_query_smoke.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
@@ -169,7 +183,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`18`) tạo thư mục riêng dưới
+Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`20`) tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 
@@ -179,4 +193,4 @@ in ngay từ đầu; database chính của ứng dụng không được sử d�
 
 File demo được giữ lại để bạn mở bằng SQLite viewer hoặc đọc JSON sau khi chạy.
 `_common.sh` và `_demo.py` là phần dùng chung; chạy các script đánh số để sử dụng.
-Khi dùng xong AI/benchmark, nhấn Ctrl+C tại terminal chạy server để giải phóng GPU.
+Các lệnh `ask`, `chat` và evaluator mặc định dùng model ID `qwen3-4b-instruct-2507-q4_k_m`; dùng `--model` để ghi đè. Khi dùng xong AI/benchmark, nhấn Ctrl+C tại terminal chạy server để giải phóng GPU.

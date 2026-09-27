@@ -1,9 +1,9 @@
 # NEXUS
 
 NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại gồm
-thêm việc, xem danh sách, hoàn thành, sửa, xóa và đặt thời hạn cho đúng một việc
-theo ID. Người dùng có thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để
-Qwen3-1.7B chọn một trong sáu tool. Dữ liệu được lưu cục bộ bằng SQLite.
+thêm việc, xem danh sách, hoàn thành, sửa, xóa, đặt thời hạn theo ID và truy vấn
+việc theo hạn. Người dùng có thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên
+để Qwen3-4B-Instruct-2507 chọn một trong bảy tool. Dữ liệu được lưu cục bộ bằng SQLite.
 
 Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
 không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content`,
@@ -52,46 +52,54 @@ khác bằng cách đặt `--db` trước lệnh con:
 .venv/bin/nexus --db /tmp/nexus-demo.db list
 ```
 
-## Chạy Qwen3-1.7B bằng llama.cpp
+## Chạy Qwen3-4B-Instruct-2507 bằng llama.cpp
 
-Cấu hình đã dùng trong dự án được ghim để một lần chạy sau có thể xác định
-đúng runtime và model:
+Cấu hình mặc định đã dùng và kiểm chứng trên laptop 4 GB VRAM:
 
 - `llama.cpp` build `b10809`, commit `5266f24da`, gói Vulkan x86-64.
-- `Qwen3-1.7B-Q8_0.gguf` từ kho chính thức của Qwen.
+- `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` từ bản chuyển đổi GGUF của Unsloth.
 - SHA-256 của runtime:
   `07f029cef440c82c3cff5310641eb6347e5cbcd865a5d88990215058aa049e93`.
 - SHA-256 của model:
-  `061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a`.
+  `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`.
 
-Tải và kiểm tra hai artifact:
+Cài đúng runtime nếu checkout chưa có:
 
 ```sh
-mkdir -p .local-runtime models
+mkdir -p .local-runtime
 curl -L --fail \
   -o .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz \
   https://github.com/ggml-org/llama.cpp/releases/download/b10809/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz
 echo "07f029cef440c82c3cff5310641eb6347e5cbcd865a5d88990215058aa049e93  .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz" | sha256sum --check
 tar -xzf .local-runtime/llama-b10809-bin-ubuntu-vulkan-x64.tar.gz \
   -C .local-runtime
-
-curl -L --fail \
-  -o models/Qwen3-1.7B-Q8_0.gguf \
-  https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf
-echo "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a  models/Qwen3-1.7B-Q8_0.gguf" | sha256sum --check
 ```
 
-Khởi động server bằng cấu hình đã chọn cho laptop 4 GB VRAM:
+Tải model bằng script có resume và kiểm tra hash:
 
 ```sh
-scripts/start_qwen.sh
+./scripts/download_qwen4.sh
+```
+
+Khởi động server:
+
+```sh
+./scripts/start_qwen.sh
 ```
 
 Script chỉ lắng nghe tại `127.0.0.1:8087`, dùng context 4096, một slot song
-song, sáu CPU thread và offload nhiều layer nhất có thể sang GPU. Request của
-ứng dụng tắt thinking. Có thể thay đường dẫn và thông số bằng các biến
-`NEXUS_LLAMA_SERVER`, `NEXUS_QWEN_MODEL`, `NEXUS_QWEN_PORT`,
-`NEXUS_QWEN_CONTEXT`, `NEXUS_QWEN_THREADS`, `NEXUS_QWEN_GPU_LAYERS`.
+song, sáu CPU thread và offload toàn bộ layer sang GPU. Lần đo hiện tại dùng
+khoảng 3.037 MiB trong 4.096 MiB VRAM. Request của ứng dụng tắt thinking.
+Có thể thay đường dẫn và thông số bằng `NEXUS_LLAMA_SERVER`,
+`NEXUS_QWEN_MODEL`, `NEXUS_MODEL_ID`, `NEXUS_QWEN_PORT`,
+`NEXUS_QWEN_CONTEXT`, `NEXUS_QWEN_THREADS` và `NEXUS_QWEN_GPU_LAYERS`.
+Đặt `NEXUS_LLAMA_LOG_PROMPTS_DIR` nếu cần lưu prompt đã render để chẩn đoán.
+
+Model 1.7B trước đây vẫn dùng được làm baseline nếu file cũ còn trong `models/`:
+
+```sh
+./scripts/start_qwen_1_7b.sh
+```
 
 Ở terminal khác:
 
@@ -101,7 +109,9 @@ song, sáu CPU thread và offload nhiều layer nhất có thể sang GPU. Reque
 .venv/bin/nexus chat
 ```
 
-`chat` giữ một `AgentSession` trong suốt tiến trình. Mỗi dòng nhập là một tin
+`ask` và `chat` mặc định gửi model ID `qwen3-4b-instruct-2507-q4_k_m`; có thể
+ghi đè bằng `--model`. `chat` giữ một `AgentSession` trong suốt tiến trình. Mỗi
+dòng nhập là một tin
 nhắn; gõ `/exit` hoặc nhấn `Ctrl+D` để thoát. Ví dụ:
 
 ```text
@@ -144,9 +154,9 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 ```
 
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
-định vẫn là v9; v1–v12 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, v11
-thêm DELETE có xác nhận và v12 thêm DEADLINE theo ID. V12 chưa được chọn làm
-mặc định vì live smoke đạt 13/15 lượt thay vì toàn bộ. Một call
+định vẫn là v9; v1–v13 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, v11
+thêm DELETE có xác nhận, v12 thêm DEADLINE theo ID và v13 thêm truy vấn theo hạn.
+V13 chưa được chọn làm mặc định vì live smoke Qwen 4B đạt 19/20 lượt thay vì toàn bộ. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
@@ -247,7 +257,7 @@ lỗi formatter và hai session độc lập. Khi đang chờ CREATE, tin nhắn
 tiếp được xem là content theo quyền từ lượt trước; người dùng dùng `thôi`, `hủy`
 hoặc một lệnh mới rõ ràng để thay thế yêu cầu đang chờ.
 
-Sau khi chạy llama.cpp, smoke suite Qwen thật dùng bảy ca nhỏ:
+Sau khi chạy llama.cpp, smoke suite Qwen thật dùng bảy ca nhỏ theo contract hiện tại. `session_smoke_v1.json` được giữ làm lịch sử; script dùng v2 vì v1 từng kỳ vọng sai rằng câu yêu cầu tự nhiên có dấu chấm phải bị từ chối:
 
 ```sh
 ./scripts/demo/10_session_smoke.sh
@@ -264,8 +274,8 @@ tồn tại, hỏi ID qua hai lượt và yêu cầu theo nội dung:
 
 EDIT cũng có bộ scripted và smoke riêng. Bộ scripted kiểm tra ID/content chính
 xác, continuation, giữ trạng thái completion và các proposal sai bị chặn. Bộ
-smoke dùng prompt v10; lần đo đầu đạt 7/10 lượt và không có update ngoài yêu
-cầu, nên prompt mặc định vẫn là v9:
+smoke dùng prompt v10. Qwen 4B đạt 9/10 lượt và không có update ngoài yêu
+cầu; ca không tồn tại trả lời bằng text thay vì gọi tool, nên prompt mặc định vẫn là v9:
 
 ```sh
 ./scripts/demo/13_edit_eval.sh
@@ -274,8 +284,8 @@ cầu, nên prompt mặc định vẫn là v9:
 
 DELETE có bộ scripted 13 case/27 lượt kiểm tra xác nhận, hủy, thiếu/nhiều ID,
 snapshot stale, lỗi trước/sau commit và proposal sai. Bộ này đạt toàn bộ. Smoke
-Qwen v11 đạt 6/8 case, 12/16 lượt và không có mutation ngoài yêu cầu; model viết
-hoa content CREATE và bỏ tool ở một cách nói DELETE hợp lệ. Theo quy tắc rollout,
+Qwen 4B v11 đạt 7/8 case, 14/16 lượt và không có mutation ngoài yêu cầu;
+toàn bộ luồng DELETE đạt, còn regression EDIT không gọi tool. Theo quy tắc rollout,
 prompt mặc định vẫn là v9 và v11 chỉ dùng qua `--prompt-version v11`:
 
 ```sh
@@ -285,15 +295,28 @@ prompt mặc định vẫn là v9 và v11 chỉ dùng qua `--prompt-version v11`
 ```
 
 DEADLINE có bộ scripted 14 case/29 lượt, đạt toàn bộ và không có mutation ngoài
-yêu cầu. Live smoke v12 đạt 8/9 case, 13/15 lượt; cả ba case deadline đều đạt và
-không có mutation ngoài yêu cầu. Ca regression CREATE bị chặn an toàn vì Qwen
-đổi `mua sữa` thành `Mua sữa`, sau đó LIST đúng là trống. Theo tiêu chí rollout,
+yêu cầu. Live smoke Qwen 4B v12 đạt 8/9 case, 14/15 lượt; cả ba case deadline đều
+đạt và không có mutation ngoài yêu cầu. Ca regression EDIT không gọi tool, nên
+SQLite không đổi. Theo tiêu chí rollout,
 v9 vẫn là mặc định và không tiếp tục chỉnh prompt theo ca này:
 
 ```sh
 ./scripts/demo/17_deadline_eval.sh
 ./scripts/demo/18_deadline_smoke.sh
 .venv/bin/nexus chat --prompt-version v12 --trace
+```
+
+
+Truy vấn deadline có bộ scripted 9 case/18 lượt, đạt toàn bộ và không thay đổi
+database. Live smoke Qwen 4B v13 đạt 12/13 case, 19/20 lượt; cả ba luồng query mới
+đạt. CREATE trước đây trượt với model 1.7B nay đã đạt; regression EDIT không gọi
+tool. Không có mutation ngoài yêu cầu. Vì smoke chưa đạt toàn
+bộ, prompt mặc định vẫn là v9:
+
+```sh
+./scripts/demo/19_deadline_query_eval.sh
+./scripts/demo/20_deadline_query_smoke.sh
+.venv/bin/nexus chat --prompt-version v13 --trace
 ```
 
 Các evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git

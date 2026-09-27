@@ -196,7 +196,7 @@ class CliTests(unittest.TestCase):
         stderr = io.StringIO()
         argv = [
             "nexus", "--db", str(self.database_path), "ask",
-            "--prompt-version", "v11", "Xóa việc 1",
+            "--prompt-version", "v11", "--model", "custom-model", "Xóa việc 1",
         ]
         with (
             patch.object(sys, "argv", argv),
@@ -208,6 +208,9 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertEqual(mocked_turn.call_args.kwargs["prompt_version"], "v11")
+        self.assertEqual(
+            mocked_turn.call_args.kwargs["settings"]["model"], "custom-model"
+        )
         self.assertIn("Bạn có chắc muốn xóa", stdout.getvalue())
         self.assertIn("ask không giữ session", stdout.getvalue())
 
@@ -348,7 +351,10 @@ class CliTests(unittest.TestCase):
         )
         stdout = io.StringIO()
         stderr = io.StringIO()
-        argv = ["nexus", "--db", str(self.database_path), "chat"]
+        argv = [
+            "nexus", "--db", str(self.database_path), "chat",
+            "--model", "custom-model",
+        ]
 
         with (
             patch.object(sys, "argv", argv),
@@ -361,6 +367,7 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         mocked_chat.assert_called_once()
+        self.assertEqual(mocked_chat.call_args.args[0]["model"], "custom-model")
         self.assertEqual(
             stdout.getvalue(),
             "NEXUS: Bạn muốn thêm việc gì?\n"

@@ -7,6 +7,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from nexus.agent.client import DEFAULT_MODEL_ID, default_model_settings
 from nexus.core.deadlines import DeadlineParseError, format_deadline, parse_deadline
 from nexus.core.models import DeadlineScope
 from nexus.storage.sqlite_db import (
@@ -111,7 +112,11 @@ def _print_chat_trace(record: dict) -> None:
 
 
 def run_chat(
-    database_path: Path, *, trace: bool = False, prompt_version: str | None = None
+    database_path: Path,
+    *,
+    trace: bool = False,
+    prompt_version: str | None = None,
+    model_id: str = DEFAULT_MODEL_ID,
 ) -> int:
     """Run one in-memory AgentSession until EOF or the local /exit command."""
     import urllib.error
@@ -119,7 +124,9 @@ def run_chat(
     from nexus.agent.client import ENDPOINT, PostToolExecutionError, chat
     from nexus.agent.session import AgentSession
 
-    session_kwargs = {} if prompt_version is None else {"prompt_version": prompt_version}
+    session_kwargs = {"settings": default_model_settings(model_id=model_id)}
+    if prompt_version is not None:
+        session_kwargs["prompt_version"] = prompt_version
     session = AgentSession(database_path, **session_kwargs)
     interactive = sys.stdin.isatty()
     had_error = False
@@ -394,6 +401,11 @@ def main() -> int:
         default=DEFAULT_PROMPT_VERSION,
         help="Phiên bản system prompt cho agent",
     )
+    ask_parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL_ID,
+        help="Model ID đã cấu hình trên llama-server",
+    )
     chat_parser = commands.add_parser(
         "chat",
         help="Hội thoại nhiều lượt trong một session (cần chạy llama-server)",
@@ -403,6 +415,11 @@ def main() -> int:
         choices=sorted(SYSTEM_PROMPTS),
         default=DEFAULT_PROMPT_VERSION,
         help="Phiên bản system prompt cho agent",
+    )
+    chat_parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL_ID,
+        help="Model ID đã cấu hình trên llama-server",
     )
     chat_parser.add_argument(
         "--trace",
@@ -540,6 +557,7 @@ def main() -> int:
                     prompt,
                     chat,
                     prompt_version=args.prompt_version,
+                    settings=default_model_settings(model_id=args.model),
                 )
                 for call in result.get("calls", []):
                     if call.get("name") == "create_task":
@@ -572,7 +590,10 @@ def main() -> int:
                 return 1
         elif args.command == "chat":
             return run_chat(
-                args.db, trace=args.trace, prompt_version=args.prompt_version
+                args.db,
+                trace=args.trace,
+                prompt_version=args.prompt_version,
+                model_id=args.model,
             )
         else:
             tasks = list_tasks(args.db)
