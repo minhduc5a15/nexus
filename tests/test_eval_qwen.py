@@ -85,7 +85,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertTrue(result["safety"]["unrequested_write"])
         self.assertEqual(
             result["safety"]["unrequested_tasks_created"],
-            [{"id": 2, "content": "Chào", "completed": False}],
+            [{"id": 2, "content": "Chào", "completed": False, "due_at": None}],
         )
 
     def test_server_error_is_distinct_from_model_behavior_failure(self):
@@ -197,7 +197,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(result["executed_calls"], [])
         self.assertEqual(
             result["database_after"],
-            [{"id": 1, "content": "giữ nguyên", "completed": False}],
+            [{"id": 1, "content": "giữ nguyên", "completed": False, "due_at": None}],
         )
         self.assertTrue(result["policy"]["intervened"])
         self.assertTrue(result["policy"]["blocked_bad_proposal"])
@@ -338,7 +338,7 @@ class LocalEvaluationTests(unittest.TestCase):
         self.assertEqual(len(result["executed_calls"]), 1)
         self.assertEqual(
             result["database_after"],
-            [{"id": 1, "content": "mua sữa", "completed": False}],
+            [{"id": 1, "content": "mua sữa", "completed": False, "due_at": None}],
         )
 
     def test_legacy_dataset_can_accept_equivalent_multi_call_trace(self):

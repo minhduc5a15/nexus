@@ -1,13 +1,13 @@
 # NEXUS
 
 NEXUS là ứng dụng ghi nhanh việc cần làm bằng tiếng Việt. Phạm vi hiện tại gồm
-thêm việc, xem danh sách, hoàn thành, sửa và xóa đúng một việc theo ID. Người dùng có
-thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để Qwen3-1.7B chọn một
-trong năm tool. Dữ liệu được lưu cục bộ bằng SQLite.
+thêm việc, xem danh sách, hoàn thành, sửa, xóa và đặt thời hạn cho đúng một việc
+theo ID. Người dùng có thể gọi trực tiếp bằng CLI hoặc viết yêu cầu tự nhiên để
+Qwen3-1.7B chọn một trong sáu tool. Dữ liệu được lưu cục bộ bằng SQLite.
 
 Mỗi dòng có nội dung tạo một task. Dấu phẩy và chữ `và` trong cùng một dòng
-không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content` và
-`completed`.
+không tự tách task; các dòng trống bị bỏ qua. Mỗi task có `id`, `content`,
+`completed` và `due_at`. `due_at` là Unix timestamp theo giây hoặc `NULL`.
 
 ## Cài ứng dụng
 
@@ -28,6 +28,7 @@ và phát triển dự án. Không cần model để dùng các lệnh trực ti
 .venv/bin/nexus list
 .venv/bin/nexus complete 1
 .venv/bin/nexus edit 1 "mua sữa không đường"
+.venv/bin/nexus deadline 1 "8 giờ sáng mai"
 .venv/bin/nexus delete 1
 ```
 
@@ -112,6 +113,8 @@ NEXUS > Hoàn thành việc 1
 NEXUS: Đã hoàn thành [1] mua sữa
 NEXUS > Sửa việc 1 thành mua sữa không đường
 NEXUS: Đã sửa [1] thành: mua sữa không đường
+NEXUS > Đặt hạn việc 1 lúc 8 giờ sáng mai
+NEXUS: Đã đặt hạn [1] vào 27/09/2026 08:00: mua sữa không đường
 NEXUS > Xóa việc 1
 NEXUS: Bạn có chắc muốn xóa [1] [x] mua sữa không đường?
 NEXUS > có
@@ -138,9 +141,9 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 ```
 
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
-định vẫn là v9; v1–v11 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, còn
-v11 thêm DELETE có xác nhận. V11 chưa được chọn làm mặc định vì smoke Qwen đạt
-12/16 lượt. Một call
+định vẫn là v9; v1–v12 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, v11
+thêm DELETE có xác nhận và v12 thêm DEADLINE theo ID. V12 chưa được chọn làm
+mặc định vì live smoke đạt 13/15 lượt thay vì toàn bộ. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
@@ -155,11 +158,12 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` riêng cho từng cuộc trò chuyện. State machine có bảy trạng thái
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có chín trạng thái
 trong bộ nhớ: `idle`, `awaiting_create_content`, `awaiting_complete_id`,
-`awaiting_edit_id`, `awaiting_edit_content`, `awaiting_delete_id` và
-`awaiting_delete_confirmation`. Hai trạng thái EDIT giữ ID hoặc
-content đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
+`awaiting_edit_id`, `awaiting_edit_content`, `awaiting_delete_id`,
+`awaiting_delete_confirmation`, `awaiting_deadline_id` và
+`awaiting_deadline_text`. Hai trạng thái EDIT và hai trạng thái DEADLINE giữ
+phần dữ liệu đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
 
 ```python
 from nexus.agent.session import AgentSession
@@ -181,10 +185,18 @@ lời được dùng nguyên văn, không được model viết lại.
 Khi chờ ID, lượt sau chỉ nhận `3`, `#3`, `việc 3` hoặc `task 3`; không tìm task
 theo nội dung. EDIT thiếu ID hoặc content hỏi lại đúng phần còn thiếu. Tin nhắn
 trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về `idle`.
-Một yêu cầu CREATE/LIST/COMPLETE/EDIT/DELETE mới thay thế yêu cầu đang chờ. DELETE
+Một yêu cầu CREATE/LIST/COMPLETE/EDIT/DELETE/DEADLINE mới thay thế yêu cầu đang chờ. DELETE
 trong agent luôn hiển thị snapshot task và chờ một xác nhận hẹp; `nexus delete ID` là lệnh cấu trúc nên xóa trực tiếp. Nếu task đổi giữa hai lượt, NEXUS cập
-nhật snapshot và hỏi lại; nếu task đã biến mất, NEXUS không xóa gì. Nếu SQLite
-lỗi trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi
+nhật snapshot và hỏi lại; nếu task đã biến mất, NEXUS không xóa gì.
+
+DEADLINE chỉ nhận một ID và một cụm thời gian nguyên văn. Parser Python dùng múi
+giờ cố định `Asia/Ho_Chi_Minh` và chỉ hiểu các dạng `27/09/2026 08:00`,
+`08:00 ngày 27/09/2026`, `08:00 hôm nay/mai/ngày mai`, `8 giờ sáng mai` và
+`8 giờ 30 phút tối ngày mai`. Model không được truyền timestamp. Khi thiếu ID
+nhưng đã có thời gian, session giữ cả cụm thời gian và mốc tham chiếu của lượt
+đầu; khi thiếu thời gian, session giữ ID. Chưa hỗ trợ xóa deadline.
+
+Nếu SQLite lỗi trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi
 lỗi sau commit, session đã về `idle` để tránh tự thực thi lại. Session không lưu trạng thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung
 cho nhiều người. `nexus chat` tạo đúng một
 session cho tiến trình CLI; `nexus ask` và hàm `run_turn` vẫn là các lượt độc
@@ -193,10 +205,12 @@ nhiều dòng trực tiếp; API `AgentSession` vẫn hỗ trợ content nhiều
 diện lệnh mới có grammar hữu hạn, nên câu mơ hồ giữa lệnh và nội dung task vẫn
 cần người dùng diễn đạt rõ hơn.
 
-SQLite dùng schema version 2 và khóa chính `INTEGER PRIMARY KEY AUTOINCREMENT`.
-Database legacy chỉ có `id/content` và database version 1 có thêm `completed`
-được migration trong một transaction, giữ nguyên ID, content và trạng thái. ID
-đã xóa không được cấp lại sau khi dùng schema v2. Ứng dụng dừng với lỗi rõ khi
+SQLite dùng schema version 3 và khóa chính `INTEGER PRIMARY KEY AUTOINCREMENT`.
+Cột `due_at INTEGER NULL` lưu Unix timestamp theo giây. Database legacy chỉ có
+`id/content`, version 1 có thêm `completed`, còn version 2 đã dùng
+`AUTOINCREMENT`; tất cả được migration trong một transaction, giữ nguyên ID,
+content và trạng thái, đồng thời đặt deadline cũ thành `NULL`. ID đã xóa không
+được cấp lại. Ứng dụng dừng với lỗi rõ khi
 gặp schema lạ hoặc database có version mới hơn.
 
 ## Kiểm thử và benchmark hiện tại
@@ -257,6 +271,18 @@ prompt mặc định vẫn là v9 và v11 chỉ dùng qua `--prompt-version v11`
 ./scripts/demo/15_delete_eval.sh
 ./scripts/demo/16_delete_smoke.sh
 .venv/bin/nexus chat --prompt-version v11 --trace
+```
+
+DEADLINE có bộ scripted 14 case/29 lượt, đạt toàn bộ và không có mutation ngoài
+yêu cầu. Live smoke v12 đạt 8/9 case, 13/15 lượt; cả ba case deadline đều đạt và
+không có mutation ngoài yêu cầu. Ca regression CREATE bị chặn an toàn vì Qwen
+đổi `mua sữa` thành `Mua sữa`, sau đó LIST đúng là trống. Theo tiêu chí rollout,
+v9 vẫn là mặc định và không tiếp tục chỉnh prompt theo ca này:
+
+```sh
+./scripts/demo/17_deadline_eval.sh
+./scripts/demo/18_deadline_smoke.sh
+.venv/bin/nexus chat --prompt-version v12 --trace
 ```
 
 Các evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git

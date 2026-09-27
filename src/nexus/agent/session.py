@@ -1,6 +1,7 @@
-"""In-memory continuation of incomplete CREATE, COMPLETE, EDIT and DELETE requests."""
+"""In-memory continuation of incomplete task commands and DELETE confirmation."""
 
 import re
+from datetime import datetime
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -11,10 +12,12 @@ from nexus.agent.policy import (
     PolicyReason,
     RequestKind,
     classify_request,
+    deadline_request_fields,
     edit_request_fields,
 )
 from nexus.agent.responses import format_rejection, format_tool_result
 from nexus.agent.tools import execute_tool
+from nexus.core.deadlines import DeadlineParseError, format_deadline, parse_deadline, vietnam_now
 from nexus.core.models import Task
 from nexus.storage.sqlite_db import get_task
 
@@ -25,6 +28,8 @@ _ASK_CONTENT = "Bạn muốn thêm việc gì?"
 _ASK_COMPLETE_ID = "Bạn muốn hoàn thành việc có ID nào?"
 _ASK_EDIT_ID = "Bạn muốn sửa việc có ID nào?"
 _ASK_DELETE_ID = "Bạn muốn xóa việc có ID nào?"
+_ASK_DEADLINE_ID = "Bạn muốn đặt hạn cho việc có ID nào?"
+_ASK_DEADLINE_TEXT = "Bạn muốn đặt thời hạn khi nào? Ví dụ: 8 giờ sáng mai."
 _CONFIRM_DELETE_YES = re.compile(
     r"^\s*(?:có|đồng ý|xác nhận|xóa|xoá)[.!]?\s*$", re.IGNORECASE
 )
@@ -47,6 +52,8 @@ class SessionState(str, Enum):
     AWAITING_EDIT_CONTENT = "awaiting_edit_content"
     AWAITING_DELETE_ID = "awaiting_delete_id"
     AWAITING_DELETE_CONFIRMATION = "awaiting_delete_confirmation"
+    AWAITING_DEADLINE_ID = "awaiting_deadline_id"
+    AWAITING_DEADLINE_TEXT = "awaiting_deadline_text"
 
 
 def _session_result(
@@ -86,13 +93,18 @@ class AgentSession:
         *,
         prompt_version: str = DEFAULT_PROMPT_VERSION,
         settings: dict | None = None,
+        clock=None,
     ) -> None:
         self.database_path = Path(database_path)
         self.prompt_version = prompt_version
         self.settings = deepcopy(settings)
+        self.clock = clock or vietnam_now
         self.pending_edit_id: int | None = None
         self.pending_edit_content: str | None = None
         self.pending_delete_task: Task | None = None
+        self.pending_deadline_id: int | None = None
+        self.pending_deadline_text: str | None = None
+        self.pending_deadline_reference: datetime | None = None
         self._set_state(SessionState.IDLE)
 
     def _set_state(
@@ -102,6 +114,9 @@ class AgentSession:
         edit_id: int | None = None,
         edit_content: str | None = None,
         delete_task: Task | None = None,
+        deadline_id: int | None = None,
+        deadline_text: str | None = None,
+        deadline_reference: datetime | None = None,
     ) -> None:
         self.state = state
         self.pending_edit_id = edit_id if state == SessionState.AWAITING_EDIT_CONTENT else None
@@ -111,6 +126,18 @@ class AgentSession:
         self.pending_delete_task = (
             delete_task
             if state == SessionState.AWAITING_DELETE_CONFIRMATION
+            else None
+        )
+        self.pending_deadline_id = (
+            deadline_id if state == SessionState.AWAITING_DEADLINE_TEXT else None
+        )
+        self.pending_deadline_text = (
+            deadline_text if state == SessionState.AWAITING_DEADLINE_ID else None
+        )
+        self.pending_deadline_reference = (
+            deadline_reference
+            if state == SessionState.AWAITING_DEADLINE_ID
+            and deadline_text is not None
             else None
         )
 
@@ -144,7 +171,10 @@ class AgentSession:
         if task is None:
             raise RuntimeError("delete confirmation requires a task snapshot")
         marker = "x" if task.completed else " "
-        return f"Bạn có chắc muốn xóa [{task.id}] [{marker}] {task.content}?"
+        description = f"[{task.id}] [{marker}] {task.content}"
+        if task.due_at is not None:
+            description += f" — hạn {format_deadline(task.due_at)}"
+        return f"Bạn có chắc muốn xóa {description}?"
 
     def _finish(self, result: dict, state_before: SessionState) -> dict:
         """Attach the state transition to every completed turn."""
@@ -158,6 +188,7 @@ class AgentSession:
         if not isinstance(prompt, str):
             raise TypeError("prompt must be a string")
         state_before = self.state
+        turn_reference = vietnam_now(self.clock())
         if not prompt.strip():
             if self.pending_create:
                 result = _session_result(TurnStatus.NEEDS_CLARIFICATION, _ASK_CONTENT)
@@ -181,6 +212,14 @@ class AgentSession:
                     self._delete_confirmation_question(),
                     confirmation=self._delete_confirmation_payload(),
                 )
+            elif self.state == SessionState.AWAITING_DEADLINE_ID:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_ID
+                )
+            elif self.state == SessionState.AWAITING_DEADLINE_TEXT:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
+                )
             else:
                 result = _session_result(TurnStatus.NO_TOOL, _NO_ACTION)
             return self._finish(result, state_before)
@@ -196,6 +235,11 @@ class AgentSession:
                 SessionState.AWAITING_EDIT_ID, SessionState.AWAITING_EDIT_CONTENT
             ):
                 reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
+            elif cancelled_state in (
+                SessionState.AWAITING_DEADLINE_ID,
+                SessionState.AWAITING_DEADLINE_TEXT,
+            ):
+                reply = "Đã hủy yêu cầu đặt thời hạn. Không có thay đổi nào được lưu."
             else:
                 reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
             result = _session_result(TurnStatus.CANCELLED, reply)
@@ -249,6 +293,28 @@ class AgentSession:
             )
             return self._finish(result, state_before)
 
+        if kind in (RequestKind.MISSING_DEADLINE_ID, RequestKind.MULTIPLE_DEADLINE):
+            _task_id, when = deadline_request_fields(prompt)
+            self._set_state(
+                SessionState.AWAITING_DEADLINE_ID,
+                deadline_text=when,
+                deadline_reference=turn_reference if when is not None else None,
+            )
+            result = _session_result(
+                TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_ID
+            )
+            return self._finish(result, state_before)
+
+        if kind == RequestKind.MISSING_DEADLINE_TIME:
+            task_id, _when = deadline_request_fields(prompt)
+            self._set_state(
+                SessionState.AWAITING_DEADLINE_TEXT, deadline_id=task_id
+            )
+            result = _session_result(
+                TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
+            )
+            return self._finish(result, state_before)
+
         if kind in (RequestKind.UNSUPPORTED, RequestKind.NEGATED):
             pending_state = self.state
             self._set_state(SessionState.IDLE)
@@ -261,6 +327,11 @@ class AgentSession:
                     SessionState.AWAITING_EDIT_ID, SessionState.AWAITING_EDIT_CONTENT
                 ):
                     reply = "Đã hủy yêu cầu sửa việc. Không có thay đổi nào được lưu."
+                elif pending_state in (
+                    SessionState.AWAITING_DEADLINE_ID,
+                    SessionState.AWAITING_DEADLINE_TEXT,
+                ):
+                    reply = "Đã hủy yêu cầu đặt thời hạn. Không có thay đổi nào được lưu."
                 else:
                     reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
                 result = _session_result(TurnStatus.CANCELLED, reply)
@@ -307,6 +378,56 @@ class AgentSession:
                     )
                 else:
                     result = self._prepare_delete(task_id)
+            return self._finish(result, state_before)
+
+        if self.state == SessionState.AWAITING_DEADLINE_ID and kind == RequestKind.OTHER:
+            match = _COMPLETE_ID_REPLY.fullmatch(prompt)
+            if match is None:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_ID
+                )
+            else:
+                task_id = int(match.group("bare") or match.group("labelled"))
+                if task_id <= 0:
+                    result = _session_result(
+                        TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_ID
+                    )
+                elif self.pending_deadline_text is None:
+                    self._set_state(
+                        SessionState.AWAITING_DEADLINE_TEXT, deadline_id=task_id
+                    )
+                    result = _session_result(
+                        TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
+                    )
+                else:
+                    reference = self.pending_deadline_reference or turn_reference
+                    try:
+                        parse_deadline(self.pending_deadline_text, reference=reference)
+                    except DeadlineParseError:
+                        self._set_state(
+                            SessionState.AWAITING_DEADLINE_TEXT,
+                            deadline_id=task_id,
+                        )
+                        result = _session_result(
+                            TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
+                        )
+                    else:
+                        result = self._deadline_followup(
+                            task_id, self.pending_deadline_text, reference
+                        )
+            return self._finish(result, state_before)
+
+        if self.state == SessionState.AWAITING_DEADLINE_TEXT and kind == RequestKind.OTHER:
+            try:
+                parse_deadline(prompt, reference=turn_reference)
+            except DeadlineParseError:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
+                )
+            else:
+                result = self._deadline_followup(
+                    self.pending_deadline_id, prompt, turn_reference
+                )
             return self._finish(result, state_before)
 
         if self.state == SessionState.AWAITING_EDIT_ID and kind == RequestKind.OTHER:
@@ -357,6 +478,7 @@ class AgentSession:
             generate,
             prompt_version=self.prompt_version,
             settings=self.settings,
+            reference_time=turn_reference,
         )
         if result["status"] == TurnStatus.NEEDS_CONFIRMATION.value:
             confirmation = result.get("confirmation")
@@ -368,24 +490,42 @@ class AgentSession:
                 delete_task=Task(**task_data),
             )
         if result["status"] == TurnStatus.NEEDS_CLARIFICATION.value:
-            reasons = {
-                call.get("reason") for call in result.get("rejected_calls", [])
+            rejected = result.get("rejected_calls", [])
+            reasons_by_tool = {
+                call.get("name"): call.get("reason") for call in rejected
             }
-            if reasons & {"missing_task_id", "multiple_task_ids"}:
+            deadline_reason = reasons_by_tool.get("set_task_deadline")
+            if deadline_reason in {"missing_deadline_id", "multiple_task_ids"}:
+                _task_id, when = deadline_request_fields(prompt)
+                self._set_state(
+                    SessionState.AWAITING_DEADLINE_ID,
+                    deadline_text=when,
+                    deadline_reference=turn_reference if when is not None else None,
+                )
+            elif deadline_reason in {
+                "missing_deadline_time", "invalid_deadline_time"
+            }:
+                task_id, _when = deadline_request_fields(prompt)
+                self._set_state(
+                    SessionState.AWAITING_DEADLINE_TEXT, deadline_id=task_id
+                )
+            elif reasons_by_tool.get("complete_task") in {
+                "missing_task_id", "multiple_task_ids"
+            }:
                 self._set_state(SessionState.AWAITING_COMPLETE_ID)
-            elif "missing_update_id" in reasons:
+            elif reasons_by_tool.get("update_task") == "missing_update_id":
                 _task_id, content = edit_request_fields(prompt)
                 self._set_state(
                     SessionState.AWAITING_EDIT_ID, edit_content=content
                 )
-            elif "missing_update_content" in reasons:
+            elif reasons_by_tool.get("update_task") == "missing_update_content":
                 task_id, _content = edit_request_fields(prompt)
                 self._set_state(
                     SessionState.AWAITING_EDIT_CONTENT, edit_id=task_id
                 )
-            elif "missing_delete_id" in reasons:
+            elif reasons_by_tool.get("delete_task") == "missing_delete_id":
                 self._set_state(SessionState.AWAITING_DELETE_ID)
-            else:
+            elif reasons_by_tool.get("create_task") == "missing_content":
                 self._set_state(SessionState.AWAITING_CREATE_CONTENT)
         return self._finish({**result, "source": "model"}, state_before)
 
@@ -477,6 +617,50 @@ class AgentSession:
             authorized_calls=authorized_calls,
         )
 
+    def _deadline_followup(
+        self, task_id: int, when: str, reference_time: datetime
+    ) -> dict:
+        arguments = {"id": task_id, "when": when}
+        authorized_calls = [{
+            "name": "set_task_deadline",
+            "arguments": arguments,
+            "result": "allow",
+            "reason": "session_continuation",
+        }]
+        result = execute_tool(
+            self.database_path,
+            "set_task_deadline",
+            arguments,
+            reference_time=reference_time,
+        )
+        calls = [{
+            "name": "set_task_deadline",
+            "arguments": arguments,
+            "result": result,
+        }]
+        self._set_state(SessionState.IDLE)
+        try:
+            reply = format_tool_result("set_task_deadline", result)
+        except Exception as error:
+            raise PostToolExecutionError(
+                "response_formatting",
+                calls,
+                error,
+                authorized_calls=authorized_calls,
+            ) from error
+        status = (
+            TurnStatus.NOT_FOUND
+            if result.get("status") == "not_found"
+            else TurnStatus.EXECUTED
+        )
+        return _session_result(
+            status,
+            reply,
+            source="session_continuation",
+            calls=calls,
+            authorized_calls=authorized_calls,
+        )
+
     def _delete_confirmation_payload(self) -> dict:
         task = self.pending_delete_task
         if task is None:
@@ -488,6 +672,7 @@ class AgentSession:
                 "id": task.id,
                 "content": task.content,
                 "completed": task.completed,
+                "due_at": task.due_at,
             },
         }
 

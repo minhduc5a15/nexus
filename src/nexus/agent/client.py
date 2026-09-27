@@ -4,12 +4,14 @@ import json
 import os
 import tempfile
 import urllib.request
+from datetime import datetime
 from copy import deepcopy
 from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 from time import perf_counter
 
+from nexus.core.deadlines import format_deadline, vietnam_now
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
 from nexus.storage.sqlite_db import get_task, initialize_database, list_tasks
 from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
@@ -107,8 +109,10 @@ def run_turn(
     *,
     prompt_version: str = DEFAULT_PROMPT_VERSION,
     settings: dict | None = None,
+    reference_time: datetime | None = None,
 ) -> dict:
     """Run one turn against the local model with at most one tool batch."""
+    turn_reference = vietnam_now(reference_time)
     common = settings or {
         "model": "qwen3-1.7b-q8_0",
         "temperature": 0.7,
@@ -266,7 +270,9 @@ def run_turn(
     arguments = parsed_args
     proposed_calls.append({"name": name, "arguments": arguments})
 
-    decision = policy_for_tool(prompt, name, arguments)
+    decision = policy_for_tool(
+        prompt, name, arguments, reference_time=turn_reference
+    )
 
     if decision.result == PolicyResult.REQUIRES_CONFIRMATION:
         task = get_task(database_path, arguments["id"])
@@ -287,9 +293,13 @@ def run_turn(
             "arguments": arguments,
             "task": asdict(task),
         }
+        marker = "x" if task.completed else " "
+        description = f"[{task.id}] [{marker}] {task.content}"
+        if task.due_at is not None:
+            description += f" — hạn {format_deadline(task.due_at)}"
         return turn_result(
             TurnStatus.NEEDS_CONFIRMATION,
-            f"Bạn có chắc muốn xóa [{task.id}] {task.content}?",
+            f"Bạn có chắc muốn xóa {description}?",
         )
 
     if decision.result == PolicyResult.ALLOW:
@@ -302,7 +312,12 @@ def run_turn(
             }
         )
         try:
-            result = execute_tool(database_path, name, arguments)
+            result = execute_tool(
+                database_path,
+                name,
+                arguments,
+                reference_time=turn_reference if name == "set_task_deadline" else None,
+            )
             calls.append({"name": name, "arguments": arguments, "result": result})
         except Exception as error:
             if calls:
@@ -337,6 +352,16 @@ def run_turn(
             PolicyReason.MULTIPLE_TASK_IDS,
         ):
             reply = "Bạn muốn xóa việc có ID nào?"
+        elif name == "set_task_deadline" and decision.reason in (
+            PolicyReason.MISSING_DEADLINE_ID,
+            PolicyReason.MULTIPLE_TASK_IDS,
+        ):
+            reply = "Bạn muốn đặt hạn cho việc có ID nào?"
+        elif name == "set_task_deadline" and decision.reason in (
+            PolicyReason.MISSING_DEADLINE_TIME,
+            PolicyReason.INVALID_DEADLINE_TIME,
+        ):
+            reply = "Bạn muốn đặt thời hạn khi nào? Ví dụ: 8 giờ sáng mai."
         elif name == "update_task" and decision.reason in (
             PolicyReason.MISSING_UPDATE_ID,
             PolicyReason.MULTIPLE_TASK_IDS,

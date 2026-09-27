@@ -488,6 +488,12 @@ class CliTests(unittest.TestCase):
                 "pending_edit_id_after": None,
                 "pending_edit_content_before": None,
                 "pending_edit_content_after": None,
+                "pending_deadline_id_before": None,
+                "pending_deadline_id_after": None,
+                "pending_deadline_text_before": None,
+                "pending_deadline_text_after": None,
+                "pending_deadline_reference_before": None,
+                "pending_deadline_reference_after": None,
                 "pending_delete_before": None,
                 "pending_delete_after": None,
             },
@@ -500,7 +506,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(continuation["database"]["before"], [])
         self.assertEqual(
             continuation["database"]["after"],
-            [{"id": 1, "content": "mua sữa", "completed": False}],
+            [{"id": 1, "content": "mua sữa", "completed": False, "due_at": None}],
         )
 
         self.assertEqual(listed["runtime"]["source"], "model")

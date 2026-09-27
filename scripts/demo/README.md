@@ -22,6 +22,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `14_edit_smoke.sh` | Chạy smoke Qwen v10 cho sửa nội dung theo ID | Có |
 | `15_delete_eval.sh` | Chấm scripted DELETE, xác nhận, stale snapshot và lỗi trước/sau commit | Không |
 | `16_delete_smoke.sh` | Chạy smoke Qwen v11 cho DELETE có xác nhận và regression bốn hành động cũ | Có |
+| `17_deadline_eval.sh` | Chấm scripted DEADLINE, parser, continuation, rollback và safety | Không |
+| `18_deadline_smoke.sh` | Chạy smoke Qwen v12 cho DEADLINE và regression năm hành động cũ | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -34,6 +36,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/11_completion_eval.sh
 ./scripts/demo/13_edit_eval.sh
 ./scripts/demo/15_delete_eval.sh
+./scripts/demo/17_deadline_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -64,6 +67,12 @@ formatter sau commit, batch call và xóa ngoài yêu cầu. `16_delete_smoke.sh
 Qwen thật với prompt v11; báo cáo đầu tiên đạt 6/8 case, 12/16 lượt và không có
 mutation ngoài yêu cầu, nên v9 vẫn là prompt mặc định.
 
+`17_deadline_eval.sh` chạy 14 case/29 lượt và kiểm tra deadline trước/sau từng
+lượt cùng `unrequested_deadline_change`. `18_deadline_smoke.sh` chạy Qwen thật
+với prompt v12; lượt đã xác minh đạt 8/9 case, 13/15 lượt, không có mutation
+ngoài yêu cầu. Ca trượt là CREATE bị model viết hoa và policy chặn an toàn, nên
+v9 vẫn là prompt mặc định.
+
 ## Chạy AI thật
 
 Terminal thứ nhất:
@@ -80,6 +89,7 @@ Terminal thứ nhất:
 ./scripts/demo/12_completion_smoke.sh
 ./scripts/demo/14_edit_smoke.sh
 ./scripts/demo/16_delete_smoke.sh
+./scripts/demo/18_deadline_smoke.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
@@ -159,7 +169,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`16`) tạo thư mục riêng dưới
+Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`18`) tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 

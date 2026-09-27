@@ -1,14 +1,17 @@
 """Tool descriptions and explicit dispatch for the future model adapter."""
 
 from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 
+from nexus.core.deadlines import parse_deadline
 from nexus.core.models import Task
 from nexus.storage.sqlite_db import (
     complete_task,
     create_tasks,
     delete_task,
     list_tasks,
+    set_task_deadline,
     update_task,
 )
 
@@ -110,6 +113,30 @@ TOOL_DEFINITIONS = [
         },
     },
 
+    {
+        "name": "set_task_deadline",
+        "description": (
+            "Đặt hoặc đổi thời hạn của đúng một task khi người dùng nêu rõ ID "
+            "và cụm thời gian. Chép nguyên văn cụm thời gian; không tự đổi sang timestamp."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "ID chính xác do người dùng nêu.",
+                },
+                "when": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Cụm thời gian nguyên văn từ lời người dùng.",
+                },
+            },
+            "required": ["id", "when"],
+            "additionalProperties": False,
+        },
+    },
 ]
 
 
@@ -119,6 +146,7 @@ def execute_tool(
     arguments: object,
     *,
     confirmed_task: Task | None = None,
+    reference_time: datetime | None = None,
 ) -> dict:
     """Validate one decoded call and execute it against an initialized database.
 
@@ -126,11 +154,14 @@ def execute_tool(
     propagate to the caller. This validates structure, not user intent.
     """
     if name not in (
-        "create_task", "list_tasks", "complete_task", "update_task", "delete_task"
+        "create_task", "list_tasks", "complete_task", "update_task", "delete_task",
+        "set_task_deadline",
     ):
         raise ValueError("Unknown tool")
     if name != "delete_task" and confirmed_task is not None:
         raise ValueError("confirmed_task is only valid for delete_task")
+    if name != "set_task_deadline" and reference_time is not None:
+        raise ValueError("reference_time is only valid for set_task_deadline")
     if not isinstance(arguments, dict):
         raise ValueError("Tool arguments must be an object")
 
@@ -166,6 +197,22 @@ def execute_tool(
         return {
             "status": deleted.status.value,
             "task": asdict(deleted.task) if deleted.task is not None else None,
+        }
+
+    if name == "set_task_deadline":
+        if set(arguments) != {"id", "when"}:
+            raise ValueError("set_task_deadline requires exactly id and when")
+        task_id = arguments["id"]
+        when = arguments["when"]
+        if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
+            raise ValueError("id must be a positive integer")
+        if not isinstance(when, str) or not when.strip() or "\n" in when or "\r" in when:
+            raise ValueError("when must be a nonblank single-line string")
+        due_at = parse_deadline(when, reference=reference_time)
+        deadline = set_task_deadline(database_path, task_id, due_at)
+        return {
+            "status": deadline.status.value,
+            "task": asdict(deadline.task) if deadline.task is not None else None,
         }
 
     if name == "complete_task":

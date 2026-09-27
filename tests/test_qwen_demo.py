@@ -20,7 +20,7 @@ def response(message, reason="stop"):
 
 
 class LocalProbeTests(unittest.TestCase):
-    def test_default_runtime_uses_v9_and_exposes_five_tools(self):
+    def test_default_runtime_uses_v9_and_exposes_six_tools(self):
         requests = []
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "test.db"
@@ -37,7 +37,7 @@ class LocalProbeTests(unittest.TestCase):
         self.assertEqual(payload["messages"][0]["content"], SYSTEM_PROMPTS["v9"])
         self.assertEqual(
             [tool["function"]["name"] for tool in payload["tools"]],
-            ["create_task", "list_tasks", "complete_task", "update_task", "delete_task"],
+            ["create_task", "list_tasks", "complete_task", "update_task", "delete_task", "set_task_deadline"],
         )
 
     def test_probe_executes_tool_with_single_model_call_in_tool_round(self):
@@ -514,7 +514,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(turn["rejected_calls"][0]["reason"], "unsupported_tool")
         self.assertEqual(
             turn["reply"],
-            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID.",
+            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID.",
         )
         self.assertEqual(list_tasks(self.db_path), [])
 
@@ -772,7 +772,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
             run_turn(self.db_path, "Thêm việc: mua sữa", lambda _: call_resp)
             mock_fmt.assert_called_once_with(
                 "create_task",
-                {"tasks": [{"id": 1, "content": "mua sữa", "completed": False}]},
+                {"tasks": [{"id": 1, "content": "mua sữa", "completed": False, "due_at": None}]},
             )
 
     def test_execute_tool_failure_does_not_call_formatter(self):

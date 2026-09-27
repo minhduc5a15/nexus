@@ -1,0 +1,1013 @@
+{
+  "feature": "task_deadline_by_id",
+  "contract": "one_tool_call_raw_when_and_fixed_vietnam_timezone",
+  "cases": [
+    {
+      "id": "deadline_set_then_list",
+      "category": "happy_path",
+      "initial_tasks": [
+        "mua sữa"
+      ],
+      "expected_final_tasks": [
+        "mua sữa"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "mua sữa",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "mua sữa"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "mua sữa",
+                "completed": false,
+                "due_at": 1790470800
+              }
+            ],
+            "reply_contains": [
+              "Đã đặt hạn [1]",
+              "27/09/2026 08:00"
+            ]
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "tasks": [
+              "mua sữa"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "mua sữa",
+                "completed": false,
+                "due_at": 1790470800
+              }
+            ],
+            "reply_contains": [
+              "[1] [ ] mua sữa — hạn 27/09/2026 08:00"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_update_and_unchanged",
+      "category": "idempotency",
+      "initial_tasks": [
+        {
+          "content": "gọi mẹ",
+          "due_at": 1790470800
+        }
+      ],
+      "expected_final_tasks": [
+        "gọi mẹ"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "gọi mẹ",
+          "completed": false,
+          "due_at": 1790562600
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt deadline task #1 là 28/09/2026 09:30.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "28/09/2026 09:30"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "28/09/2026 09:30"
+                }
+              }
+            ],
+            "tasks": [
+              "gọi mẹ"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": 1790470800,
+                "after": 1790562600
+              }
+            ],
+            "reply_contains": [
+              "Đã đổi hạn [1]",
+              "28/09/2026 09:30"
+            ]
+          }
+        },
+        {
+          "prompt": "Đặt deadline task #1 là 28/09/2026 09:30.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "28/09/2026 09:30"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "28/09/2026 09:30"
+                }
+              }
+            ],
+            "tasks": [
+              "gọi mẹ"
+            ],
+            "reply_contains": [
+              "đã có hạn 28/09/2026 09:30"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_missing_id_keeps_when",
+      "category": "continuation",
+      "reference_time": "2026-09-26T23:59:00+07:00",
+      "initial_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "đọc sách",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn lúc 8 giờ sáng mai.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_id",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "đọc sách"
+            ],
+            "reply_contains": [
+              "ID nào"
+            ]
+          }
+        },
+        {
+          "prompt": "#1",
+          "expected": {
+            "state_before": "awaiting_deadline_id",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "8 giờ sáng mai"
+                }
+              }
+            ],
+            "tasks": [
+              "đọc sách"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ],
+            "reply_contains": [
+              "Đã đặt hạn [1]",
+              "27/09/2026 08:00"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_missing_time",
+      "category": "continuation",
+      "initial_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "đọc sách",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "đọc sách"
+            ],
+            "reply_contains": [
+              "thời hạn khi nào"
+            ]
+          }
+        },
+        {
+          "prompt": "27/09/2026 08:00",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "đọc sách"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ],
+            "reply_contains": [
+              "Đã đặt hạn [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_multiple_ids_choose_one",
+      "category": "continuation",
+      "initial_tasks": [
+        "một",
+        "hai"
+      ],
+      "expected_final_tasks": [
+        "một",
+        "hai"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": null
+        },
+        {
+          "id": 2,
+          "content": "hai",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1 và 2 lúc 27/09/2026 08:00.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_id",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một",
+              "hai"
+            ],
+            "reply_contains": [
+              "ID nào"
+            ]
+          }
+        },
+        {
+          "prompt": "việc 2",
+          "expected": {
+            "state_before": "awaiting_deadline_id",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 2,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "một",
+              "hai"
+            ],
+            "deadline_changes": [
+              {
+                "id": 2,
+                "before": null,
+                "after": 1790470800
+              }
+            ],
+            "reply_contains": [
+              "Đã đặt hạn [2]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_invalid_time_then_retry",
+      "category": "continuation",
+      "initial_tasks": [
+        "viết báo cáo"
+      ],
+      "expected_final_tasks": [
+        "viết báo cáo"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "viết báo cáo",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1 lúc tuần sau.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "viết báo cáo"
+            ],
+            "reply_contains": [
+              "thời hạn khi nào"
+            ]
+          }
+        },
+        {
+          "prompt": "tuần sau",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "viết báo cáo"
+            ],
+            "reply_contains": [
+              "thời hạn khi nào"
+            ]
+          }
+        },
+        {
+          "prompt": "27/09/2026 08:00",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "viết báo cáo"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_not_found",
+      "category": "not_found",
+      "initial_tasks": [],
+      "expected_final_tasks": [],
+      "expected_final_states": [],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 99 lúc 27/09/2026 08:00.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 99,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 99,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [],
+            "reply_contains": [
+              "Không tìm thấy việc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_wrong_model_id",
+      "category": "safety",
+      "initial_tasks": [
+        "một",
+        "hai"
+      ],
+      "expected_final_tasks": [
+        "một",
+        "hai"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": null
+        },
+        {
+          "id": 2,
+          "content": "hai",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 2,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "một",
+              "hai"
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_rewritten_time",
+      "category": "safety",
+      "initial_tasks": [
+        "một"
+      ],
+      "expected_final_tasks": [
+        "một"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "08:00 ngày 27/09/2026"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ],
+            "reply_contains": [
+              "nội dung không khớp"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_by_content_blocked",
+      "category": "safety",
+      "initial_tasks": [
+        "báo cáo"
+      ],
+      "expected_final_tasks": [
+        "báo cáo"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "báo cáo",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00.",
+          "model": {
+            "calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "báo cáo"
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_cancel_and_replace",
+      "category": "session",
+      "initial_tasks": [
+        "một"
+      ],
+      "expected_final_tasks": [
+        "một"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "prompt": "hủy",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "cancelled",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ],
+            "reply_contains": [
+              "Đã hủy yêu cầu đặt thời hạn"
+            ]
+          }
+        },
+        {
+          "prompt": "Đặt hạn việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "tasks": [
+              "một"
+            ],
+            "reply_contains": [
+              "[1] [ ] một"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_database_failure_retry",
+      "category": "failure_lifecycle",
+      "initial_tasks": [
+        "một"
+      ],
+      "expected_final_tasks": [
+        "một"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "prompt": "27/09/2026 08:00",
+          "fault": "deadline_database_before_commit",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "awaiting_deadline_text",
+            "status": "error",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "prompt": "27/09/2026 08:00",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "một"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_formatter_failure_after_commit",
+      "category": "failure_lifecycle",
+      "initial_tasks": [
+        "một"
+      ],
+      "expected_final_tasks": [
+        "một"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt hạn việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "prompt": "27/09/2026 08:00",
+          "fault": "formatter_after_commit",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "error_after_execution",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "27/09/2026 08:00"
+                }
+              }
+            ],
+            "tasks": [
+              "một"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ],
+            "error_stage": "response_formatting"
+          }
+        }
+      ]
+    },
+    {
+      "id": "deadline_sessions_are_independent",
+      "category": "isolation",
+      "reference_time": "2026-09-26T12:00:00+07:00",
+      "initial_tasks": [
+        "một"
+      ],
+      "expected_final_tasks": [
+        "một"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "một",
+          "completed": false,
+          "due_at": 1790470800
+        }
+      ],
+      "turns": [
+        {
+          "session": "alice",
+          "prompt": "Đặt hạn việc 1",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_text",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ]
+          }
+        },
+        {
+          "session": "bob",
+          "prompt": "8 giờ sáng mai",
+          "model": {
+            "reply": "Tôi chưa hiểu yêu cầu."
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "một"
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        },
+        {
+          "session": "alice",
+          "prompt": "8 giờ sáng mai",
+          "expected": {
+            "state_before": "awaiting_deadline_text",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "8 giờ sáng mai"
+                }
+              }
+            ],
+            "tasks": [
+              "một"
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790470800
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

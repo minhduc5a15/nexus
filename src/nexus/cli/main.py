@@ -7,6 +7,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from nexus.core.deadlines import DeadlineParseError, format_deadline, parse_deadline
 from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     complete_task,
@@ -14,6 +15,7 @@ from nexus.storage.sqlite_db import (
     delete_task,
     initialize_database,
     list_tasks,
+    set_task_deadline,
     update_task,
 )
 
@@ -77,6 +79,14 @@ def print_tool_results(
             task = result.get("task")
             if result.get("status") == "deleted" and isinstance(task, dict):
                 print(f"Đã xóa [{task['id']}] {task['content']}", flush=True)
+        elif name == "set_task_deadline" and isinstance(result, dict):
+            task = result.get("task")
+            if isinstance(task, dict) and task.get("due_at") is not None:
+                shown = format_deadline(task["due_at"])
+                print(
+                    f"Đã đặt hạn [{task['id']}] {shown}: {task['content']}",
+                    flush=True,
+                )
     return saved_count
 
 
@@ -84,7 +94,7 @@ def _database_snapshot(database_path: Path) -> list[dict] | dict:
     """Return a JSON-safe diagnostic snapshot without breaking the chat."""
     try:
         return [
-            {"id": task.id, "content": task.content, "completed": task.completed}
+            {"id": task.id, "content": task.content, "completed": task.completed, "due_at": task.due_at}
             for task in list_tasks(database_path)
         ]
     except (sqlite3.Error, OSError) as error:
@@ -144,11 +154,19 @@ def run_chat(
         pending_complete_before = session.pending_complete
         pending_edit_id_before = session.pending_edit_id
         pending_edit_content_before = session.pending_edit_content
+        pending_deadline_id_before = session.pending_deadline_id
+        pending_deadline_text_before = session.pending_deadline_text
+        pending_deadline_reference_before = (
+            session.pending_deadline_reference.isoformat()
+            if session.pending_deadline_reference is not None
+            else None
+        )
         pending_delete_before = (
             {
                 "id": session.pending_delete_task.id,
                 "content": session.pending_delete_task.content,
                 "completed": session.pending_delete_task.completed,
+                "due_at": session.pending_delete_task.due_at,
             }
             if session.pending_delete_task is not None
             else None
@@ -261,12 +279,23 @@ def run_chat(
                         "pending_edit_id_after": session.pending_edit_id,
                         "pending_edit_content_before": pending_edit_content_before,
                         "pending_edit_content_after": session.pending_edit_content,
+                        "pending_deadline_id_before": pending_deadline_id_before,
+                        "pending_deadline_id_after": session.pending_deadline_id,
+                        "pending_deadline_text_before": pending_deadline_text_before,
+                        "pending_deadline_text_after": session.pending_deadline_text,
+                        "pending_deadline_reference_before": pending_deadline_reference_before,
+                        "pending_deadline_reference_after": (
+                            session.pending_deadline_reference.isoformat()
+                            if session.pending_deadline_reference is not None
+                            else None
+                        ),
                         "pending_delete_before": pending_delete_before,
                         "pending_delete_after": (
                             {
                                 "id": session.pending_delete_task.id,
                                 "content": session.pending_delete_task.content,
                                 "completed": session.pending_delete_task.completed,
+                                "due_at": session.pending_delete_task.due_at,
                             }
                             if session.pending_delete_task is not None
                             else None
@@ -332,6 +361,13 @@ def main() -> int:
     edit_parser.add_argument("content", type=_single_line_content, help="Nội dung mới")
     delete_parser = commands.add_parser("delete", help="Xóa vĩnh viễn một việc theo ID")
     delete_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
+    deadline_parser = commands.add_parser(
+        "deadline", help="Đặt hoặc đổi thời hạn của một việc theo ID"
+    )
+    deadline_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
+    deadline_parser.add_argument(
+        "when", help='Thời hạn, ví dụ "8 giờ sáng mai"'
+    )
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
     from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, SYSTEM_PROMPTS
@@ -418,6 +454,32 @@ def main() -> int:
                 print(f"Không tìm thấy việc có ID {args.id}.")
                 return 1
             print(f"Đã xóa [{deleted.task.id}] {deleted.task.content}")
+        elif args.command == "deadline":
+            try:
+                due_at = parse_deadline(args.when)
+            except DeadlineParseError as error:
+                print(f"Thời hạn không hợp lệ: {error}", file=sys.stderr)
+                return 2
+            deadline = set_task_deadline(args.db, args.id, due_at)
+            if deadline.status.value == "not_found":
+                print(f"Không tìm thấy việc có ID {args.id}.")
+                return 1
+            shown = format_deadline(deadline.task.due_at)
+            if deadline.status.value == "set":
+                print(
+                    f"Đã đặt hạn [{deadline.task.id}] vào {shown}: "
+                    f"{deadline.task.content}"
+                )
+            elif deadline.status.value == "updated":
+                print(
+                    f"Đã đổi hạn [{deadline.task.id}] thành {shown}: "
+                    f"{deadline.task.content}"
+                )
+            else:
+                print(
+                    f"Việc [{deadline.task.id}] đã có hạn {shown}: "
+                    f"{deadline.task.content}"
+                )
         elif args.command == "ask":
             from nexus.agent.client import PostToolExecutionError, chat, run_turn
             import urllib.error
@@ -483,7 +545,10 @@ def main() -> int:
                 print("Danh sách trống.")
             for task in tasks:
                 marker = "x" if task.completed else " "
-                print(f"[{task.id}] [{marker}] {task.content}")
+                line = f"[{task.id}] [{marker}] {task.content}"
+                if task.due_at is not None:
+                    line += f" — hạn {format_deadline(task.due_at)}"
+                print(line)
     except (sqlite3.Error, OSError, DatabaseSchemaError) as error:
         print(f"Lỗi: {error}", file=sys.stderr)
         if saved_count:

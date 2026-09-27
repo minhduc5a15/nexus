@@ -3,12 +3,13 @@
 from typing import Any
 
 from nexus.agent.policy import PolicyReason
+from nexus.core.deadlines import format_deadline
 
 
 def format_rejection(reason: PolicyReason) -> str:
     """Describe a rejected proposal without exposing model arguments."""
     if reason in (PolicyReason.UNSUPPORTED_ACTION, PolicyReason.UNSUPPORTED_TOOL):
-        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID."
+        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID."
     if reason in (
         PolicyReason.CONTENT_NOT_GROUNDED,
         PolicyReason.CONTENT_BOUNDARY_MISMATCH,
@@ -23,12 +24,34 @@ def format_tool_result(name: str, result: Any) -> str:
     Raises ValueError on any schema violation, unknown tool, or unhandled input.
     """
     if not isinstance(name, str) or name not in (
-        "create_task", "list_tasks", "complete_task", "update_task", "delete_task"
+        "create_task", "list_tasks", "complete_task", "update_task", "delete_task",
+        "set_task_deadline",
     ):
         raise ValueError(f"Unknown or unsupported tool: {name!r}")
 
     if not isinstance(result, dict) or isinstance(result, bool):
         raise ValueError("Result must be a dictionary")
+
+    if name == "set_task_deadline":
+        if set(result.keys()) != {"status", "task"}:
+            raise ValueError("Deadline result must contain exactly 'status' and 'task'")
+        status = result["status"]
+        if status not in ("set", "updated", "unchanged", "not_found"):
+            raise ValueError(f"Unknown deadline status: {status!r}")
+        task = result["task"]
+        if status == "not_found":
+            if task is not None:
+                raise ValueError("not_found deadline must have a null task")
+            return "Không tìm thấy việc có ID đã yêu cầu."
+        _validate_task(task, "deadline")
+        if task["due_at"] is None:
+            raise ValueError("Deadline result task must have due_at")
+        shown = format_deadline(task["due_at"])
+        if status == "set":
+            return f"Đã đặt hạn [{task['id']}] vào {shown}: {task['content']}"
+        if status == "updated":
+            return f"Đã đổi hạn [{task['id']}] thành {shown}: {task['content']}"
+        return f"Việc [{task['id']}] đã có hạn {shown}: {task['content']}"
 
     if name == "complete_task":
         if set(result.keys()) != {"status", "task"}:
@@ -63,8 +86,11 @@ def format_tool_result(name: str, result: Any) -> str:
         if status == "deleted":
             return f"Đã xóa [{task['id']}] {task['content']}"
         marker = "x" if task["completed"] else " "
+        description = f"[{marker}] {task['content']}"
+        if task["due_at"] is not None:
+            description += f" — hạn {format_deadline(task['due_at'])}"
         return (
-            f"Việc [{task['id']}] đã thay đổi thành [{marker}] {task['content']}. "
+            f"Việc [{task['id']}] đã thay đổi thành {description}. "
             "Hãy xác nhận lại nếu bạn vẫn muốn xóa."
         )
 
@@ -112,7 +138,10 @@ def format_tool_result(name: str, result: Any) -> str:
         lines = [f"Danh sách hiện có {len(tasks)} việc:"]
         for task in tasks:
             marker = "x" if task["completed"] else " "
-            lines.append(f"[{task['id']}] [{marker}] {task['content']}")
+            line = f"[{task['id']}] [{marker}] {task['content']}"
+            if task["due_at"] is not None:
+                line += f" — hạn {format_deadline(task['due_at'])}"
+            lines.append(line)
         return "\n".join(lines)
 
     raise ValueError(f"Unhandled tool: {name!r}")
@@ -121,9 +150,9 @@ def format_tool_result(name: str, result: Any) -> str:
 def _validate_task(item: Any, location: str) -> None:
     if not isinstance(item, dict) or isinstance(item, bool):
         raise ValueError(f"Task at {location} must be a dictionary")
-    if set(item.keys()) != {"id", "content", "completed"}:
+    if set(item.keys()) != {"id", "content", "completed", "due_at"}:
         raise ValueError(
-            f"Task at {location} must contain exactly 'id', 'content' and 'completed' keys"
+            f"Task at {location} must contain exactly id, content, completed and due_at"
         )
     task_id = item["id"]
     if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id <= 0:
@@ -133,3 +162,6 @@ def _validate_task(item: Any, location: str) -> None:
         raise ValueError(f"Task content at {location} must be a non-empty string, got {content!r}")
     if type(item["completed"]) is not bool:
         raise ValueError(f"Task completed at {location} must be a boolean")
+    due_at = item["due_at"]
+    if due_at is not None and (isinstance(due_at, bool) or not isinstance(due_at, int)):
+        raise ValueError(f"Task due_at at {location} must be an integer or null")

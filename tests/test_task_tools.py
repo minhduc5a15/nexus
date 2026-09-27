@@ -95,7 +95,7 @@ class TaskToolTests(unittest.TestCase):
             first,
             {
                 "status": "completed",
-                "task": {"id": task_id, "content": "mua sữa", "completed": True},
+                "task": {"id": task_id, "content": "mua sữa", "completed": True, "due_at": None},
             },
         )
         second = execute_tool(self.database_path, "complete_task", {"id": task_id})
@@ -125,6 +125,7 @@ class TaskToolTests(unittest.TestCase):
                     "id": created["id"],
                     "content": "mua sữa không đường",
                     "completed": True,
+                    "due_at": None,
                 },
             },
         )

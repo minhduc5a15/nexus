@@ -1,9 +1,12 @@
 """Authorize supported requests and verify verbatim, complete content spans."""
 
 import re
+from datetime import datetime
 from typing import Any
 from enum import Enum
 from dataclasses import dataclass
+
+from nexus.core.deadlines import DeadlineParseError, parse_deadline
 
 
 class PolicyResult(str, Enum):
@@ -19,11 +22,15 @@ class PolicyReason(str, Enum):
     EXPLICIT_COMPLETE = "explicit_complete"
     EXPLICIT_UPDATE = "explicit_update"
     EXPLICIT_DELETE = "explicit_delete"
+    EXPLICIT_DEADLINE = "explicit_deadline"
     MISSING_CONTENT = "missing_content"
     MISSING_TASK_ID = "missing_task_id"
     MISSING_UPDATE_ID = "missing_update_id"
     MISSING_UPDATE_CONTENT = "missing_update_content"
     MISSING_DELETE_ID = "missing_delete_id"
+    MISSING_DEADLINE_ID = "missing_deadline_id"
+    MISSING_DEADLINE_TIME = "missing_deadline_time"
+    INVALID_DEADLINE_TIME = "invalid_deadline_time"
     MULTIPLE_TASK_IDS = "multiple_task_ids"
     TASK_ID_MISMATCH = "task_id_mismatch"
     NEGATED_REQUEST = "negated_request"
@@ -51,6 +58,10 @@ class RequestKind(str, Enum):
     DELETE = "delete"
     MISSING_DELETE_ID = "missing_delete_id"
     MULTIPLE_DELETE = "multiple_delete"
+    DEADLINE = "deadline"
+    MISSING_DEADLINE_ID = "missing_deadline_id"
+    MISSING_DEADLINE_TIME = "missing_deadline_time"
+    MULTIPLE_DEADLINE = "multiple_deadline"
     UNSUPPORTED = "unsupported"
     NEGATED = "negated"
     OTHER = "other"
@@ -79,6 +90,7 @@ class ToolDecision:
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_LIST),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE),
+            (PolicyResult.ALLOW, PolicyReason.EXPLICIT_DEADLINE),
             (PolicyResult.REQUIRES_CONFIRMATION, PolicyReason.EXPLICIT_DELETE),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID),
@@ -86,6 +98,9 @@ class ToolDecision:
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_ID),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DELETE_ID),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_ID),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_TIME),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.INVALID_DEADLINE_TIME),
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
@@ -227,6 +242,23 @@ _DELETE_EXACT = re.compile(
 )
 
 
+_DEADLINE_COMMAND_HEAD = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?"
+    rf"đặt{_H}(?:hạn|deadline|thời{_H}hạn)\b",
+    re.IGNORECASE,
+)
+_NEGATED_DEADLINE_HEAD = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}đặt{_H}(?:hạn|deadline|thời{_H}hạn)\b",
+    re.IGNORECASE,
+)
+_DEADLINE_SEPARATOR = re.compile(rf"{_H}(?:lúc|là|vào)(?:{_H}|\s*$)", re.IGNORECASE)
+_DEADLINE_BEFORE = re.compile(
+    rf"^(?:cho{_H})?(?:(?:việc|task)(?:{_H}#?[0-9]+)?)?$",
+    re.IGNORECASE,
+)
+
+
 @dataclass(frozen=True)
 class _CompleteRequest:
     task_id: int
@@ -235,6 +267,24 @@ class _CompleteRequest:
 @dataclass(frozen=True)
 class _DeleteRequest:
     task_id: int
+
+
+@dataclass(frozen=True)
+class _DeadlineRequest:
+    task_id: int
+    when_start: int
+    when_end: int
+    punctuation_end: int
+
+
+@dataclass(frozen=True)
+class _DeadlineParts:
+    ids: tuple[int, ...]
+    before: str
+    when: str | None
+    when_start: int | None
+    when_end: int | None
+    punctuation_end: int | None
 
 
 @dataclass(frozen=True)
@@ -341,6 +391,128 @@ def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
     if content not in prompt:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
     return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH)
+
+
+def _parse_deadline_parts(prompt: str) -> _DeadlineParts | None:
+    head = _DEADLINE_COMMAND_HEAD.match(prompt)
+    if head is None:
+        return None
+    tail = prompt[head.end():]
+    separator = _DEADLINE_SEPARATOR.search(tail)
+    if separator is None:
+        before = tail.strip().rstrip(".?!").rstrip()
+        when = None
+        when_start = None
+        when_end = None
+        punctuation_end = None
+    else:
+        before = tail[:separator.start()].strip()
+        when_start = head.end() + separator.end()
+        while when_start < len(prompt) and prompt[when_start].isspace():
+            when_start += 1
+        punctuation_end = len(prompt.rstrip())
+        when_end = punctuation_end
+        while when_end > when_start and prompt[when_end - 1] in ".?!":
+            when_end -= 1
+        while when_end > when_start and prompt[when_end - 1].isspace():
+            when_end -= 1
+        when = prompt[when_start:when_end] if when_start < when_end else None
+    ids = tuple(int(value) for value in _ID_TOKEN.findall(before))
+    return _DeadlineParts(
+        ids, before, when, when_start, when_end, punctuation_end
+    )
+
+
+def deadline_request_fields(prompt: str) -> tuple[int | None, str | None]:
+    """Return the reusable ID and raw time phrase from a deadline request."""
+    parts = _parse_deadline_parts(prompt)
+    if parts is None:
+        return None, None
+    task_id = parts.ids[0] if len(parts.ids) == 1 else None
+    return task_id, parts.when
+
+
+def _authorize_deadline(
+    prompt: str, *, reference_time: datetime | None = None
+) -> _DeadlineRequest | ToolDecision:
+    if _NEGATED_DEADLINE_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+    parts = _parse_deadline_parts(prompt)
+    if parts is None:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    if len(parts.ids) > 1:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
+        )
+    if not _DEADLINE_BEFORE.fullmatch(parts.before):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    if not parts.ids:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_ID
+        )
+    task_id = parts.ids[0]
+    if task_id <= 0:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+    if parts.when is None:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_TIME
+        )
+    try:
+        parse_deadline(parts.when, reference=reference_time)
+    except DeadlineParseError:
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION, PolicyReason.INVALID_DEADLINE_TIME
+        )
+    return _DeadlineRequest(
+        task_id,
+        parts.when_start,
+        parts.when_end,
+        parts.punctuation_end,
+    )
+
+
+def policy_for_set_task_deadline(
+    prompt: Any,
+    arguments: Any,
+    *,
+    reference_time: datetime | None = None,
+) -> ToolDecision:
+    if not isinstance(prompt, str) or not prompt.strip():
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    request = _authorize_deadline(prompt, reference_time=reference_time)
+    if isinstance(request, ToolDecision):
+        return request
+    if (
+        not isinstance(arguments, dict)
+        or set(arguments) != {"id", "when"}
+        or isinstance(arguments["id"], bool)
+        or not isinstance(arguments["id"], int)
+        or arguments["id"] <= 0
+        or not isinstance(arguments["when"], str)
+        or not arguments["when"].strip()
+        or "\n" in arguments["when"]
+        or "\r" in arguments["when"]
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    if arguments["id"] != request.task_id:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
+    when = arguments["when"]
+    expected = prompt[request.when_start:request.when_end]
+    with_punctuation = prompt[request.when_start:request.punctuation_end]
+    if when in (expected, with_punctuation):
+        try:
+            parse_deadline(when, reference=reference_time)
+        except DeadlineParseError:
+            return ToolDecision(
+                PolicyResult.NEEDS_CLARIFICATION,
+                PolicyReason.INVALID_DEADLINE_TIME,
+            )
+        return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_DEADLINE)
+    if when not in prompt:
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
+    return ToolDecision(
+        PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH
+    )
 
 
 def _authorize_delete(prompt: str) -> _DeleteRequest | ToolDecision:
@@ -599,6 +771,20 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.MULTIPLE_DELETE
     if deleted.reason == PolicyReason.NEGATED_REQUEST:
         return RequestKind.NEGATED
+    deadline = _authorize_deadline(prompt)
+    if isinstance(deadline, _DeadlineRequest):
+        return RequestKind.DEADLINE
+    if deadline.reason == PolicyReason.MISSING_DEADLINE_ID:
+        return RequestKind.MISSING_DEADLINE_ID
+    if deadline.reason in (
+        PolicyReason.MISSING_DEADLINE_TIME,
+        PolicyReason.INVALID_DEADLINE_TIME,
+    ):
+        return RequestKind.MISSING_DEADLINE_TIME
+    if deadline.reason == PolicyReason.MULTIPLE_TASK_IDS:
+        return RequestKind.MULTIPLE_DEADLINE
+    if deadline.reason == PolicyReason.NEGATED_REQUEST:
+        return RequestKind.NEGATED
     listed = policy_for_list_tasks(prompt, {})
     if listed.result == PolicyResult.ALLOW:
         return RequestKind.LIST
@@ -616,6 +802,8 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.EDIT
     if _DELETE_COMMAND_HEAD.match(prompt):
         return RequestKind.DELETE
+    if _DEADLINE_COMMAND_HEAD.match(prompt):
+        return RequestKind.DEADLINE
     if _UNSUPPORTED_HEAD.match(prompt):
         return RequestKind.UNSUPPORTED
     return RequestKind.OTHER
@@ -654,7 +842,13 @@ def policy_for_create_task(prompt: Any, arguments: Any) -> ToolDecision:
     return _ground_content(prompt, arguments["content"], request)
 
 
-def policy_for_tool(prompt: Any, tool_name: Any, arguments: Any) -> ToolDecision:
+def policy_for_tool(
+    prompt: Any,
+    tool_name: Any,
+    arguments: Any,
+    *,
+    reference_time: datetime | None = None,
+) -> ToolDecision:
     if not isinstance(tool_name, str) or not tool_name.strip():
         return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
 
@@ -668,5 +862,9 @@ def policy_for_tool(prompt: Any, tool_name: Any, arguments: Any) -> ToolDecision
         return policy_for_update_task(prompt, arguments)
     if tool_name == "delete_task":
         return policy_for_delete_task(prompt, arguments)
+    if tool_name == "set_task_deadline":
+        return policy_for_set_task_deadline(
+            prompt, arguments, reference_time=reference_time
+        )
 
     return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL)

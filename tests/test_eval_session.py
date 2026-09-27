@@ -170,5 +170,44 @@ class SessionEvaluationTests(unittest.TestCase):
         self.assertEqual(stale["turns"][2]["status"], "needs_confirmation")
         self.assertEqual(stale["turns"][2]["safety"]["deleted_ids"], [])
 
+
+    def test_deadline_feature_dataset_checks_time_changes_and_safety(self):
+        cases = load_cases("deadline_feature_v1.json")
+        results = [
+            evaluate_conversation(case, prompt_version="v12")
+            for case in cases.values()
+        ]
+        self.assertTrue(all(result["status"] == "pass" for result in results))
+        summary = summarize(results)
+        self.assertEqual(summary["cases"], {"total": 14, "pass": 14, "fail": 0})
+        self.assertEqual(summary["turns"], {"total": 29, "pass": 29, "fail": 0})
+        self.assertEqual(summary["safety"]["unrequested_deadline_change_turns"], 0)
+
+        wrong = next(
+            result for result in results
+            if result["id"] == "deadline_wrong_model_id"
+        )
+        self.assertEqual(
+            wrong["turns"][0]["rejected_calls"][0]["reason"],
+            "task_id_mismatch",
+        )
+        rewritten = next(
+            result for result in results
+            if result["id"] == "deadline_rewritten_time"
+        )
+        self.assertEqual(
+            rewritten["turns"][0]["rejected_calls"][0]["reason"],
+            "content_not_grounded",
+        )
+        changed = next(
+            result for result in results
+            if result["id"] == "deadline_set_then_list"
+        )
+        self.assertEqual(
+            changed["turns"][0]["safety"]["deadline_changes"],
+            [{"id": 1, "before": None, "after": 1790470800}],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nexus.core.models import CompletionStatus, DeleteStatus, Task, UpdateStatus
+from nexus.core.models import (
+    CompletionStatus, DeadlineStatus, DeleteStatus, Task, UpdateStatus,
+)
 from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     SCHEMA_VERSION,
@@ -15,6 +17,7 @@ from nexus.storage.sqlite_db import (
     get_task,
     initialize_database,
     list_tasks,
+    set_task_deadline,
     update_task,
 )
 
@@ -34,7 +37,7 @@ class TaskStoreTests(unittest.TestCase):
                 SCHEMA_VERSION,
             )
             columns = connection.execute("PRAGMA table_info(tasks)").fetchall()
-        self.assertEqual([column[1] for column in columns], ["id", "content", "completed"])
+        self.assertEqual([column[1] for column in columns], ["id", "content", "completed", "due_at"])
 
     def test_duplicate_content_creates_distinct_tasks(self):
         first = create_task(self.database_path, "mua sữa")
@@ -260,6 +263,78 @@ class TaskStoreTests(unittest.TestCase):
         self.assertEqual(list_tasks(version_1), [Task(7, "đã xong", True)])
         created = create_task(version_1, "mới")
         self.assertEqual(created.id, 8)
+
+    def test_migrates_version_2_and_preserves_ids_content_and_completion(self):
+        version_2 = Path(self.directory.name) / "version-2.db"
+        with sqlite3.connect(version_2) as connection:
+            connection.execute("""CREATE TABLE tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                completed INTEGER NOT NULL DEFAULT 0 CHECK(completed IN (0, 1))
+            )""")
+            connection.execute(
+                "INSERT INTO tasks (id, content, completed) VALUES (4, 'giữ nguyên', 1)"
+            )
+            connection.execute(
+                "INSERT INTO tasks (id, content, completed) VALUES (10, 'đã xóa', 0)"
+            )
+            connection.execute("DELETE FROM tasks WHERE id = 10")
+            connection.execute("PRAGMA user_version = 2")
+
+        initialize_database(version_2)
+        self.assertEqual(
+            list_tasks(version_2), [Task(4, "giữ nguyên", True, None)]
+        )
+        initialize_database(version_2)
+        self.assertEqual(create_task(version_2, "mới").id, 11)
+
+    def test_deadline_set_update_unchanged_not_found_and_preserves_other_fields(self):
+        task = create_task(self.database_path, "mua sữa")
+        complete_task(self.database_path, task.id)
+
+        first = set_task_deadline(self.database_path, task.id, 1_800_000_000)
+        self.assertEqual(first.status, DeadlineStatus.SET)
+        self.assertEqual(
+            first.task, Task(task.id, "mua sữa", True, 1_800_000_000)
+        )
+        unchanged = set_task_deadline(self.database_path, task.id, 1_800_000_000)
+        self.assertEqual(unchanged.status, DeadlineStatus.UNCHANGED)
+        self.assertEqual(unchanged.task, first.task)
+        updated = set_task_deadline(self.database_path, task.id, 1_900_000_000)
+        self.assertEqual(updated.status, DeadlineStatus.UPDATED)
+        self.assertEqual(updated.task.due_at, 1_900_000_000)
+        self.assertTrue(updated.task.completed)
+
+        edited = update_task(self.database_path, task.id, "mua bánh")
+        self.assertEqual(edited.task.due_at, 1_900_000_000)
+        missing = set_task_deadline(self.database_path, 999, 1_800_000_000)
+        self.assertEqual(missing.status, DeadlineStatus.NOT_FOUND)
+        self.assertIsNone(missing.task)
+
+    def test_deadline_validates_arguments_and_rolls_back(self):
+        task = create_task(self.database_path, "giữ nguyên")
+        cases = (
+            (True, 1), (0, 1), ("1", 1), (task.id, True),
+            (task.id, 1.0), (task.id, "1"),
+        )
+        for task_id, due_at in cases:
+            with self.subTest(task_id=task_id, due_at=due_at), self.assertRaises(ValueError):
+                set_task_deadline(self.database_path, task_id, due_at)
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute("""
+                CREATE TRIGGER fail_deadline BEFORE UPDATE OF due_at ON tasks
+                BEGIN SELECT RAISE(ABORT, 'failure'); END
+            """)
+        with self.assertRaises(sqlite3.IntegrityError):
+            set_task_deadline(self.database_path, task.id, 1_800_000_000)
+        self.assertEqual(list_tasks(self.database_path), [task])
+
+    def test_deadline_change_makes_delete_snapshot_stale(self):
+        task = create_task(self.database_path, "giữ snapshot")
+        set_task_deadline(self.database_path, task.id, 1_800_000_000)
+        stale = delete_task(self.database_path, task.id, expected_task=task)
+        self.assertEqual(stale.status, DeleteStatus.STALE)
+        self.assertEqual(stale.task.due_at, 1_800_000_000)
 
     def test_delete_success_not_found_stale_and_id_is_not_reused(self):
         first = create_task(self.database_path, "một")

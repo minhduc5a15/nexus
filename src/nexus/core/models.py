@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 @dataclass(frozen=True)
 class Task:
     id: int
     content: str
     completed: bool = False
+    due_at: int | None = None
 
 
 class CompletionStatus(str, Enum):
@@ -41,4 +43,17 @@ class DeleteStatus(str, Enum):
 @dataclass(frozen=True)
 class DeleteResult:
     status: DeleteStatus
+    task: Task | None
+
+
+class DeadlineStatus(str, Enum):
+    SET = "set"
+    UPDATED = "updated"
+    UNCHANGED = "unchanged"
+    NOT_FOUND = "not_found"
+
+
+@dataclass(frozen=True)
+class DeadlineResult:
+    status: DeadlineStatus
     task: Task | None
