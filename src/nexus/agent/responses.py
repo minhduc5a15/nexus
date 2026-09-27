@@ -9,7 +9,7 @@ from nexus.core.deadlines import format_deadline
 def format_rejection(reason: PolicyReason) -> str:
     """Describe a rejected proposal without exposing model arguments."""
     if reason in (PolicyReason.UNSUPPORTED_ACTION, PolicyReason.UNSUPPORTED_TOOL):
-        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID."
+        return "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID hoặc xem việc theo hạn."
     if reason in (
         PolicyReason.CONTENT_NOT_GROUNDED,
         PolicyReason.CONTENT_BOUNDARY_MISMATCH,
@@ -25,12 +25,45 @@ def format_tool_result(name: str, result: Any) -> str:
     """
     if not isinstance(name, str) or name not in (
         "create_task", "list_tasks", "complete_task", "update_task", "delete_task",
-        "set_task_deadline",
+        "set_task_deadline", "list_tasks_by_deadline",
     ):
         raise ValueError(f"Unknown or unsupported tool: {name!r}")
 
     if not isinstance(result, dict) or isinstance(result, bool):
         raise ValueError("Result must be a dictionary")
+
+    if name == "list_tasks_by_deadline":
+        if set(result.keys()) != {"scope", "tasks"}:
+            raise ValueError(
+                "Deadline query result must contain exactly 'scope' and 'tasks'"
+            )
+        scope = result["scope"]
+        if scope not in ("today", "tomorrow", "overdue"):
+            raise ValueError(f"Unknown deadline scope: {scope!r}")
+        tasks = result["tasks"]
+        if not isinstance(tasks, list):
+            raise ValueError("'tasks' must be a list")
+        for index, item in enumerate(tasks):
+            _validate_task(item, f"index {index}")
+            if item["completed"] or item["due_at"] is None:
+                raise ValueError(
+                    "Deadline query tasks must be incomplete and have due_at"
+                )
+        labels = {
+            "today": "đến hạn hôm nay",
+            "tomorrow": "đến hạn ngày mai",
+            "overdue": "quá hạn",
+        }
+        label = labels[scope]
+        if not tasks:
+            return f"Không có việc chưa hoàn thành {label}."
+        lines = [f"Có {len(tasks)} việc chưa hoàn thành {label}:"]
+        for task in tasks:
+            lines.append(
+                f"[{task['id']}] [ ] {task['content']} — "
+                f"hạn {format_deadline(task['due_at'])}"
+            )
+        return "\n".join(lines)
 
     if name == "set_task_deadline":
         if set(result.keys()) != {"status", "task"}:

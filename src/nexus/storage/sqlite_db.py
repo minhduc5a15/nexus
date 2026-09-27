@@ -3,12 +3,15 @@
 import re
 import sqlite3
 from contextlib import closing
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
+from nexus.core.deadlines import VIETNAM_TIMEZONE, vietnam_now
 from nexus.core.models import (
     CompletionResult,
     CompletionStatus,
     DeadlineResult,
+    DeadlineScope,
     DeadlineStatus,
     DeleteResult,
     DeleteStatus,
@@ -219,6 +222,44 @@ def list_tasks(database_path: str | Path) -> list[Task]:
     with closing(sqlite3.connect(database_path)) as connection:
         rows = connection.execute(
             f"SELECT {_TASK_FIELDS} FROM tasks ORDER BY id"
+        ).fetchall()
+    return [_task_from_row(row) for row in rows]
+
+
+def list_tasks_by_deadline(
+    database_path: str | Path,
+    scope: DeadlineScope,
+    *,
+    now: datetime | None = None,
+) -> list[Task]:
+    """Return incomplete tasks in one deterministic Vietnam-time deadline scope."""
+    if not isinstance(scope, DeadlineScope):
+        raise ValueError("scope must be a DeadlineScope")
+    reference = vietnam_now(now)
+    start_today = datetime.combine(
+        reference.date(), time.min, tzinfo=VIETNAM_TIMEZONE
+    )
+    if scope == DeadlineScope.TODAY:
+        lower = int(start_today.timestamp())
+        upper = int((start_today + timedelta(days=1)).timestamp())
+        predicate = "due_at >= ? AND due_at < ?"
+        values = (lower, upper)
+    elif scope == DeadlineScope.TOMORROW:
+        start_tomorrow = start_today + timedelta(days=1)
+        lower = int(start_tomorrow.timestamp())
+        upper = int((start_tomorrow + timedelta(days=1)).timestamp())
+        predicate = "due_at >= ? AND due_at < ?"
+        values = (lower, upper)
+    else:
+        predicate = "due_at < ?"
+        values = (int(reference.timestamp()),)
+
+    with closing(sqlite3.connect(database_path)) as connection:
+        rows = connection.execute(
+            f"""SELECT {_TASK_FIELDS} FROM tasks
+                WHERE completed = 0 AND due_at IS NOT NULL AND {predicate}
+                ORDER BY due_at, id""",
+            values,
         ).fetchall()
     return [_task_from_row(row) for row in rows]
 

@@ -514,7 +514,7 @@ class PolicyIntegrationInRunTurnTests(unittest.TestCase):
         self.assertEqual(turn["rejected_calls"][0]["reason"], "unsupported_tool")
         self.assertEqual(
             turn["reply"],
-            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID.",
+            "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID hoặc xem việc theo hạn.",
         )
         self.assertEqual(list_tasks(self.db_path), [])
 

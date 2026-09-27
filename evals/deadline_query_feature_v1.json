@@ -1,0 +1,1965 @@
+{
+  "feature": "deadline_query",
+  "contract": "read_only_incomplete_tasks_today_tomorrow_overdue",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "cases": [
+    {
+      "id": "three_deadline_scopes_and_overlap",
+      "category": "happy_path",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc đến hạn hôm nay.",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "đến hạn hôm nay",
+              "[2]",
+              "[3]"
+            ],
+            "queried_task_ids": [
+              2,
+              3
+            ]
+          }
+        },
+        {
+          "prompt": "Cho tôi xem các việc quá hạn.",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "overdue"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "overdue"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "quá hạn",
+              "[1]",
+              "[2]"
+            ],
+            "queried_task_ids": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "prompt": "Ngày mai có những task nào đến hạn?",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "tomorrow"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "tomorrow"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "đến hạn ngày mai",
+              "[4]"
+            ],
+            "queried_task_ids": [
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing_scope_continuation",
+      "category": "continuation",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc theo hạn",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "hôm nay, ngày mai hay đã quá hạn"
+            ]
+          }
+        },
+        {
+          "prompt": "hôm nay",
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "đến hạn hôm nay"
+            ],
+            "queried_task_ids": [
+              2,
+              3
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "invalid_scope_then_retry",
+      "category": "continuation",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem các task đến hạn",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "prompt": "tuần này",
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "prompt": "quá hạn",
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "overdue"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "quá hạn"
+            ],
+            "queried_task_ids": [
+              1,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cancel_pending_scope",
+      "category": "session",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc theo hạn",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "prompt": "hủy",
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "idle",
+            "status": "cancelled",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "Đã hủy"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "list_replaces_pending_scope",
+      "category": "session",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc theo hạn",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "prompt": "Xem danh sách",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "Danh sách hiện có 6 việc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "model_changes_scope",
+      "category": "safety",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc đến hạn hôm nay.",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "tomorrow"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous_today_question",
+      "category": "safety",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Hôm nay tôi có gì?",
+          "model": {
+            "reply": "Bạn muốn xem gì?"
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "query_batch_rejected",
+      "category": "contract",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc đến hạn hôm nay.",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              },
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [
+              "Không có thao tác"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pending_scope_session_isolation",
+      "category": "isolation",
+      "reference_time": "2026-09-27T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm qua",
+        "việc sáng nay",
+        "việc trưa nay",
+        "việc ngày mai",
+        "việc đã xong",
+        "việc không hạn"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "việc hôm qua",
+          "completed": false,
+          "due_at": 1790434800
+        },
+        {
+          "id": 2,
+          "content": "việc sáng nay",
+          "completed": false,
+          "due_at": 1790470800
+        },
+        {
+          "id": 3,
+          "content": "việc trưa nay",
+          "completed": false,
+          "due_at": 1790485200
+        },
+        {
+          "id": 4,
+          "content": "việc ngày mai",
+          "completed": false,
+          "due_at": 1790560800
+        },
+        {
+          "id": 5,
+          "content": "việc đã xong",
+          "completed": true,
+          "due_at": 1790470800
+        },
+        {
+          "id": 6,
+          "content": "việc không hạn",
+          "completed": false,
+          "due_at": null
+        }
+      ],
+      "turns": [
+        {
+          "session": "a",
+          "prompt": "Xem việc theo hạn",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_deadline_scope",
+            "status": "needs_clarification",
+            "model_called": false,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "session": "b",
+          "prompt": "hôm nay",
+          "model": {
+            "reply": "?"
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": []
+          }
+        },
+        {
+          "session": "a",
+          "prompt": "ngày mai",
+          "expected": {
+            "state_before": "awaiting_deadline_scope",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "tomorrow"
+                }
+              }
+            ],
+            "tasks": [
+              "việc hôm qua",
+              "việc sáng nay",
+              "việc trưa nay",
+              "việc ngày mai",
+              "việc đã xong",
+              "việc không hạn"
+            ],
+            "task_states": [
+              {
+                "id": 1,
+                "content": "việc hôm qua",
+                "completed": false,
+                "due_at": 1790434800
+              },
+              {
+                "id": 2,
+                "content": "việc sáng nay",
+                "completed": false,
+                "due_at": 1790470800
+              },
+              {
+                "id": 3,
+                "content": "việc trưa nay",
+                "completed": false,
+                "due_at": 1790485200
+              },
+              {
+                "id": 4,
+                "content": "việc ngày mai",
+                "completed": false,
+                "due_at": 1790560800
+              },
+              {
+                "id": 5,
+                "content": "việc đã xong",
+                "completed": true,
+                "due_at": 1790470800
+              },
+              {
+                "id": 6,
+                "content": "việc không hạn",
+                "completed": false,
+                "due_at": null
+              }
+            ],
+            "reply_contains": [],
+            "queried_task_ids": [
+              4
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

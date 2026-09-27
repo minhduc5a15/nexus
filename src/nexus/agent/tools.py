@@ -5,12 +5,13 @@ from datetime import datetime
 from pathlib import Path
 
 from nexus.core.deadlines import parse_deadline
-from nexus.core.models import Task
+from nexus.core.models import DeadlineScope, Task
 from nexus.storage.sqlite_db import (
     complete_task,
     create_tasks,
     delete_task,
     list_tasks,
+    list_tasks_by_deadline,
     set_task_deadline,
     update_task,
 )
@@ -47,6 +48,25 @@ TOOL_DEFINITIONS = [
         "parameters": {
             "type": "object",
             "properties": {},
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "list_tasks_by_deadline",
+        "description": (
+            "Xem các việc chưa hoàn thành có deadline thuộc đúng một phạm vi: "
+            "hôm nay, ngày mai hoặc quá hạn."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "scope": {
+                    "type": "string",
+                    "enum": ["today", "tomorrow", "overdue"],
+                    "description": "Phạm vi thời hạn đúng theo lời người dùng.",
+                }
+            },
+            "required": ["scope"],
             "additionalProperties": False,
         },
     },
@@ -155,13 +175,15 @@ def execute_tool(
     """
     if name not in (
         "create_task", "list_tasks", "complete_task", "update_task", "delete_task",
-        "set_task_deadline",
+        "set_task_deadline", "list_tasks_by_deadline",
     ):
         raise ValueError("Unknown tool")
     if name != "delete_task" and confirmed_task is not None:
         raise ValueError("confirmed_task is only valid for delete_task")
-    if name != "set_task_deadline" and reference_time is not None:
-        raise ValueError("reference_time is only valid for set_task_deadline")
+    if name not in ("set_task_deadline", "list_tasks_by_deadline") and reference_time is not None:
+        raise ValueError(
+            "reference_time is only valid for deadline tools"
+        )
     if not isinstance(arguments, dict):
         raise ValueError("Tool arguments must be an object")
 
@@ -182,6 +204,28 @@ def execute_tool(
         if arguments:
             raise ValueError("list_tasks does not accept arguments")
         return {"tasks": [asdict(task) for task in list_tasks(database_path)]}
+
+    if name == "list_tasks_by_deadline":
+        if set(arguments) != {"scope"}:
+            raise ValueError(
+                "list_tasks_by_deadline requires exactly one argument: scope"
+            )
+        raw_scope = arguments["scope"]
+        if not isinstance(raw_scope, str):
+            raise ValueError("scope must be today, tomorrow or overdue")
+        try:
+            scope = DeadlineScope(raw_scope)
+        except ValueError as error:
+            raise ValueError("scope must be today, tomorrow or overdue") from error
+        return {
+            "scope": scope.value,
+            "tasks": [
+                asdict(task)
+                for task in list_tasks_by_deadline(
+                    database_path, scope, now=reference_time
+                )
+            ],
+        }
 
     if name == "delete_task":
         if set(arguments) != {"id"}:

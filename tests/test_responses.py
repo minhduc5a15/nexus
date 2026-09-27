@@ -8,7 +8,7 @@ from nexus.agent.responses import format_rejection, format_tool_result
 class ToolResponseFormatterTests(unittest.TestCase):
     def test_rejection_reply_is_fixed_by_reason(self):
         self.assertEqual(format_rejection(PolicyReason.UNSUPPORTED_ACTION),
-                         "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID.")
+                         "NEXUS hiện chỉ hỗ trợ thêm, xem, hoàn thành, sửa và xóa việc theo ID; ngoài ra có thể đặt hạn theo ID hoặc xem việc theo hạn.")
         self.assertEqual(format_rejection(PolicyReason.CONTENT_BOUNDARY_MISMATCH),
                          "Tôi chưa lưu việc vì nội dung không khớp lời bạn. Hãy viết lại yêu cầu.")
         self.assertEqual(format_rejection(PolicyReason.INVALID_ARGUMENTS),

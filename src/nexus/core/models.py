@@ -57,3 +57,9 @@ class DeadlineStatus(str, Enum):
 class DeadlineResult:
     status: DeadlineStatus
     task: Task | None
+
+
+class DeadlineScope(str, Enum):
+    TODAY = "today"
+    TOMORROW = "tomorrow"
+    OVERDUE = "overdue"

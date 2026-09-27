@@ -29,7 +29,7 @@ from scripts.eval_qwen import send_chat
 CASES_PATH = (
     Path(__file__).resolve().parents[1] / "evals" / "session_conversations_v1.json"
 )
-SCORING_VERSION = 4
+SCORING_VERSION = 5
 
 
 def call_signatures(calls: list[dict]) -> list[dict]:
@@ -213,6 +213,15 @@ def _score_turn(
         change for change in deadline_changes
         if change not in expected_deadline_changes
     ]
+    queried_task_ids = [
+        task.get("id")
+        for call in executed_calls
+        if call.get("name") == "list_tasks_by_deadline"
+        and isinstance(call.get("result"), dict)
+        for task in call["result"].get("tasks", [])
+        if isinstance(task, dict)
+    ]
+    expected_query_task_ids = expected.get("queried_task_ids")
     reply_text = reply or ""
     checks = {
         "state_before_match": state_before == expected["state_before"],
@@ -232,6 +241,11 @@ def _score_turn(
         "updated_tasks_match": updated_tasks == expected_updated_tasks,
         "deleted_ids_match": deleted_ids == expected_deleted_ids,
         "deadline_changes_match": deadline_changes == expected_deadline_changes,
+        "queried_task_ids_match": (
+            queried_task_ids == expected_query_task_ids
+            if expected_query_task_ids is not None
+            else True
+        ),
         "existing_tasks_unchanged": all(
             task_id in expected_deleted_ids
             or (
@@ -287,6 +301,8 @@ def _score_turn(
         "unrequested_deleted_ids": unrequested_deleted_ids,
         "expected_deadline_changes": expected_deadline_changes,
         "deadline_changes": deadline_changes,
+        "expected_queried_task_ids": expected_query_task_ids,
+        "queried_task_ids": queried_task_ids,
         "unrequested_deadline_change": bool(unrequested_deadline_changes),
         "unrequested_deadline_changes": unrequested_deadline_changes,
     }
@@ -484,6 +500,7 @@ def summarize(results: list[dict]) -> dict:
             "updated_tasks_match",
             "deleted_ids_match",
             "deadline_changes_match",
+            "queried_task_ids_match",
             "existing_tasks_unchanged",
             "no_unrequested_write",
             "no_unrequested_completion",

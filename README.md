@@ -29,6 +29,9 @@ và phát triển dự án. Không cần model để dùng các lệnh trực ti
 .venv/bin/nexus complete 1
 .venv/bin/nexus edit 1 "mua sữa không đường"
 .venv/bin/nexus deadline 1 "8 giờ sáng mai"
+.venv/bin/nexus due today
+.venv/bin/nexus due tomorrow
+.venv/bin/nexus due overdue
 .venv/bin/nexus delete 1
 ```
 
@@ -158,12 +161,12 @@ trả exit code `1` và không tự retry. Hãy xem danh sách trước khi gử
 cầu để tránh tạo task trùng.
 
 Nếu ứng dụng cần nhận nhiều tin nhắn trong cùng một cuộc trò chuyện, dùng
-`AgentSession` riêng cho từng cuộc trò chuyện. State machine có chín trạng thái
+`AgentSession` riêng cho từng cuộc trò chuyện. State machine có mười trạng thái
 trong bộ nhớ: `idle`, `awaiting_create_content`, `awaiting_complete_id`,
 `awaiting_edit_id`, `awaiting_edit_content`, `awaiting_delete_id`,
-`awaiting_delete_confirmation`, `awaiting_deadline_id` và
-`awaiting_deadline_text`. Hai trạng thái EDIT và hai trạng thái DEADLINE giữ
-phần dữ liệu đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
+`awaiting_delete_confirmation`, `awaiting_deadline_id`,
+`awaiting_deadline_text` và `awaiting_deadline_scope`. Hai trạng thái EDIT và
+hai trạng thái đặt deadline giữ phần dữ liệu đã có trong khi hỏi phần còn thiếu. Ví dụ khi đã khởi động llama.cpp:
 
 ```python
 from nexus.agent.session import AgentSession
@@ -185,7 +188,7 @@ lời được dùng nguyên văn, không được model viết lại.
 Khi chờ ID, lượt sau chỉ nhận `3`, `#3`, `việc 3` hoặc `task 3`; không tìm task
 theo nội dung. EDIT thiếu ID hoặc content hỏi lại đúng phần còn thiếu. Tin nhắn
 trống giữ nguyên trạng thái chờ; `thôi` hoặc `hủy` hủy yêu cầu và về `idle`.
-Một yêu cầu CREATE/LIST/COMPLETE/EDIT/DELETE/DEADLINE mới thay thế yêu cầu đang chờ. DELETE
+Một yêu cầu CREATE/LIST/COMPLETE/EDIT/DELETE/DEADLINE/DUE QUERY mới thay thế yêu cầu đang chờ. DELETE
 trong agent luôn hiển thị snapshot task và chờ một xác nhận hẹp; `nexus delete ID` là lệnh cấu trúc nên xóa trực tiếp. Nếu task đổi giữa hai lượt, NEXUS cập
 nhật snapshot và hỏi lại; nếu task đã biến mất, NEXUS không xóa gì.
 
@@ -195,6 +198,14 @@ giờ cố định `Asia/Ho_Chi_Minh` và chỉ hiểu các dạng `27/09/2026 0
 `8 giờ 30 phút tối ngày mai`. Model không được truyền timestamp. Khi thiếu ID
 nhưng đã có thời gian, session giữ cả cụm thời gian và mốc tham chiếu của lượt
 đầu; khi thiếu thời gian, session giữ ID. Chưa hỗ trợ xóa deadline.
+
+Truy vấn deadline chỉ trả task chưa hoàn thành và có `due_at`. Ba scope hữu hạn
+là `today`, `tomorrow` và `overdue`; CLI dùng `nexus due SCOPE`, còn agent dùng
+`list_tasks_by_deadline`. `today` gồm cả task đã trễ trong ngày, vì vậy một task
+có thể xuất hiện đồng thời ở `today` và `overdue`. Kết quả được sắp theo
+`due_at`, rồi ID. Câu “Xem việc theo hạn” chuyển session sang
+`awaiting_deadline_scope`; lượt sau chỉ nhận “hôm nay”, “ngày mai”, “mai”,
+“quá hạn” hoặc “trễ hạn”.
 
 Nếu SQLite lỗi trước commit, session vẫn chờ để người dùng thử lại. Nếu định dạng phản hồi
 lỗi sau commit, session đã về `idle` để tránh tự thực thi lại. Session không lưu trạng thái qua lần khởi động lại, không tự giữ lịch sử model và không được dùng chung

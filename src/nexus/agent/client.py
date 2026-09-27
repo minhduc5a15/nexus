@@ -316,7 +316,11 @@ def run_turn(
                 database_path,
                 name,
                 arguments,
-                reference_time=turn_reference if name == "set_task_deadline" else None,
+                reference_time=(
+                    turn_reference
+                    if name in ("set_task_deadline", "list_tasks_by_deadline")
+                    else None
+                ),
             )
             calls.append({"name": name, "arguments": arguments, "result": result})
         except Exception as error:
@@ -347,7 +351,12 @@ def run_turn(
                 "reason": decision.reason.value,
             }
         )
-        if name == "delete_task" and decision.reason in (
+        if (
+            name == "list_tasks_by_deadline"
+            and decision.reason == PolicyReason.MISSING_DEADLINE_SCOPE
+        ):
+            reply = "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?"
+        elif name == "delete_task" and decision.reason in (
             PolicyReason.MISSING_DELETE_ID,
             PolicyReason.MULTIPLE_TASK_IDS,
         ):

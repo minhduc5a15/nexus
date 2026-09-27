@@ -492,6 +492,8 @@ class CliTests(unittest.TestCase):
                 "pending_deadline_id_after": None,
                 "pending_deadline_text_before": None,
                 "pending_deadline_text_after": None,
+                "pending_deadline_scope_before": False,
+                "pending_deadline_scope_after": False,
                 "pending_deadline_reference_before": None,
                 "pending_deadline_reference_after": None,
                 "pending_delete_before": None,

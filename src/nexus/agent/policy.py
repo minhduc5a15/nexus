@@ -23,6 +23,7 @@ class PolicyReason(str, Enum):
     EXPLICIT_UPDATE = "explicit_update"
     EXPLICIT_DELETE = "explicit_delete"
     EXPLICIT_DEADLINE = "explicit_deadline"
+    EXPLICIT_DEADLINE_QUERY = "explicit_deadline_query"
     MISSING_CONTENT = "missing_content"
     MISSING_TASK_ID = "missing_task_id"
     MISSING_UPDATE_ID = "missing_update_id"
@@ -31,6 +32,8 @@ class PolicyReason(str, Enum):
     MISSING_DEADLINE_ID = "missing_deadline_id"
     MISSING_DEADLINE_TIME = "missing_deadline_time"
     INVALID_DEADLINE_TIME = "invalid_deadline_time"
+    MISSING_DEADLINE_SCOPE = "missing_deadline_scope"
+    DEADLINE_SCOPE_MISMATCH = "deadline_scope_mismatch"
     MULTIPLE_TASK_IDS = "multiple_task_ids"
     TASK_ID_MISMATCH = "task_id_mismatch"
     NEGATED_REQUEST = "negated_request"
@@ -62,6 +65,8 @@ class RequestKind(str, Enum):
     MISSING_DEADLINE_ID = "missing_deadline_id"
     MISSING_DEADLINE_TIME = "missing_deadline_time"
     MULTIPLE_DEADLINE = "multiple_deadline"
+    DEADLINE_QUERY = "deadline_query"
+    MISSING_DEADLINE_SCOPE = "missing_deadline_scope"
     UNSUPPORTED = "unsupported"
     NEGATED = "negated"
     OTHER = "other"
@@ -91,6 +96,7 @@ class ToolDecision:
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_COMPLETE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE),
             (PolicyResult.ALLOW, PolicyReason.EXPLICIT_DEADLINE),
+            (PolicyResult.ALLOW, PolicyReason.EXPLICIT_DEADLINE_QUERY),
             (PolicyResult.REQUIRES_CONFIRMATION, PolicyReason.EXPLICIT_DELETE),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_CONTENT),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_TASK_ID),
@@ -101,6 +107,7 @@ class ToolDecision:
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_ID),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_TIME),
             (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.INVALID_DEADLINE_TIME),
+            (PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_DEADLINE_SCOPE),
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
@@ -109,6 +116,7 @@ class ToolDecision:
             (PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED),
             (PolicyResult.REJECT, PolicyReason.CONTENT_BOUNDARY_MISMATCH),
             (PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH),
+            (PolicyResult.REJECT, PolicyReason.DEADLINE_SCOPE_MISMATCH),
         }
 
         # 3. Reject any combination outside the valid set
@@ -257,6 +265,92 @@ _DEADLINE_BEFORE = re.compile(
     rf"^(?:cho{_H})?(?:(?:việc|task)(?:{_H}#?[0-9]+)?)?$",
     re.IGNORECASE,
 )
+
+
+_DUE_QUERY_EXACT = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
+    rf"(?:(?:xem|hiển{_H}thị|liệt{_H}kê){_H}|"
+    rf"cho{_H}{_PRONOUN}{_H}xem{_H})"
+    rf"(?:(?:các|những){_H})?(?:việc|task){_H}(?:"
+    rf"(?:đến|tới){_H}hạn{_H}(?P<dated>hôm{_H}nay|ngày{_H}mai|mai)"
+    rf"|(?P<overdue>(?:đã{_H})?(?:quá|trễ){_H}hạn))"
+    rf"|(?P<prefix>hôm{_H}nay|ngày{_H}mai|mai){_H}có{_H}"
+    rf"(?:(?:những|các){_H})?(?:việc|task){_H}nào{_H}"
+    rf"(?:đến|tới){_H}hạn"
+    rf")[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_DUE_QUERY_MISSING = re.compile(
+    rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
+    rf"(?:(?:xem|hiển{_H}thị|liệt{_H}kê){_H}|"
+    rf"cho{_H}{_PRONOUN}{_H}xem{_H})"
+    rf"(?:(?:các|những){_H})?(?:việc|task){_H}(?:theo{_H}hạn|(?:đến|tới){_H}hạn)"
+    rf")[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_NEGATED_DUE_QUERY = re.compile(
+    rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+    rf"không{_H}muốn|khỏi|không){_H}(?:xem|hiển{_H}thị|liệt{_H}kê)\b",
+    re.IGNORECASE,
+)
+_DUE_SCOPE_REPLY = re.compile(
+    rf"^\s*(?P<scope>hôm{_H}nay|ngày{_H}mai|mai|quá{_H}hạn|trễ{_H}hạn)[.?!]?\s*$",
+    re.IGNORECASE,
+)
+
+
+def _scope_from_text(value: str) -> str:
+    normalized = re.sub(r"\s+", " ", value.casefold().strip())
+    if normalized == "hôm nay":
+        return "today"
+    if normalized in ("mai", "ngày mai"):
+        return "tomorrow"
+    return "overdue"
+
+
+def deadline_scope_reply(prompt: str) -> str | None:
+    """Return a canonical scope for one narrow session continuation."""
+    if not isinstance(prompt, str):
+        return None
+    match = _DUE_SCOPE_REPLY.fullmatch(prompt)
+    return None if match is None else _scope_from_text(match.group("scope"))
+
+
+def _authorize_deadline_query(prompt: str) -> str | ToolDecision:
+    if _NEGATED_DUE_QUERY.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+    match = _DUE_QUERY_EXACT.fullmatch(prompt)
+    if match is not None:
+        value = match.group("overdue") or match.group("dated") or match.group("prefix")
+        return _scope_from_text(value)
+    if _DUE_QUERY_MISSING.fullmatch(prompt):
+        return ToolDecision(
+            PolicyResult.NEEDS_CLARIFICATION,
+            PolicyReason.MISSING_DEADLINE_SCOPE,
+        )
+    return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+
+
+def policy_for_list_tasks_by_deadline(prompt: Any, arguments: Any) -> ToolDecision:
+    if not isinstance(prompt, str) or not prompt.strip():
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    request = _authorize_deadline_query(prompt)
+    if isinstance(request, ToolDecision):
+        return request
+    if (
+        not isinstance(arguments, dict)
+        or set(arguments) != {"scope"}
+        or not isinstance(arguments["scope"], str)
+        or arguments["scope"] not in ("today", "tomorrow", "overdue")
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
+    if arguments["scope"] != request:
+        return ToolDecision(
+            PolicyResult.REJECT, PolicyReason.DEADLINE_SCOPE_MISMATCH
+        )
+    return ToolDecision(
+        PolicyResult.ALLOW, PolicyReason.EXPLICIT_DEADLINE_QUERY
+    )
 
 
 @dataclass(frozen=True)
@@ -609,6 +703,15 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
     if not isinstance(arguments, dict) or len(arguments) > 0:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS)
 
+    deadline_query = _authorize_deadline_query(prompt)
+    if isinstance(deadline_query, str) or (
+        isinstance(deadline_query, ToolDecision)
+        and deadline_query.reason == PolicyReason.MISSING_DEADLINE_SCOPE
+    ):
+        return ToolDecision(
+            PolicyResult.REJECT, PolicyReason.DEADLINE_SCOPE_MISMATCH
+        )
+
     p = re.sub(r"\s+", " ", prompt.lower().strip())
 
     strong_negation = ["đừng", "không cần", "chưa cần", "không muốn", "không chạy"]
@@ -785,6 +888,13 @@ def classify_request(prompt: Any) -> RequestKind:
         return RequestKind.MULTIPLE_DEADLINE
     if deadline.reason == PolicyReason.NEGATED_REQUEST:
         return RequestKind.NEGATED
+    deadline_query = _authorize_deadline_query(prompt)
+    if isinstance(deadline_query, str):
+        return RequestKind.DEADLINE_QUERY
+    if deadline_query.reason == PolicyReason.MISSING_DEADLINE_SCOPE:
+        return RequestKind.MISSING_DEADLINE_SCOPE
+    if deadline_query.reason == PolicyReason.NEGATED_REQUEST:
+        return RequestKind.NEGATED
     listed = policy_for_list_tasks(prompt, {})
     if listed.result == PolicyResult.ALLOW:
         return RequestKind.LIST
@@ -856,6 +966,8 @@ def policy_for_tool(
         return policy_for_create_task(prompt, arguments)
     if tool_name == "list_tasks":
         return policy_for_list_tasks(prompt, arguments)
+    if tool_name == "list_tasks_by_deadline":
+        return policy_for_list_tasks_by_deadline(prompt, arguments)
     if tool_name == "complete_task":
         return policy_for_complete_task(prompt, arguments)
     if tool_name == "update_task":

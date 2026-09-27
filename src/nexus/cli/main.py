@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from nexus.core.deadlines import DeadlineParseError, format_deadline, parse_deadline
+from nexus.core.models import DeadlineScope
 from nexus.storage.sqlite_db import (
     DatabaseSchemaError,
     complete_task,
@@ -15,6 +16,7 @@ from nexus.storage.sqlite_db import (
     delete_task,
     initialize_database,
     list_tasks,
+    list_tasks_by_deadline,
     set_task_deadline,
     update_task,
 )
@@ -156,6 +158,9 @@ def run_chat(
         pending_edit_content_before = session.pending_edit_content
         pending_deadline_id_before = session.pending_deadline_id
         pending_deadline_text_before = session.pending_deadline_text
+        pending_deadline_scope_before = (
+            session.state.value == "awaiting_deadline_scope"
+        )
         pending_deadline_reference_before = (
             session.pending_deadline_reference.isoformat()
             if session.pending_deadline_reference is not None
@@ -283,6 +288,10 @@ def run_chat(
                         "pending_deadline_id_after": session.pending_deadline_id,
                         "pending_deadline_text_before": pending_deadline_text_before,
                         "pending_deadline_text_after": session.pending_deadline_text,
+                        "pending_deadline_scope_before": pending_deadline_scope_before,
+                        "pending_deadline_scope_after": (
+                            session.state.value == "awaiting_deadline_scope"
+                        ),
                         "pending_deadline_reference_before": pending_deadline_reference_before,
                         "pending_deadline_reference_after": (
                             session.pending_deadline_reference.isoformat()
@@ -367,6 +376,14 @@ def main() -> int:
     deadline_parser.add_argument("id", type=_positive_id, help="ID số nguyên dương")
     deadline_parser.add_argument(
         "when", help='Thời hạn, ví dụ "8 giờ sáng mai"'
+    )
+    due_parser = commands.add_parser(
+        "due", help="Xem việc chưa hoàn thành theo phạm vi deadline"
+    )
+    due_parser.add_argument(
+        "scope",
+        choices=[scope.value for scope in DeadlineScope],
+        help="Phạm vi: today, tomorrow hoặc overdue",
     )
     ask_parser = commands.add_parser("ask", help="Ra lệnh bằng ngôn ngữ tự nhiên (cần chạy llama-server)")
     ask_parser.add_argument("prompt", nargs="?", help="Nội dung yêu cầu; bỏ qua để đọc từ stdin đến EOF")
@@ -480,6 +497,24 @@ def main() -> int:
                     f"Việc [{deadline.task.id}] đã có hạn {shown}: "
                     f"{deadline.task.content}"
                 )
+        elif args.command == "due":
+            scope = DeadlineScope(args.scope)
+            tasks = list_tasks_by_deadline(args.db, scope)
+            labels = {
+                DeadlineScope.TODAY: "đến hạn hôm nay",
+                DeadlineScope.TOMORROW: "đến hạn ngày mai",
+                DeadlineScope.OVERDUE: "quá hạn",
+            }
+            label = labels[scope]
+            if not tasks:
+                print(f"Không có việc chưa hoàn thành {label}.")
+            else:
+                print(f"Có {len(tasks)} việc chưa hoàn thành {label}:")
+                for task in tasks:
+                    print(
+                        f"[{task.id}] [ ] {task.content} — "
+                        f"hạn {format_deadline(task.due_at)}"
+                    )
         elif args.command == "ask":
             from nexus.agent.client import PostToolExecutionError, chat, run_turn
             import urllib.error

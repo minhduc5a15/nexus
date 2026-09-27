@@ -13,6 +13,7 @@ from nexus.agent.policy import (
     RequestKind,
     classify_request,
     deadline_request_fields,
+    deadline_scope_reply,
     edit_request_fields,
 )
 from nexus.agent.responses import format_rejection, format_tool_result
@@ -30,6 +31,7 @@ _ASK_EDIT_ID = "Bạn muốn sửa việc có ID nào?"
 _ASK_DELETE_ID = "Bạn muốn xóa việc có ID nào?"
 _ASK_DEADLINE_ID = "Bạn muốn đặt hạn cho việc có ID nào?"
 _ASK_DEADLINE_TEXT = "Bạn muốn đặt thời hạn khi nào? Ví dụ: 8 giờ sáng mai."
+_ASK_DEADLINE_SCOPE = "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?"
 _CONFIRM_DELETE_YES = re.compile(
     r"^\s*(?:có|đồng ý|xác nhận|xóa|xoá)[.!]?\s*$", re.IGNORECASE
 )
@@ -54,6 +56,7 @@ class SessionState(str, Enum):
     AWAITING_DELETE_CONFIRMATION = "awaiting_delete_confirmation"
     AWAITING_DEADLINE_ID = "awaiting_deadline_id"
     AWAITING_DEADLINE_TEXT = "awaiting_deadline_text"
+    AWAITING_DEADLINE_SCOPE = "awaiting_deadline_scope"
 
 
 def _session_result(
@@ -220,6 +223,10 @@ class AgentSession:
                 result = _session_result(
                     TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_TEXT
                 )
+            elif self.state == SessionState.AWAITING_DEADLINE_SCOPE:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_SCOPE
+                )
             else:
                 result = _session_result(TurnStatus.NO_TOOL, _NO_ACTION)
             return self._finish(result, state_before)
@@ -240,6 +247,8 @@ class AgentSession:
                 SessionState.AWAITING_DEADLINE_TEXT,
             ):
                 reply = "Đã hủy yêu cầu đặt thời hạn. Không có thay đổi nào được lưu."
+            elif cancelled_state == SessionState.AWAITING_DEADLINE_SCOPE:
+                reply = "Đã hủy yêu cầu xem việc theo hạn."
             else:
                 reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
             result = _session_result(TurnStatus.CANCELLED, reply)
@@ -315,6 +324,13 @@ class AgentSession:
             )
             return self._finish(result, state_before)
 
+        if kind == RequestKind.MISSING_DEADLINE_SCOPE:
+            self._set_state(SessionState.AWAITING_DEADLINE_SCOPE)
+            result = _session_result(
+                TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_SCOPE
+            )
+            return self._finish(result, state_before)
+
         if kind in (RequestKind.UNSUPPORTED, RequestKind.NEGATED):
             pending_state = self.state
             self._set_state(SessionState.IDLE)
@@ -332,6 +348,8 @@ class AgentSession:
                     SessionState.AWAITING_DEADLINE_TEXT,
                 ):
                     reply = "Đã hủy yêu cầu đặt thời hạn. Không có thay đổi nào được lưu."
+                elif pending_state == SessionState.AWAITING_DEADLINE_SCOPE:
+                    reply = "Đã hủy yêu cầu xem việc theo hạn."
                 else:
                     reply = "Đã hủy yêu cầu xóa việc. Không có việc nào bị xóa."
                 result = _session_result(TurnStatus.CANCELLED, reply)
@@ -342,6 +360,19 @@ class AgentSession:
                     else _NO_ACTION
                 )
                 result = _session_result(TurnStatus.REJECTED, reply)
+            return self._finish(result, state_before)
+
+        if (
+            self.state == SessionState.AWAITING_DEADLINE_SCOPE
+            and kind == RequestKind.OTHER
+        ):
+            scope = deadline_scope_reply(prompt)
+            if scope is None:
+                result = _session_result(
+                    TurnStatus.NEEDS_CLARIFICATION, _ASK_DEADLINE_SCOPE
+                )
+            else:
+                result = self._deadline_query_followup(scope, turn_reference)
             return self._finish(result, state_before)
 
         if self.pending_create and kind == RequestKind.OTHER:
@@ -495,7 +526,9 @@ class AgentSession:
                 call.get("name"): call.get("reason") for call in rejected
             }
             deadline_reason = reasons_by_tool.get("set_task_deadline")
-            if deadline_reason in {"missing_deadline_id", "multiple_task_ids"}:
+            if reasons_by_tool.get("list_tasks_by_deadline") == "missing_deadline_scope":
+                self._set_state(SessionState.AWAITING_DEADLINE_SCOPE)
+            elif deadline_reason in {"missing_deadline_id", "multiple_task_ids"}:
                 _task_id, when = deadline_request_fields(prompt)
                 self._set_state(
                     SessionState.AWAITING_DEADLINE_ID,
@@ -602,6 +635,45 @@ class AgentSession:
         self._set_state(SessionState.IDLE)
         try:
             reply = format_tool_result("update_task", result)
+        except Exception as error:
+            raise PostToolExecutionError(
+                "response_formatting",
+                calls,
+                error,
+                authorized_calls=authorized_calls,
+            ) from error
+        return _session_result(
+            TurnStatus.EXECUTED,
+            reply,
+            source="session_continuation",
+            calls=calls,
+            authorized_calls=authorized_calls,
+        )
+
+    def _deadline_query_followup(
+        self, scope: str, reference_time: datetime
+    ) -> dict:
+        arguments = {"scope": scope}
+        authorized_calls = [{
+            "name": "list_tasks_by_deadline",
+            "arguments": arguments,
+            "result": "allow",
+            "reason": "session_continuation",
+        }]
+        result = execute_tool(
+            self.database_path,
+            "list_tasks_by_deadline",
+            arguments,
+            reference_time=reference_time,
+        )
+        calls = [{
+            "name": "list_tasks_by_deadline",
+            "arguments": arguments,
+            "result": result,
+        }]
+        self._set_state(SessionState.IDLE)
+        try:
+            reply = format_tool_result("list_tasks_by_deadline", result)
         except Exception as error:
             raise PostToolExecutionError(
                 "response_formatting",
