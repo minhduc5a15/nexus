@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nexus.agent.client import PostToolExecutionError
+from nexus.agent.routing import ToolRoutingMode
 from nexus.cli.main import default_database_path, main, print_tool_results
 from nexus.storage.sqlite_db import create_task, initialize_database, list_tasks
 
@@ -196,7 +197,8 @@ class CliTests(unittest.TestCase):
         stderr = io.StringIO()
         argv = [
             "nexus", "--db", str(self.database_path), "ask",
-            "--prompt-version", "v11", "--model", "custom-model", "Xóa việc 1",
+            "--prompt-version", "v11", "--model", "custom-model",
+            "--tool-routing", "classified", "Xóa việc 1",
         ]
         with (
             patch.object(sys, "argv", argv),
@@ -210,6 +212,10 @@ class CliTests(unittest.TestCase):
         self.assertEqual(mocked_turn.call_args.kwargs["prompt_version"], "v11")
         self.assertEqual(
             mocked_turn.call_args.kwargs["settings"]["model"], "custom-model"
+        )
+        self.assertEqual(
+            mocked_turn.call_args.kwargs["tool_routing"],
+            ToolRoutingMode.CLASSIFIED,
         )
         self.assertIn("Bạn có chắc muốn xóa", stdout.getvalue())
         self.assertIn("ask không giữ session", stdout.getvalue())
@@ -353,7 +359,7 @@ class CliTests(unittest.TestCase):
         stderr = io.StringIO()
         argv = [
             "nexus", "--db", str(self.database_path), "chat",
-            "--model", "custom-model",
+            "--model", "custom-model", "--tool-routing", "classified",
         ]
 
         with (
@@ -368,6 +374,10 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result, 0)
         mocked_chat.assert_called_once()
         self.assertEqual(mocked_chat.call_args.args[0]["model"], "custom-model")
+        self.assertEqual(
+            [tool["function"]["name"] for tool in mocked_chat.call_args.args[0]["tools"]],
+            ["list_tasks"],
+        )
         self.assertEqual(
             stdout.getvalue(),
             "NEXUS: Bạn muốn thêm việc gì?\n"

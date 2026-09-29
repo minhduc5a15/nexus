@@ -1,0 +1,355 @@
+{
+  "feature": "tool_routing",
+  "mode": "live_qwen_holdout",
+  "prompt_version": "v13",
+  "reference_time": "2026-09-28T10:00:00+07:00",
+  "cases": [
+    {
+      "id": "holdout_create_literal",
+      "category": "create",
+      "initial_tasks": [],
+      "expected_final_tasks": [
+        "kiểm tra hóa đơn."
+      ],
+      "turns": [
+        {
+          "prompt": "Lưu việc: kiểm tra hóa đơn.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "kiểm tra hóa đơn."
+                }
+              }
+            ],
+            "created_tasks": [
+              "kiểm tra hóa đơn."
+            ],
+            "tasks": [
+              "kiểm tra hóa đơn."
+            ],
+            "reply_contains": [
+              "Đã thêm [1] kiểm tra hóa đơn."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_list",
+      "category": "list",
+      "initial_tasks": [
+        "đọc tài liệu",
+        "gọi mẹ"
+      ],
+      "expected_final_tasks": [
+        "đọc tài liệu",
+        "gọi mẹ"
+      ],
+      "turns": [
+        {
+          "prompt": "Liệt kê các việc đã lưu.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks",
+                "arguments": {}
+              }
+            ],
+            "tasks": [
+              "đọc tài liệu",
+              "gọi mẹ"
+            ],
+            "reply_contains": [
+              "[1] [ ] đọc tài liệu",
+              "[2] [ ] gọi mẹ"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_complete",
+      "category": "complete",
+      "initial_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_tasks": [
+        "đọc sách"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "đọc sách",
+          "completed": true
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đánh dấu task #1 là hoàn thành.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "complete_task",
+                "arguments": {
+                  "id": 1
+                }
+              }
+            ],
+            "completed_ids": [
+              1
+            ],
+            "tasks": [
+              "đọc sách"
+            ],
+            "reply_contains": [
+              "Đã hoàn thành [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_edit",
+      "category": "edit",
+      "initial_tasks": [
+        "gửi bản nháp"
+      ],
+      "expected_final_tasks": [
+        "gửi bản chính"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "gửi bản chính",
+          "completed": false
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Cập nhật nội dung task #1 thành gửi bản chính",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "update_task",
+                "arguments": {
+                  "id": 1,
+                  "content": "gửi bản chính"
+                }
+              }
+            ],
+            "updated_tasks": [
+              {
+                "id": 1,
+                "content": "gửi bản chính"
+              }
+            ],
+            "tasks": [
+              "gửi bản chính"
+            ],
+            "reply_contains": [
+              "Đã sửa [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_delete",
+      "category": "delete",
+      "initial_tasks": [
+        "bản tạm",
+        "giữ lại"
+      ],
+      "expected_final_tasks": [
+        "giữ lại"
+      ],
+      "turns": [
+        {
+          "prompt": "Bỏ task #1 khỏi danh sách.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "awaiting_delete_confirmation",
+            "status": "needs_confirmation",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "bản tạm",
+              "giữ lại"
+            ],
+            "reply_contains": [
+              "Bạn có chắc",
+              "[1]"
+            ]
+          }
+        },
+        {
+          "prompt": "xóa",
+          "expected": {
+            "state_before": "awaiting_delete_confirmation",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": false,
+            "executed_calls": [
+              {
+                "name": "delete_task",
+                "arguments": {
+                  "id": 1
+                }
+              }
+            ],
+            "deleted_ids": [
+              1
+            ],
+            "tasks": [
+              "giữ lại"
+            ],
+            "reply_contains": [
+              "Đã xóa [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_deadline",
+      "category": "deadline",
+      "reference_time": "2026-09-28T10:00:00+07:00",
+      "initial_tasks": [
+        "nộp báo cáo"
+      ],
+      "expected_final_tasks": [
+        "nộp báo cáo"
+      ],
+      "expected_final_states": [
+        {
+          "id": 1,
+          "content": "nộp báo cáo",
+          "completed": false,
+          "due_at": 1790688600
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "set_task_deadline",
+                "arguments": {
+                  "id": 1,
+                  "when": "8 giờ 30 phút tối ngày mai"
+                }
+              }
+            ],
+            "deadline_changes": [
+              {
+                "id": 1,
+                "before": null,
+                "after": 1790688600
+              }
+            ],
+            "tasks": [
+              "nộp báo cáo"
+            ],
+            "reply_contains": [
+              "Đã đặt hạn [1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_due",
+      "category": "due_query",
+      "reference_time": "2026-09-28T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc mai",
+          "due_at": 1790647200
+        }
+      ],
+      "expected_final_tasks": [
+        "việc mai"
+      ],
+      "turns": [
+        {
+          "prompt": "Hiển thị những task tới hạn ngày mai.",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "tomorrow"
+                }
+              }
+            ],
+            "queried_task_ids": [
+              1
+            ],
+            "tasks": [
+              "việc mai"
+            ],
+            "reply_contains": [
+              "đến hạn ngày mai",
+              "[1]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_no_action",
+      "category": "no_action",
+      "initial_tasks": [
+        "giữ nguyên"
+      ],
+      "expected_final_tasks": [
+        "giữ nguyên"
+      ],
+      "turns": [
+        {
+          "prompt": "Cuối tuần có gì vui?",
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "giữ nguyên"
+            ],
+            "reply_contains": [
+              "Không có thao tác nào được thực hiện"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

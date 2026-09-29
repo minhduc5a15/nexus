@@ -14,6 +14,7 @@ from pathlib import Path
 from time import perf_counter, sleep
 
 from nexus.agent.prompts import FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
+from nexus.agent.routing import DEFAULT_TOOL_ROUTING, ToolRoutingMode
 from nexus.agent.client import (
     DEFAULT_MODEL_ID,
     ENDPOINT,
@@ -103,6 +104,7 @@ def evaluate_case(
     *,
     prompt_version: str = "v1",
     settings: dict | None = None,
+    tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
 ) -> dict:
     observed_calls = []
     proposed_calls = []
@@ -150,6 +152,7 @@ def evaluate_case(
         started = perf_counter()
         result = None
         error = None
+        routing = None
         try:
             result = run_turn(
                 path,
@@ -157,6 +160,7 @@ def evaluate_case(
                 observe,
                 prompt_version=prompt_version,
                 settings=settings,
+                tool_routing=tool_routing,
             )
         except (RuntimeError, ValueError, sqlite3.Error, OSError) as failure:
             error = {"type": type(failure).__name__, "message": str(failure)}
@@ -165,6 +169,7 @@ def evaluate_case(
                 proposed_calls = failure.proposed_calls
                 authorized_calls = failure.authorized_calls
                 rejected_calls = failure.rejected_calls
+                routing = failure.routing
                 error["stage"] = failure.stage
         elapsed = perf_counter() - started
         after = [asdict(task) for task in list_tasks(path)]
@@ -174,6 +179,7 @@ def evaluate_case(
         authorized_calls = result.get("authorized_calls", result.get("calls", []))
         rejected_calls = result.get("rejected_calls", [])
         executed_calls = result.get("calls", [])
+        routing = result.get("routing")
 
     expected_call_options = case.get("expected_call_options", [case["expected_calls"]])
     proposed_signatures = call_signatures(proposed_calls)
@@ -294,6 +300,7 @@ def evaluate_case(
         "status": tool_and_database_status,
         "error": error,
         "response_diagnostics": diagnostics,
+        "routing": routing,
         "api_requests": request_count,
         "elapsed_seconds": round(elapsed, 3),
     }
@@ -529,6 +536,11 @@ def main() -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL_ID, help="Model ID gửi tới llama.cpp")
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument(
+        "--tool-routing",
+        choices=[mode.value for mode in ToolRoutingMode],
+        default=DEFAULT_TOOL_ROUTING.value,
+    )
+    parser.add_argument(
         "--request-interval",
         type=float,
         default=0.0,
@@ -563,6 +575,7 @@ def main() -> int:
         "endpoint": args.endpoint,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "prompt_version": args.prompt_version,
+        "tool_routing": args.tool_routing,
         "system_prompt": SYSTEM_PROMPTS[args.prompt_version],
         "few_shot_messages": FEW_SHOT_MESSAGES.get(args.prompt_version, []),
         "settings": common_settings,
@@ -609,6 +622,7 @@ def main() -> int:
                 paced_generate,
                 prompt_version=args.prompt_version,
                 settings=common_settings,
+                tool_routing=ToolRoutingMode(args.tool_routing),
             )
             report["cases"].append(result)
             report["summary"] = summarize(report["cases"])

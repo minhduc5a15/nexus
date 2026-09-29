@@ -194,6 +194,20 @@ class LocalProbeTests(unittest.TestCase):
                 "status": "no_tool",
                 "model_reply": "Chào bạn!",
                 "reply": "Không có thao tác nào được thực hiện.",
+                "routing": {
+                    "mode": "all",
+                    "request_kind": "other",
+                    "tools": [
+                        "create_task",
+                        "list_tasks",
+                        "list_tasks_by_deadline",
+                        "complete_task",
+                        "update_task",
+                        "delete_task",
+                        "set_task_deadline",
+                    ],
+                    "fallback": False,
+                },
             },
         )
         execute.assert_not_called()
@@ -254,6 +268,8 @@ class LocalProbeTests(unittest.TestCase):
             self.assertEqual(len(error.proposed_calls), 1)
             self.assertEqual(len(error.authorized_calls), 1)
             self.assertEqual(error.rejected_calls, [])
+            self.assertEqual(error.routing["mode"], "all")
+            self.assertEqual(error.routing["request_kind"], "create")
             self.assertEqual(error.executed_calls[0]["name"], "create_task")
             self.assertEqual(
                 error.executed_calls[0]["result"]["tasks"][0]["content"], "mua sữa"

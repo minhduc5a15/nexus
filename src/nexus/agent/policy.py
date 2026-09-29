@@ -39,6 +39,7 @@ class PolicyReason(str, Enum):
     NEGATED_REQUEST = "negated_request"
     UNSUPPORTED_ACTION = "unsupported_action"
     UNSUPPORTED_TOOL = "unsupported_tool"
+    TOOL_NOT_AVAILABLE = "tool_not_available"
     BARE_STATEMENT = "bare_statement"
     INVALID_ARGUMENTS = "invalid_arguments"
     CONTENT_NOT_GROUNDED = "content_not_grounded"
@@ -111,6 +112,7 @@ class ToolDecision:
             (PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION),
             (PolicyResult.REJECT, PolicyReason.UNSUPPORTED_TOOL),
+            (PolicyResult.REJECT, PolicyReason.TOOL_NOT_AVAILABLE),
             (PolicyResult.REJECT, PolicyReason.BARE_STATEMENT),
             (PolicyResult.REJECT, PolicyReason.INVALID_ARGUMENTS),
             (PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED),

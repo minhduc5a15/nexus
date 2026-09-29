@@ -8,6 +8,7 @@ from pathlib import Path
 
 from nexus.agent.client import PostToolExecutionError, TurnStatus, chat, run_turn
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION
+from nexus.agent.routing import DEFAULT_TOOL_ROUTING, ToolRoutingMode
 from nexus.agent.policy import (
     PolicyReason,
     RequestKind,
@@ -97,11 +98,15 @@ class AgentSession:
         prompt_version: str = DEFAULT_PROMPT_VERSION,
         settings: dict | None = None,
         clock=None,
+        tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
     ) -> None:
         self.database_path = Path(database_path)
         self.prompt_version = prompt_version
         self.settings = deepcopy(settings)
         self.clock = clock or vietnam_now
+        if not isinstance(tool_routing, ToolRoutingMode):
+            raise TypeError("tool_routing must be a ToolRoutingMode")
+        self.tool_routing = tool_routing
         self.pending_edit_id: int | None = None
         self.pending_edit_content: str | None = None
         self.pending_delete_task: Task | None = None
@@ -510,6 +515,7 @@ class AgentSession:
             prompt_version=self.prompt_version,
             settings=self.settings,
             reference_time=turn_reference,
+            tool_routing=self.tool_routing,
         )
         if result["status"] == TurnStatus.NEEDS_CONFIRMATION.value:
             confirmation = result.get("confirmation")

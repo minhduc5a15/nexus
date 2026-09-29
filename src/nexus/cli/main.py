@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from nexus.agent.client import DEFAULT_MODEL_ID, default_model_settings
+from nexus.agent.routing import DEFAULT_TOOL_ROUTING, ToolRoutingMode
 from nexus.core.deadlines import DeadlineParseError, format_deadline, parse_deadline
 from nexus.core.models import DeadlineScope
 from nexus.storage.sqlite_db import (
@@ -117,6 +118,7 @@ def run_chat(
     trace: bool = False,
     prompt_version: str | None = None,
     model_id: str = DEFAULT_MODEL_ID,
+    tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
 ) -> int:
     """Run one in-memory AgentSession until EOF or the local /exit command."""
     import urllib.error
@@ -124,7 +126,10 @@ def run_chat(
     from nexus.agent.client import ENDPOINT, PostToolExecutionError, chat
     from nexus.agent.session import AgentSession
 
-    session_kwargs = {"settings": default_model_settings(model_id=model_id)}
+    session_kwargs = {
+        "settings": default_model_settings(model_id=model_id),
+        "tool_routing": tool_routing,
+    }
     if prompt_version is not None:
         session_kwargs["prompt_version"] = prompt_version
     session = AgentSession(database_path, **session_kwargs)
@@ -224,6 +229,7 @@ def run_chat(
                 "authorized_calls": error.authorized_calls,
                 "rejected_calls": error.rejected_calls,
                 "executed_calls": error.executed_calls,
+                "routing": error.routing,
             }
             had_error = True
         except urllib.error.URLError as error:
@@ -322,6 +328,11 @@ def run_chat(
                         "source": source,
                         "status": status,
                         "model_reply": model_reply,
+                        "routing": (
+                            result.get("routing")
+                            if result is not None
+                            else (trace_error or {}).get("routing")
+                        ),
                     },
                     "proposed_calls": proposed_calls,
                     "contract_validation": {
@@ -406,6 +417,12 @@ def main() -> int:
         default=DEFAULT_MODEL_ID,
         help="Model ID đã cấu hình trên llama-server",
     )
+    ask_parser.add_argument(
+        "--tool-routing",
+        choices=[mode.value for mode in ToolRoutingMode],
+        default=DEFAULT_TOOL_ROUTING.value,
+        help="Tool schema gửi cho model: all hoặc classified",
+    )
     chat_parser = commands.add_parser(
         "chat",
         help="Hội thoại nhiều lượt trong một session (cần chạy llama-server)",
@@ -420,6 +437,12 @@ def main() -> int:
         "--model",
         default=DEFAULT_MODEL_ID,
         help="Model ID đã cấu hình trên llama-server",
+    )
+    chat_parser.add_argument(
+        "--tool-routing",
+        choices=[mode.value for mode in ToolRoutingMode],
+        default=DEFAULT_TOOL_ROUTING.value,
+        help="Tool schema gửi cho model: all hoặc classified",
     )
     chat_parser.add_argument(
         "--trace",
@@ -558,6 +581,7 @@ def main() -> int:
                     chat,
                     prompt_version=args.prompt_version,
                     settings=default_model_settings(model_id=args.model),
+                    tool_routing=ToolRoutingMode(args.tool_routing),
                 )
                 for call in result.get("calls", []):
                     if call.get("name") == "create_task":
@@ -594,6 +618,7 @@ def main() -> int:
                 trace=args.trace,
                 prompt_version=args.prompt_version,
                 model_id=args.model,
+                tool_routing=ToolRoutingMode(args.tool_routing),
             )
         else:
             tasks = list_tasks(args.db)

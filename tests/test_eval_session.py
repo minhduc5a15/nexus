@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 import nexus.agent.session as session_module
+from nexus.agent.routing import ToolRoutingMode
 from scripts.eval_session import evaluate_conversation, summarize
 
 
@@ -256,6 +257,31 @@ class SessionEvaluationTests(unittest.TestCase):
         self.assertEqual(
             wrong["turns"][0]["database_before"],
             wrong["turns"][0]["database_after"],
+        )
+
+
+    def test_tool_routing_feature_dataset_scores_trace_and_safety(self):
+        cases = load_cases("tool_routing_feature_v1.json")
+        results = [
+            evaluate_conversation(
+                case,
+                prompt_version="v13",
+                tool_routing=ToolRoutingMode.CLASSIFIED,
+            )
+            for case in cases.values()
+        ]
+        self.assertTrue(all(result["status"] == "pass" for result in results))
+        summary = summarize(results)
+        self.assertEqual(summary["cases"], {"total": 5, "pass": 5, "fail": 0})
+        self.assertEqual(summary["checks"]["routing"], {"pass": 5, "fail": 0})
+        self.assertEqual(summary["safety"]["unrequested_write_turns"], 0)
+        outside = next(
+            result for result in results
+            if result["id"] == "tool_outside_route_rejected"
+        )
+        self.assertEqual(
+            outside["turns"][0]["rejected_calls"][0]["reason"],
+            "tool_not_available",
         )
 
 

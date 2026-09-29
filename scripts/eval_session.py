@@ -20,6 +20,7 @@ from nexus.agent.client import (
     response_diagnostics,
 )
 from nexus.agent.prompts import SYSTEM_PROMPTS
+from nexus.agent.routing import DEFAULT_TOOL_ROUTING, ToolRoutingMode
 from nexus.agent.session import AgentSession
 from nexus.storage.sqlite_db import (
     complete_task,
@@ -320,6 +321,7 @@ def evaluate_conversation(
     *,
     prompt_version: str = "v1",
     settings: dict | None = None,
+    tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
 ) -> dict:
     """Run one isolated multi-turn case with scripted or live model responses."""
     with tempfile.TemporaryDirectory() as directory:
@@ -352,6 +354,7 @@ def evaluate_conversation(
                     prompt_version=prompt_version,
                     settings=settings,
                     clock=(lambda: fixed_reference) if fixed_reference else None,
+                    tool_routing=tool_routing,
                 ),
             )
             before = _task_snapshot(database_path)
@@ -382,6 +385,7 @@ def evaluate_conversation(
             authorized_calls = []
             rejected_calls = []
             confirmation = None
+            routing = None
             started = perf_counter()
             try:
                 with _inject_fault(database_path, turn.get("fault")):
@@ -397,6 +401,7 @@ def evaluate_conversation(
                     proposed_calls = failure.proposed_calls
                     authorized_calls = failure.authorized_calls
                     rejected_calls = failure.rejected_calls
+                    routing = failure.routing
 
             if result is not None:
                 status = result["status"]
@@ -406,6 +411,7 @@ def evaluate_conversation(
                 authorized_calls = result.get("authorized_calls", [])
                 rejected_calls = result.get("rejected_calls", [])
                 confirmation = result.get("confirmation")
+                routing = result.get("routing")
             else:
                 status = "error_after_execution" if executed_calls else "error"
                 reply = None
@@ -423,6 +429,18 @@ def evaluate_conversation(
                 reply=reply,
                 error=error,
             )
+            expected_routing = turn.get("expected_routing")
+            if expected_routing is not None:
+                checks["routing_match"] = (
+                    isinstance(routing, dict)
+                    and all(routing.get(key) == value for key, value in expected_routing.items())
+                )
+            expected_rejection_reason = turn.get("expected_rejection_reason")
+            if expected_rejection_reason is not None:
+                checks["rejection_reason_match"] = any(
+                    call.get("reason") == expected_rejection_reason
+                    for call in rejected_calls
+                )
             turn_results.append({
                 "turn": turn_index,
                 "session": session_id,
@@ -439,6 +457,7 @@ def evaluate_conversation(
                 "authorized_calls": authorized_calls,
                 "rejected_calls": rejected_calls,
                 "confirmation": confirmation,
+                "routing": routing,
                 "executed_calls": executed_calls,
                 "database_before": before,
                 "database_after": after,
@@ -496,6 +515,7 @@ def summarize(results: list[dict]) -> dict:
     turns = [turn for case in results for turn in case["turns"]]
     check_groups = {
         "runtime": ("status_match", "model_called_match", "error_stage_match"),
+        "routing": ("routing_match", "rejection_reason_match"),
         "state": ("state_before_match", "state_after_match"),
         "tool": ("executed_calls_match",),
         "database": (
@@ -583,10 +603,13 @@ def summarize(results: list[dict]) -> dict:
         "by_category": {},
     }
     for group, names in check_groups.items():
-        passed = sum(all(turn["checks"][name] for name in names) for turn in turns)
+        applicable = [turn for turn in turns if any(name in turn["checks"] for name in names)]
+        passed = sum(
+            all(turn["checks"].get(name, True) for name in names) for turn in applicable
+        )
         summary["checks"][group] = {
             "pass": passed,
-            "fail": len(turns) - passed,
+            "fail": len(applicable) - passed,
         }
     for case in results:
         counts = summary["by_category"].setdefault(
@@ -618,6 +641,11 @@ def main() -> int:
     parser.add_argument("--prompt-version", choices=SYSTEM_PROMPTS, default="v1")
     parser.add_argument("--model", default=DEFAULT_MODEL_ID, help="Model ID gửi tới llama.cpp")
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--tool-routing",
+        choices=[mode.value for mode in ToolRoutingMode],
+        default=DEFAULT_TOOL_ROUTING.value,
+    )
     parser.add_argument("--request-interval", type=float, default=0.0)
     args = parser.parse_args()
     if args.request_interval < 0:
@@ -657,6 +685,7 @@ def main() -> int:
         "model": settings["model"] if args.mode == "live" else "scripted",
         "endpoint": args.endpoint if args.mode == "live" else None,
         "prompt_version": args.prompt_version,
+        "tool_routing": args.tool_routing,
         "settings": settings if args.mode == "live" else None,
         "scoring_version": SCORING_VERSION,
         "dataset": {
@@ -677,6 +706,7 @@ def main() -> int:
                 generator,
                 prompt_version=args.prompt_version,
                 settings=settings,
+                tool_routing=ToolRoutingMode(args.tool_routing),
             )
             report["cases"].append(result)
             report["summary"] = summarize(report["cases"])

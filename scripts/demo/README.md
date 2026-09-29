@@ -26,6 +26,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `18_deadline_smoke.sh` | Chạy smoke Qwen v12 cho DEADLINE và regression năm hành động cũ | Có |
 | `19_deadline_query_eval.sh` | Chấm scripted query hôm nay/ngày mai/quá hạn, pending scope và safety | Không |
 | `20_deadline_query_smoke.sh` | Chạy smoke Qwen v13 cho query deadline và toàn bộ regression | Có |
+| `21_tool_routing_eval.sh` | Chấm mapping, fallback, tool ngoài route và batch bằng response cố định | Không |
+| `22_tool_routing_diagnostic.sh` | Chạy diagnostic Qwen v13 với classified routing | Có |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -40,6 +42,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/15_delete_eval.sh
 ./scripts/demo/17_deadline_eval.sh
 ./scripts/demo/19_deadline_query_eval.sh
+./scripts/demo/21_tool_routing_eval.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -85,6 +88,12 @@ và batch call. `20_deadline_query_smoke.sh` chạy Qwen 4B với prompt v13; l�
 CREATE đều đạt, không có mutation ngoài yêu cầu; regression EDIT không gọi
 tool, nên v9 tiếp tục là mặc định.
 
+`21_tool_routing_eval.sh` chạy 5/5 ca offline và kiểm tra cả trace routing.
+`22_tool_routing_diagnostic.sh` chạy 14 ca/21 lượt live với classified routing.
+Lần đo Qwen 4B hiện tại đạt toàn bộ diagnostic và smoke chuẩn, nhưng latency
+median tăng từ 1,020 lên 1,414 giây do prompt cache kém ổn định khi schema thay
+đổi. Vì vậy classified vẫn cần truyền bằng cờ và mặc định vẫn là `all`.
+
 ## Chạy AI thật
 
 Terminal thứ nhất:
@@ -104,6 +113,7 @@ Terminal thứ nhất:
 ./scripts/demo/16_delete_smoke.sh
 ./scripts/demo/18_deadline_smoke.sh
 ./scripts/demo/20_deadline_query_smoke.sh
+./scripts/demo/22_tool_routing_diagnostic.sh
 ```
 
 Mặc định script chạy ba yêu cầu liên tiếp trong cùng database demo: thêm việc,
@@ -183,7 +193,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`20`) tạo thư mục riêng dưới
+Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`22`) tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 

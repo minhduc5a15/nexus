@@ -13,8 +13,14 @@ from time import perf_counter
 
 from nexus.core.deadlines import format_deadline, vietnam_now
 from nexus.agent.prompts import DEFAULT_PROMPT_VERSION, FEW_SHOT_MESSAGES, SYSTEM_PROMPTS
+from nexus.agent.routing import (
+    DEFAULT_TOOL_ROUTING,
+    ToolRoutingMode,
+    all_tool_names,
+    select_tool_route,
+)
 from nexus.storage.sqlite_db import get_task, initialize_database, list_tasks
-from nexus.agent.tools import TOOL_DEFINITIONS, execute_tool
+from nexus.agent.tools import execute_tool
 from nexus.agent.policy import (
     PolicyResult,
     PolicyReason,
@@ -66,6 +72,7 @@ class PostToolExecutionError(RuntimeError):
         proposed_calls: list[dict] | None = None,
         authorized_calls: list[dict] | None = None,
         rejected_calls: list[dict] | None = None,
+        routing: dict | None = None,
     ):
         super().__init__(
             f"Agent failed during {stage} after {len(executed_calls)} tool call(s): {cause}"
@@ -75,6 +82,7 @@ class PostToolExecutionError(RuntimeError):
         self.proposed_calls = proposed_calls or []
         self.authorized_calls = authorized_calls or []
         self.rejected_calls = rejected_calls or []
+        self.routing = routing
         self.cause = cause
 
 
@@ -128,14 +136,16 @@ def run_turn(
     prompt_version: str = DEFAULT_PROMPT_VERSION,
     settings: dict | None = None,
     reference_time: datetime | None = None,
+    tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
 ) -> dict:
     """Run one turn against the local model with at most one tool batch."""
     turn_reference = vietnam_now(reference_time)
+    route = select_tool_route(prompt, tool_routing)
     common = settings or default_model_settings()
     payload = {
         **common,
         "messages": build_messages(prompt_version, prompt),
-        "tools": [{"type": "function", "function": tool} for tool in TOOL_DEFINITIONS],
+        "tools": [{"type": "function", "function": tool} for tool in route.definitions()],
         "tool_choice": "auto",
     }
     first = generate(payload)
@@ -157,6 +167,7 @@ def run_turn(
             "status": status.value,
             "model_reply": model_reply if isinstance(model_reply, str) else None,
             "reply": reply,
+            "routing": route.trace(),
         }
         if confirmation is not None:
             result["confirmation"] = confirmation
@@ -280,6 +291,17 @@ def run_turn(
     arguments = parsed_args
     proposed_calls.append({"name": name, "arguments": arguments})
 
+    if name in all_tool_names() and name not in route.tools:
+        rejected_calls.append(
+            {
+                "name": name,
+                "arguments": arguments,
+                "result": PolicyResult.REJECT.value,
+                "reason": PolicyReason.TOOL_NOT_AVAILABLE.value,
+            }
+        )
+        return turn_result(TurnStatus.REJECTED, "Không có thao tác nào được thực hiện.")
+
     decision = policy_for_tool(
         prompt, name, arguments, reference_time=turn_reference
     )
@@ -348,6 +370,7 @@ def run_turn(
                 proposed_calls=proposed_calls,
                 authorized_calls=authorized_calls,
                 rejected_calls=rejected_calls,
+                routing=route.trace(),
             ) from error
 
         return turn_result(TurnStatus.EXECUTED, reply)

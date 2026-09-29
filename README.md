@@ -138,7 +138,13 @@ NEXUS: Đã xóa [1] mua sữa không đường
 
 ```sh
 .venv/bin/nexus chat --trace
+.venv/bin/nexus chat --prompt-version v13 --tool-routing classified --trace
 ```
+
+`--tool-routing all` gửi đủ bảy tool như trước. Chế độ thử nghiệm
+`classified` dùng classifier hữu hạn để chỉ gửi tool liên quan; với câu chưa
+nhận diện được, nó tự fallback về đủ bảy tool. Routing chỉ giới hạn schema model
+nhìn thấy. Policy vẫn kiểm tra proposal và giữ quyền cho phép side effect.
 
 Trace được in trên stderr, tách khỏi câu trả lời người dùng trên stdout. Mỗi
 khối chứa input, state session trước/sau, request/response model, nguồn và
@@ -156,7 +162,8 @@ QWEN_ENDPOINT=http://127.0.0.1:8090/v1/chat/completions \
 Mỗi lượt `ask` gọi model một lần và cho phép tối đa một tool call. Prompt mặc
 định vẫn là v9; v1–v13 được giữ để tái tạo các thí nghiệm. V10 thêm EDIT, v11
 thêm DELETE có xác nhận, v12 thêm DEADLINE theo ID và v13 thêm truy vấn theo hạn.
-V13 chưa được chọn làm mặc định vì live smoke Qwen 4B đạt 19/20 lượt thay vì toàn bộ. Một call
+V13 cùng classified routing đạt live smoke chuẩn 20/20 lượt, nhưng chưa được
+chọn làm mặc định vì median latency tăng quá cổng 10% đã chốt. Một call
 `create_task` có thể chứa nhiều dòng và lưu chúng trong cùng một transaction.
 Sau khi tool thành công, formatter Python tạo câu trả lời từ dữ liệu thật.
 Nếu model không gọi tool, ứng dụng chỉ báo chưa thực hiện thao tác; lời model
@@ -322,6 +329,23 @@ bộ, prompt mặc định vẫn là v9:
 Các evaluator ghi report mới vào `evals/results/demos/`; thư mục này bị Git
 ignore. Exit code `1` nghĩa là ít nhất một ca không đạt contract, không nhất
 thiết là lỗi chương trình.
+
+Classified tool routing hiện là tính năng thử nghiệm. Trên diagnostic Qwen 4B,
+mode `all` đạt 13/14 case, 20/21 lượt; `classified` đạt 14/14 case, 21/21 lượt.
+EDIT và duplicate CREATE đều đạt 3/3 lần lặp, còn smoke v13 chuẩn đạt 13/13 case,
+20/20 lượt. Median prompt token giảm từ 1.286 xuống 576,5, nhưng median latency
+tăng từ 1,020 lên 1,414 giây do các schema thay đổi làm prompt cache của
+llama.cpp tái sử dụng kém hơn. Holdout ghép cặp đạt bằng nhau 7/8 case, 8/9 lượt;
+cả hai cùng trượt một cách nói CREATE mới và không có mutation ngoài yêu cầu.
+Vì cổng latency không đạt, mặc định vẫn là prompt v9 và routing `all`:
+
+```sh
+./scripts/demo/21_tool_routing_eval.sh
+./scripts/demo/22_tool_routing_diagnostic.sh
+.venv/bin/nexus chat --prompt-version v13 --tool-routing classified --trace
+```
+
+Không dùng holdout để chỉnh prompt hoặc classifier trong cùng giai đoạn này.
 
 Các dataset đầu vào được giữ trong Git tại `evals/`. Bộ
 `current_scope_tasks_v2.json` có 20 ca và áp dụng contract một tool call mỗi

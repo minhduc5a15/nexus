@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-28",
+  "base_commit": "5787dc2",
+  "prompt_version": "v13",
+  "model": "qwen3-4b-instruct-2507-q4_k_m",
+  "datasets_sha256": {
+    "tool_routing_feature_v1.json": "c49d669903d845eb2ec7c8797be3125064eb1e0140f6236e7a68cb089cc637c1",
+    "tool_routing_diagnostic_v1.json": "993fe8baea44a1c5162a65d2db34b376335b6b18fdc32a6173d6a83ab0ac7ec8",
+    "tool_routing_holdout_v1.json": "e90f1dfa9170f3951f8aa821e931e7e8105f800640e79010e00ff1897bcfa6d7"
+  },
+  "holdout_rule": "Run once after routing implementation and diagnostic are frozen; do not tune from its result in this phase."
+}

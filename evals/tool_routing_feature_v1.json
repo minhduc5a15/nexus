@@ -1,0 +1,254 @@
+{
+  "feature": "tool_routing",
+  "mode": "scripted",
+  "prompt_version": "v13",
+  "cases": [
+    {
+      "id": "route_create_content_with_delete_word",
+      "category": "routing",
+      "initial_tasks": [],
+      "expected_final_tasks": [
+        "xóa file nháp"
+      ],
+      "turns": [
+        {
+          "prompt": "Thêm việc: xóa file nháp",
+          "model": {
+            "calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "xóa file nháp"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "xóa file nháp"
+                }
+              }
+            ],
+            "created_tasks": [
+              "xóa file nháp"
+            ],
+            "tasks": [
+              "xóa file nháp"
+            ],
+            "reply_contains": [
+              "Đã thêm [1]"
+            ]
+          },
+          "expected_routing": {
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "route_due_before_list",
+      "category": "routing",
+      "reference_time": "2026-09-28T10:00:00+07:00",
+      "initial_tasks": [
+        {
+          "content": "việc hôm nay",
+          "due_at": 1790571600
+        }
+      ],
+      "expected_final_tasks": [
+        "việc hôm nay"
+      ],
+      "turns": [
+        {
+          "prompt": "Xem việc đến hạn hôm nay.",
+          "model": {
+            "calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "executed",
+            "model_called": true,
+            "executed_calls": [
+              {
+                "name": "list_tasks_by_deadline",
+                "arguments": {
+                  "scope": "today"
+                }
+              }
+            ],
+            "queried_task_ids": [
+              1
+            ],
+            "tasks": [
+              "việc hôm nay"
+            ],
+            "reply_contains": [
+              "đến hạn hôm nay"
+            ]
+          },
+          "expected_routing": {
+            "request_kind": "deadline_query",
+            "tools": [
+              "list_tasks_by_deadline"
+            ],
+            "fallback": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "route_other_falls_back",
+      "category": "fallback",
+      "initial_tasks": [
+        "giữ nguyên"
+      ],
+      "expected_final_tasks": [
+        "giữ nguyên"
+      ],
+      "turns": [
+        {
+          "prompt": "Cuối tuần có gì vui?",
+          "model": {
+            "reply": "Chúc bạn cuối tuần vui vẻ."
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "no_tool",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "giữ nguyên"
+            ],
+            "reply_contains": [
+              "Không có thao tác nào được thực hiện"
+            ]
+          },
+          "expected_routing": {
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "tool_outside_route_rejected",
+      "category": "safety",
+      "initial_tasks": [
+        "giữ nguyên"
+      ],
+      "expected_final_tasks": [
+        "giữ nguyên"
+      ],
+      "turns": [
+        {
+          "prompt": "Sửa việc 1 thành bản mới",
+          "model": {
+            "calls": [
+              {
+                "name": "delete_task",
+                "arguments": {
+                  "id": 1
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [
+              "giữ nguyên"
+            ],
+            "reply_contains": [
+              "Không có thao tác nào được thực hiện"
+            ]
+          },
+          "expected_routing": {
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          },
+          "expected_rejection_reason": "tool_not_available"
+        }
+      ]
+    },
+    {
+      "id": "two_routed_calls_rejected",
+      "category": "contract",
+      "initial_tasks": [],
+      "expected_final_tasks": [],
+      "turns": [
+        {
+          "prompt": "Thêm việc: a",
+          "model": {
+            "calls": [
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "a"
+                }
+              },
+              {
+                "name": "create_task",
+                "arguments": {
+                  "content": "a"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "state_before": "idle",
+            "state_after": "idle",
+            "status": "rejected",
+            "model_called": true,
+            "executed_calls": [],
+            "tasks": [],
+            "reply_contains": [
+              "Không có thao tác nào được thực hiện"
+            ]
+          },
+          "expected_routing": {
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      ]
+    }
+  ]
+}
