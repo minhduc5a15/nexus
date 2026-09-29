@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "purpose": "Synthetic responses with six deliberate failures. These are not outputs from Qwen.",
+  "expected_automatic_failures": [
+    "create_literal",
+    "complete_id",
+    "edit_literal",
+    "deadline_absolute",
+    "due_today",
+    "negated_delete"
+  ],
+  "responses": {
+    "create_literal": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "create_task",
+                  "arguments": "{\"content\": \"kiểm tra hóa đơn\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "create_multiline": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "create_task",
+                  "arguments": "{\"content\": \"Ôn C++: vector\\ngọi mẹ lúc 8:00\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "list_direct": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "list_tasks",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "list_paraphrase": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "list_tasks",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "complete_id": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "complete_task",
+                  "arguments": "{\"id\": 8}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "complete_paraphrase": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "complete_task",
+                  "arguments": "{\"id\": 12}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "edit_literal": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Đã sửa việc 4."
+          }
+        }
+      ]
+    },
+    "edit_courteous": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "update_task",
+                  "arguments": "{\"id\": 9, \"content\": \"gửi email cho Lan\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "delete_direct": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "delete_task",
+                  "arguments": "{\"id\": 3}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "delete_drop": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "delete_task",
+                  "arguments": "{\"id\": 11}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "deadline_absolute": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "set_task_deadline",
+                  "arguments": "{\"id\": 5, \"when\": \"08:00 ngày 27/09/2026\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "deadline_relative": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "set_task_deadline",
+                  "arguments": "{\"id\": 6, \"when\": \"8 giờ 30 phút tối ngày mai\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "due_today": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "list_tasks_by_deadline",
+                  "arguments": "{\"scope\": \"tomorrow\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "due_overdue": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "list_tasks_by_deadline",
+                  "arguments": "{\"scope\": \"overdue\"}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "missing_create": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn thêm việc gì?"
+          }
+        }
+      ]
+    },
+    "missing_complete_id": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn hoàn thành việc có ID nào?"
+          }
+        }
+      ]
+    },
+    "missing_deadline_time": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn đặt thời hạn khi nào?"
+          }
+        }
+      ]
+    },
+    "missing_due_scope": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn xem hôm nay, ngày mai hay quá hạn?"
+          }
+        }
+      ]
+    },
+    "negated_delete": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "tool_calls",
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "pilot-response",
+                "type": "function",
+                "function": {
+                  "name": "delete_task",
+                  "arguments": "{\"id\": 3}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "negated_create": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Tôi không thêm việc."
+          }
+        }
+      ]
+    },
+    "unsupported_reminder": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "NEXUS chưa hỗ trợ nhắc lặp lại."
+          }
+        }
+      ]
+    },
+    "unsupported_content_lookup": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn xóa việc có ID nào?"
+          }
+        }
+      ]
+    },
+    "bare_statement": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn tôi ghi lại thành việc cần làm không?"
+          }
+        }
+      ]
+    },
+    "ambiguous_today": {
+      "model": "scripted-proposal-pilot",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Bạn muốn xem danh sách việc hay những việc đến hạn hôm nay?"
+          }
+        }
+      ]
+    }
+  }
+}

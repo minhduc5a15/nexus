@@ -128,6 +128,28 @@ def build_messages(prompt_version: str, prompt: str) -> list[dict]:
     ]
 
 
+
+def build_model_request(
+    prompt: str,
+    *,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
+    settings: dict | None = None,
+    tool_routing: ToolRoutingMode = DEFAULT_TOOL_ROUTING,
+) -> tuple[dict, dict]:
+    """Build the same isolated request for runtime and proposal-only evaluation."""
+    route = select_tool_route(prompt, tool_routing)
+    payload = {
+        **deepcopy(settings or default_model_settings()),
+        "messages": build_messages(prompt_version, prompt),
+        "tools": [
+            {"type": "function", "function": deepcopy(tool)}
+            for tool in route.definitions()
+        ],
+        "tool_choice": "auto",
+    }
+    return payload, route.trace()
+
+
 def run_turn(
     database_path: Path,
     prompt: str,
@@ -140,14 +162,10 @@ def run_turn(
 ) -> dict:
     """Run one turn against the local model with at most one tool batch."""
     turn_reference = vietnam_now(reference_time)
-    route = select_tool_route(prompt, tool_routing)
-    common = settings or default_model_settings()
-    payload = {
-        **common,
-        "messages": build_messages(prompt_version, prompt),
-        "tools": [{"type": "function", "function": tool} for tool in route.definitions()],
-        "tool_choice": "auto",
-    }
+    payload, routing = build_model_request(
+        prompt, prompt_version=prompt_version, settings=settings,
+        tool_routing=tool_routing,
+    )
     first = generate(payload)
     message = complete_message(first)
 
@@ -167,7 +185,7 @@ def run_turn(
             "status": status.value,
             "model_reply": model_reply if isinstance(model_reply, str) else None,
             "reply": reply,
-            "routing": route.trace(),
+            "routing": routing,
         }
         if confirmation is not None:
             result["confirmation"] = confirmation
@@ -291,7 +309,7 @@ def run_turn(
     arguments = parsed_args
     proposed_calls.append({"name": name, "arguments": arguments})
 
-    if name in all_tool_names() and name not in route.tools:
+    if name in all_tool_names() and name not in routing["tools"]:
         rejected_calls.append(
             {
                 "name": name,
@@ -370,7 +388,7 @@ def run_turn(
                 proposed_calls=proposed_calls,
                 authorized_calls=authorized_calls,
                 rejected_calls=rejected_calls,
-                routing=route.trace(),
+                routing=routing,
             ) from error
 
         return turn_result(TurnStatus.EXECUTED, reply)

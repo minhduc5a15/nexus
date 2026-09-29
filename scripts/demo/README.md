@@ -28,6 +28,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `20_deadline_query_smoke.sh` | Chạy smoke Qwen v13 cho query deadline và toàn bộ regression | Có |
 | `21_tool_routing_eval.sh` | Chấm mapping, fallback, tool ngoài route và batch bằng response cố định | Không |
 | `22_tool_routing_diagnostic.sh` | Chạy diagnostic Qwen v13 với classified routing | Có |
+| `23_proposal_eval.sh` | Chấm 24 proposal giả lập, có sáu lỗi cố ý; không chạy tool hoặc SQLite | Không |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -193,7 +194,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`22`) tạo thư mục riêng dưới
+Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`23`) tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 
@@ -204,3 +205,9 @@ in ngay từ đầu; database chính của ứng dụng không được sử d�
 File demo được giữ lại để bạn mở bằng SQLite viewer hoặc đọc JSON sau khi chạy.
 `_common.sh` và `_demo.py` là phần dùng chung; chạy các script đánh số để sử dụng.
 Các lệnh `ask`, `chat` và evaluator mặc định dùng model ID `qwen3-4b-instruct-2507-q4_k_m`; dùng `--model` để ghi đè. Khi dùng xong AI/benchmark, nhấn Ctrl+C tại terminal chạy server để giải phóng GPU.
+
+`23_proposal_eval.sh` kiểm tra evaluator độc lập với policy/thực thi. Kết quả
+mong đợi là 18 proposal đạt, sáu trượt và exit code 1; unit test xác minh chính
+sáu lỗi này. Đây không phải điểm Qwen. Report giữ request, raw response, từng
+trường arguments và checklist review câu trả lời. Xem
+[hướng dẫn chi tiết](../../evals/README.proposals.md).

@@ -473,3 +473,18 @@ Demo tự dùng database riêng trong `evals/results/demos/`. Để tự nhập 
 và thấy từng bước với Qwen thật, chạy `scripts/start_qwen.sh` ở một terminal,
 rồi `./scripts/demo/04_ai.sh --interactive` ở terminal khác. Hướng dẫn chi tiết
 và cách chọn ca benchmark nằm trong README của thư mục demo.
+
+## Evaluator proposal độc lập — pilot
+
+Đo proposal trước policy bằng 24 ca có nhãn độc lập, không thực thi tool hoặc
+mở database. Runtime và evaluator dùng chung builder request. Demo offline có
+sáu lỗi cố ý (18/24 vượt kiểm tra tự động), không phải benchmark Qwen:
+
+```sh
+./scripts/demo/23_proposal_eval.sh
+```
+
+Exit code 1 là mong đợi với bộ fixture đầy đủ. Câu trả lời model vẫn cần review
+riêng; không gọi tool không đồng nghĩa đã hỏi lại đúng. Xem
+[hướng dẫn evaluator proposal](evals/README.proposals.md) để đọc metrics, trace,
+nhãn và giới hạn. Chưa mở rộng dataset hoặc training trong lát cắt này.
