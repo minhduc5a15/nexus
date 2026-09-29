@@ -488,3 +488,7 @@ Exit code 1 là mong đợi với bộ fixture đầy đủ. Câu trả lời mo
 riêng; không gọi tool không đồng nghĩa đã hỏi lại đúng. Xem
 [hướng dẫn evaluator proposal](evals/README.proposals.md) để đọc metrics, trace,
 nhãn và giới hạn. Chưa mở rộng dataset hoặc training trong lát cắt này.
+
+Development 80 ca và final holdout 120 ca đã được khóa cho giai đoạn đánh giá
+tiếp theo; chưa chạy model trên holdout. Xem [dataset và review có hash](evals/README.proposal-data.md).
+Demo offline: `./scripts/demo/24_proposal_data_review.sh`.

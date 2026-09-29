@@ -1,0 +1,558 @@
+{
+  "schema_version": 1,
+  "grouping_rule": "Families group request framing, not task nouns or ID values. All instances of a family stay in one split. Authoring review does not mean model-blind authorship; holdout is outcome-unseen only.",
+  "families": {
+    "create_delimited": {
+      "split": "development",
+      "description": "Sau dấu hai chấm, dấu chấm thuộc dữ liệu task; phải giữ nguyên."
+    },
+    "create_multiline": {
+      "split": "development",
+      "description": "Một proposal giữ nguyên cả hai dòng; dấu hai chấm trong content không phải framing."
+    },
+    "list_command": {
+      "split": "development",
+      "description": "Yêu cầu đọc toàn bộ danh sách, không thay đổi dữ liệu."
+    },
+    "list_new_phrasing": {
+      "split": "development",
+      "description": "Yêu cầu LIST rõ nghĩa dù classifier có thể không nhận diện; gold không lấy từ classifier."
+    },
+    "complete_explicit_id": {
+      "split": "development",
+      "description": "Chỉ ID 7 được chỉ định, không được tự đổi sang ID khác."
+    },
+    "complete_mark": {
+      "split": "development",
+      "description": "Đánh dấu trạng thái hoàn thành của đúng một ID."
+    },
+    "edit_content_boundary": {
+      "split": "development",
+      "description": "Nội dung sau thành được giữ nguyên, gồm chữ hoa và dấu chấm."
+    },
+    "edit_update": {
+      "split": "development",
+      "description": "ID và toàn bộ nội dung mới đều đã có; không cần tra cứu tên task."
+    },
+    "delete_id": {
+      "split": "development",
+      "description": "Model đề xuất DELETE theo ID; xác nhận và thực thi thuộc ứng dụng, evaluator không xóa."
+    },
+    "delete_drop_from_list": {
+      "split": "development",
+      "description": "Xóa đúng ID 11, không phải lệnh hủy trạng thái đang chờ."
+    },
+    "deadline_absolute": {
+      "split": "development",
+      "description": "when là cụm thời gian nguyên văn, không phải timestamp; dấu kết câu không thuộc cụm thời gian."
+    },
+    "deadline_relative": {
+      "split": "development",
+      "description": "Giữ nguyên cụm thời gian; evaluator không tính ngày và không đặt deadline."
+    },
+    "due_today": {
+      "split": "development",
+      "description": "Người dùng chỉ định today, không phải tomorrow hoặc LIST toàn bộ."
+    },
+    "due_overdue": {
+      "split": "development",
+      "description": "Phạm vi overdue được nêu rõ."
+    },
+    "clarify_create": {
+      "split": "development",
+      "description": "Có yêu cầu thêm nhưng thiếu content; phải hỏi nội dung, không tạo task."
+    },
+    "clarify_id": {
+      "split": "development",
+      "description": "Thiếu ID, không được suy ID từ task trong database."
+    },
+    "clarify_time": {
+      "split": "development",
+      "description": "ID đã có nhưng thiếu thời gian, không tự chọn deadline."
+    },
+    "clarify_scope": {
+      "split": "development",
+      "description": "Chưa xác định today/tomorrow/overdue, cần hỏi scope."
+    },
+    "negation_delete": {
+      "split": "development",
+      "description": "Phủ định hành động xóa dù ID đã rõ."
+    },
+    "negation_create": {
+      "split": "development",
+      "description": "Không có quyền CREATE từ yêu cầu phủ định."
+    },
+    "unsupported_recurrence": {
+      "split": "development",
+      "description": "Reminder và recurrence chưa hỗ trợ; không được chuyển sang CREATE."
+    },
+    "unsupported_lookup": {
+      "split": "development",
+      "description": "Không có ID; không tìm task theo content. Hỏi ID nhưng chưa đề xuất DELETE."
+    },
+    "bare_statement": {
+      "split": "development",
+      "description": "Chỉ nêu nội dung, chưa yêu cầu thêm task theo contract hiện hành."
+    },
+    "ambiguous_scope": {
+      "split": "development",
+      "description": "Chưa nói về task hoặc deadline; không tự chọn truy vấn today."
+    },
+    "create_colloquial_note": {
+      "split": "development",
+      "description": "Lời yêu cầu note với đại từ đời thường."
+    },
+    "create_polite_record": {
+      "split": "development",
+      "description": "Yêu cầu ghi giúp và từ chỉ việc trước content."
+    },
+    "create_natural_suffix": {
+      "split": "development",
+      "description": "Câu tự nhiên có lời kết vào danh sách; dấu chấm thuộc lời yêu cầu."
+    },
+    "create_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ nhẹ ở lời dẫn không đổi ý định CREATE hoặc content."
+    },
+    "list_enumerate": {
+      "split": "development",
+      "description": "Yêu cầu liệt kê toàn bộ task đã ghi."
+    },
+    "list_stored_question": {
+      "split": "development",
+      "description": "Hỏi nội dung danh sách việc đã lưu, không lọc deadline."
+    },
+    "list_show_polite": {
+      "split": "development",
+      "description": "Lời yêu cầu cho xem danh sách đã lưu."
+    },
+    "list_code_switch_verb": {
+      "split": "development",
+      "description": "Động từ show pha với tân ngữ danh sách tiếng Việt."
+    },
+    "list_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ nhỏ ở danh sách vẫn chỉ rõ LIST."
+    },
+    "complete_polite_command": {
+      "split": "development",
+      "description": "Xin hoàn thành một task với đại từ lịch sự."
+    },
+    "complete_colloquial_tick": {
+      "split": "development",
+      "description": "Tick xong là yêu cầu đổi trạng thái, ID đã rõ."
+    },
+    "complete_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ ở hoàn thành nhưng ID không mơ hồ."
+    },
+    "complete_large_id": {
+      "split": "development",
+      "description": "ID không cần tồn tại khi chấm proposal; không tự đổi ID lớn."
+    },
+    "edit_rename": {
+      "split": "development",
+      "description": "Đổi nội dung task theo ID, phần sau thành là dữ liệu."
+    },
+    "edit_polite_prefix": {
+      "split": "development",
+      "description": "Lời nhờ sửa; phần nội dung không có lời kết để tránh mơ hồ."
+    },
+    "edit_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ nhẹ ở sửa; content vẫn phải giữ nguyên."
+    },
+    "delete_accent_variant": {
+      "split": "development",
+      "description": "Xoá là biến thể chính tả của xóa, ID giữ nguyên."
+    },
+    "delete_polite_command": {
+      "split": "development",
+      "description": "Lời nhờ xóa một ID rõ ràng."
+    },
+    "delete_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ ở động từ xóa không làm mơ hồ ID."
+    },
+    "delete_large_id": {
+      "split": "development",
+      "description": "ID lớn vẫn phải được chép đúng, không cần biết DB."
+    },
+    "deadline_time_first": {
+      "split": "development",
+      "description": "Đặt thời hạn với cụm giờ trước ngày theo grammar."
+    },
+    "deadline_colon_relative": {
+      "split": "development",
+      "description": "Cụm thời gian giờ:phút với ngày mai."
+    },
+    "deadline_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ trong lời dẫn; when không được model viết lại."
+    },
+    "deadline_leap_date": {
+      "split": "development",
+      "description": "Ngày nhuận hợp lệ; model chỉ chép, không tính timestamp."
+    },
+    "due_tomorrow_question": {
+      "split": "development",
+      "description": "Hỏi task đến hạn ngày mai, không LIST toàn bộ."
+    },
+    "due_code_switch": {
+      "split": "development",
+      "description": "Deadline/overdue pha tiếng Anh nhưng scope rõ."
+    },
+    "due_typo_command": {
+      "split": "development",
+      "description": "Lỗi gõ ở đến hạn vẫn chỉ rõ ngày mai."
+    },
+    "due_explicit_incomplete": {
+      "split": "development",
+      "description": "Chỉ task chưa xong đến hạn hôm nay đúng contract query."
+    },
+    "clarify_edit_content": {
+      "split": "development",
+      "description": "Thiếu nội dung mới, ID đã có."
+    },
+    "clarify_delete_id": {
+      "split": "development",
+      "description": "Yêu cầu xóa nhưng chưa có ID."
+    },
+    "clarify_deadline_id": {
+      "split": "development",
+      "description": "Thời gian đã rõ nhưng chưa chọn ID."
+    },
+    "clarify_multiple_complete": {
+      "split": "development",
+      "description": "Nhiều ID ngoài contract một call/một task; cần chọn một ID."
+    },
+    "clarify_multiple_edit": {
+      "split": "development",
+      "description": "Không sửa hai ID trong một lượt."
+    },
+    "clarify_multiple_delete": {
+      "split": "development",
+      "description": "Không được tự chọn trong hai ID để xóa."
+    },
+    "negation_complete": {
+      "split": "development",
+      "description": "Phủ định hoàn thành dù có ID."
+    },
+    "negation_edit": {
+      "split": "development",
+      "description": "Phủ định sửa dù có đủ nội dung và ID."
+    },
+    "negation_deadline": {
+      "split": "development",
+      "description": "Phủ định đặt hạn, không gọi tool."
+    },
+    "unsupported_undo": {
+      "split": "development",
+      "description": "Chưa hỗ trợ hoàn tác hoàn thành."
+    },
+    "unsupported_remove_deadline": {
+      "split": "development",
+      "description": "Chưa hỗ trợ xóa deadline, không được chuyển sang DELETE task."
+    },
+    "unsupported_week_filter": {
+      "split": "development",
+      "description": "Query tuần sau nằm ngoài ba scope."
+    },
+    "quoted_example": {
+      "split": "development",
+      "description": "Câu trích dẫn làm ví dụ không phải yêu cầu thực thi."
+    },
+    "ambiguous_help": {
+      "split": "development",
+      "description": "Yêu cầu giúp chung chưa xác định hành động."
+    },
+    "create_relative_content_intro": {
+      "split": "holdout",
+      "description": "Mệnh đề giới thiệu nội dung trước yêu cầu đưa vào danh sách."
+    },
+    "create_location_of_payload": {
+      "split": "holdout",
+      "description": "Chỉ rõ phần cần lưu nằm bên dưới, toàn bộ khối sau lời dẫn là task."
+    },
+    "create_english_full_request": {
+      "split": "holdout",
+      "description": "Lời yêu cầu hoàn toàn tiếng Anh, payload tiếng Việt nguyên văn."
+    },
+    "create_destination_fronted": {
+      "split": "holdout",
+      "description": "Đưa vị trí danh sách lên đầu, sau đó yêu cầu tạo mục có nội dung rõ."
+    },
+    "create_submit_payload": {
+      "split": "holdout",
+      "description": "Đưa nội dung cho ứng dụng ghi thành task mới, lời dẫn kết thúc xuống dòng."
+    },
+    "create_desired_list_entry": {
+      "split": "holdout",
+      "description": "Yêu cầu danh sách có thêm mục, nội dung xác định sau lời dẫn."
+    },
+    "list_inventory_question": {
+      "split": "holdout",
+      "description": "Hỏi toàn bộ những gì đã được ghi thành task bằng câu hỏi bao gồm."
+    },
+    "list_readback": {
+      "split": "holdout",
+      "description": "Yêu cầu đọc lại nguyên danh sách đang lưu, không tạo hay lọc task."
+    },
+    "list_english_full_request": {
+      "split": "holdout",
+      "description": "Yêu cầu LIST hoàn toàn tiếng Anh, tất cả task đã lưu."
+    },
+    "list_need_to_inspect": {
+      "split": "holdout",
+      "description": "Nêu nhu cầu kiểm tra và yêu cầu đưa danh sách task ra xem."
+    },
+    "list_screen_request": {
+      "split": "holdout",
+      "description": "Yêu cầu đưa toàn bộ task lưu trữ ra màn hình văn bản."
+    },
+    "list_complete_inventory": {
+      "split": "holdout",
+      "description": "Yêu cầu toàn bộ các mục gồm cả đã xong; không phải chỉ completed."
+    },
+    "complete_id_topic": {
+      "split": "holdout",
+      "description": "ID đặt làm chủ đề trước yêu cầu đổi trạng thái."
+    },
+    "complete_apply_status": {
+      "split": "holdout",
+      "description": "Động từ áp dụng trạng thái thay vì hoàn thành ở đầu câu."
+    },
+    "complete_target_change": {
+      "split": "holdout",
+      "description": "Đối tượng đặt trước, yêu cầu chuyển trạng thái đứng sau."
+    },
+    "complete_english_full_request": {
+      "split": "holdout",
+      "description": "Yêu cầu hoàn thành hoàn toàn bằng tiếng Anh với ID tường minh."
+    },
+    "complete_record_finished": {
+      "split": "holdout",
+      "description": "Ghi nhận trạng thái hoàn tất của ID, không thêm task mới."
+    },
+    "complete_update_status_field": {
+      "split": "holdout",
+      "description": "Nêu trường trạng thái cần cập nhật và giá trị hoàn thành."
+    },
+    "edit_id_topic": {
+      "split": "holdout",
+      "description": "ID đặt làm chủ đề trước lời sửa, toàn bộ phần sau thành là content."
+    },
+    "edit_replace_current_text": {
+      "split": "holdout",
+      "description": "Yêu cầu thay phần chữ đang lưu, không tạo task mới."
+    },
+    "edit_existing_entry": {
+      "split": "holdout",
+      "description": "Nhắc mục có sẵn làm đích sửa trước động từ sửa."
+    },
+    "edit_desired_text_change": {
+      "split": "holdout",
+      "description": "Yêu cầu thay đổi chữ trong task bằng cấu trúc mong muốn."
+    },
+    "edit_correct_record": {
+      "split": "holdout",
+      "description": "Chỉnh lại bản ghi theo ID, phần sau thành vẫn là dữ liệu."
+    },
+    "edit_switch_language_request": {
+      "split": "holdout",
+      "description": "Lời yêu cầu pha English quanh ID nhưng giữ từ phân cách thành."
+    },
+    "delete_id_topic": {
+      "split": "holdout",
+      "description": "ID đặt làm chủ đề; yêu cầu xóa bản ghi, ứng dụng xác nhận sau."
+    },
+    "delete_permanent_entry": {
+      "split": "holdout",
+      "description": "Yêu cầu loại bỏ vĩnh viễn mục mang ID rõ ràng."
+    },
+    "delete_no_longer_needed": {
+      "split": "holdout",
+      "description": "Lý do không còn cần kèm yêu cầu xóa rõ ràng; chỉ một ID."
+    },
+    "delete_english_full_request": {
+      "split": "holdout",
+      "description": "Yêu cầu DELETE bằng tiếng Anh, ID rõ; không tự xác nhận."
+    },
+    "delete_record_erasure": {
+      "split": "holdout",
+      "description": "Yêu cầu xóa bản ghi công việc, không xóa deadline riêng."
+    },
+    "delete_target_removal": {
+      "split": "holdout",
+      "description": "Nêu task làm đối tượng loại khỏi danh sách với lời yêu cầu cuối."
+    },
+    "deadline_id_topic": {
+      "split": "holdout",
+      "description": "ID làm chủ đề trước việc ấn định thời hạn, chép cụm giờ."
+    },
+    "deadline_time_fronted": {
+      "split": "holdout",
+      "description": "Thời gian đưa lên trước, yêu cầu dùng nó làm deadline cho ID rõ."
+    },
+    "deadline_move_to": {
+      "split": "holdout",
+      "description": "Yêu cầu dời deadline là cập nhật hạn hiện có, không cần biết DB."
+    },
+    "deadline_english_framing": {
+      "split": "holdout",
+      "description": "Lời yêu cầu tiếng Anh với when theo grammar Việt hiện hành."
+    },
+    "deadline_assign_timestamp_phrase": {
+      "split": "holdout",
+      "description": "Gán hạn cho task, model chép when, không tính timestamp."
+    },
+    "deadline_record_due": {
+      "split": "holdout",
+      "description": "Yêu cầu ghi nhận thời hạn của ID bằng câu đầy đủ."
+    },
+    "due_calendar_membership": {
+      "split": "holdout",
+      "description": "Hỏi deadline rơi vào ngày chỉ định, chỉ các task chưa xong."
+    },
+    "due_missed_cutoff": {
+      "split": "holdout",
+      "description": "Yêu cầu danh sách các deadline đã trôi qua; đồng nghĩa overdue."
+    },
+    "due_target_day_fronted": {
+      "split": "holdout",
+      "description": "Đặt phạm vi ngày lên đầu trước yêu cầu lọc deadline."
+    },
+    "due_english_full_request": {
+      "split": "holdout",
+      "description": "Yêu cầu deadline query bằng tiếng Anh, một trong ba scope rõ ràng."
+    },
+    "due_deadline_inventory": {
+      "split": "holdout",
+      "description": "Yêu cầu bản liệt kê theo hạn, không lịch ngày tự do."
+    },
+    "due_filter_existing_records": {
+      "split": "holdout",
+      "description": "Yêu cầu lọc task đã lưu theo hạn chỉ định rõ."
+    },
+    "clarify_create_empty_payload": {
+      "split": "holdout",
+      "description": "Yêu cầu tạo mục mới nhưng chưa đưa dữ liệu task."
+    },
+    "clarify_complete_unspecified_record": {
+      "split": "holdout",
+      "description": "Yêu cầu đổi trạng thái nhưng không chỉ định task ID."
+    },
+    "clarify_edit_empty_replacement": {
+      "split": "holdout",
+      "description": "ID đã rõ, không có nội dung thay thế."
+    },
+    "clarify_delete_unspecified_record": {
+      "split": "holdout",
+      "description": "Yêu cầu xóa một mục chưa chỉ rõ ID."
+    },
+    "clarify_deadline_empty_value": {
+      "split": "holdout",
+      "description": "ID đã rõ; giá trị thời hạn chưa được cung cấp."
+    },
+    "clarify_due_unselected_period": {
+      "split": "holdout",
+      "description": "Yêu cầu lọc deadline nhưng chưa chọn scope."
+    },
+    "clarify_complete_disjunction": {
+      "split": "holdout",
+      "description": "Hai ID nối bằng hoặc, không được tự chọn."
+    },
+    "clarify_delete_disjunction": {
+      "split": "holdout",
+      "description": "DELETE có hai lựa chọn, chưa được chọn ID cụ thể."
+    },
+    "clarify_deadline_two_targets": {
+      "split": "holdout",
+      "description": "Một mốc giờ nhưng hai task; contract chỉ một ID."
+    },
+    "ambiguous_unanchored_today": {
+      "split": "holdout",
+      "description": "Không nhắc task hoặc deadline, không tự chọn query today."
+    },
+    "ambiguous_unanchored_tomorrow": {
+      "split": "holdout",
+      "description": "Không nhắc task hoặc deadline, không suy scope tomorrow."
+    },
+    "ambiguous_record_attention": {
+      "split": "holdout",
+      "description": "Nêu ID nhưng chưa yêu cầu thao tác cụ thể."
+    },
+    "negated_permission_create": {
+      "split": "holdout",
+      "description": "Rút quyền thêm nội dung dù dữ liệu task rõ."
+    },
+    "negated_permission_complete": {
+      "split": "holdout",
+      "description": "Cấm đổi trạng thái dù chỉ rõ ID."
+    },
+    "negated_permission_edit": {
+      "split": "holdout",
+      "description": "Chặn yêu cầu thay nội dung theo ID."
+    },
+    "negated_permission_delete": {
+      "split": "holdout",
+      "description": "Yêu cầu giữ task, phủ định DELETE ở tiếng Anh."
+    },
+    "negated_permission_deadline": {
+      "split": "holdout",
+      "description": "Không cấp quyền gán deadline dù có time phrase."
+    },
+    "negated_permission_query": {
+      "split": "holdout",
+      "description": "Không cấp quyền query khi nói không cần danh sách theo hạn."
+    },
+    "quoted_documentation_question": {
+      "split": "holdout",
+      "description": "Hỏi ý nghĩa câu lệnh trích dẫn, không yêu cầu thực thi."
+    },
+    "quoted_translation_request": {
+      "split": "holdout",
+      "description": "Yêu cầu dịch câu có động từ task, không thực thi câu được dịch."
+    },
+    "reported_past_action": {
+      "split": "holdout",
+      "description": "Kể hành động đã làm, không yêu cầu ứng dụng thực hiện lại."
+    },
+    "reported_other_person_request": {
+      "split": "holdout",
+      "description": "Thuật lại lời yêu cầu của người khác, không truyền quyền thao tác."
+    },
+    "bare_future_intention": {
+      "split": "holdout",
+      "description": "Ý định của người dùng không phải yêu cầu ghi task."
+    },
+    "bare_english_intention": {
+      "split": "holdout",
+      "description": "Ý định bằng tiếng Anh không phải yêu cầu tạo task."
+    },
+    "unsupported_priority_assignment": {
+      "split": "holdout",
+      "description": "Chưa có priority; không sửa content để mô phỏng ưu tiên."
+    },
+    "unsupported_label_assignment": {
+      "split": "holdout",
+      "description": "Chưa có tag/nhãn task."
+    },
+    "unsupported_export": {
+      "split": "holdout",
+      "description": "Chưa xuất file hoặc gửi email; không tự đổi thành LIST."
+    },
+    "unsupported_custom_date_query": {
+      "split": "holdout",
+      "description": "Ngày tùy chọn chưa thuộc ba scope, không tự quy thành today/tomorrow."
+    },
+    "unsupported_notification_channel": {
+      "split": "holdout",
+      "description": "Chưa có gửi thông báo nhắc việc, không đặt deadline thay thế."
+    },
+    "unsupported_recurring_copy": {
+      "split": "holdout",
+      "description": "Chưa có lịch lặp, không tạo một task để mô phỏng recurrence."
+    }
+  }
+}

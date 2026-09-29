@@ -167,3 +167,9 @@ Model SHA-256: `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597
 Cặp CPU đủ 48 response, không lỗi generation. Lần Vulkan timeout được lưu riêng.
 308 unit test đạt; 48 raw response chấm lại khớp; prompt/schema và mặc định v9/all
 không đổi. Số liệu này là pilot đã xem, không phải bằng chứng holdout mù.
+
+## Development/holdout và review có hash
+
+Xem [hướng dẫn dữ liệu và review](README.proposal-data.md): development 80 ca,
+final holdout 120 ca chưa inference, audit lịch sử và CLI review sidecar.
+Chạy `./scripts/demo/24_proposal_data_review.sh` để xem workflow offline.

@@ -1,0 +1,3469 @@
+{
+  "schema_version": 1,
+  "purpose": "Frozen historical prompt index for overlap screening; not training data. Includes eval JSON available at authoring time and few-shot user messages. Hashes identify original files; some original reports are ignored, so audit replays from this tracked index.",
+  "source_hashes": {
+    "evals/basic_tasks.json": "a935c35e523c96bd0bc9e16ae544a766ac7d67e44f60b94d9bd19bf5d98c6286",
+    "evals/completion_feature_v1.json": "12c6146aa8dcda8b8ed2761252d718534e2883f2fdf66a89c6f96ad8979d37c8",
+    "evals/completion_smoke_v1.json": "17a46ecc9198668703b6d23e64f74400ecd8d0e7272a9e621bd626c5db6f979e",
+    "evals/current_scope_holdout.json": "d1ae7e93c053f3d6806711d515633618434d53b0b018160713d0dcc826255c90",
+    "evals/current_scope_holdout_2026-09-11.json": "9b86f518edcbe16053bad38fbc421d4a0132564f980c9478d11f39ee7766b19b",
+    "evals/current_scope_tasks.json": "98e847bbb42947e4a1a990d9dd9e7d8608f57bebb5fd9a23bbb008b021e27bb9",
+    "evals/current_scope_tasks_v2.json": "37cd70f8923953747d9ff61c1f93b97f8d1ddf1ed628817c9feff49b505822c5",
+    "evals/deadline_feature_v1.json": "66b4b660a6c560606e0b61955134d48ca3dcf8479973492a79c6951608dc16f0",
+    "evals/deadline_query_feature_v1.json": "207c31ff48f74a0f5b35889dd1530635998afea122c526e19825e60fd429cef1",
+    "evals/deadline_query_smoke_v1.json": "21b919f5eea852cb43b4baf8b8c02904a4f9ac270306c9bf41a1d2cdfbf5ffc3",
+    "evals/deadline_smoke_v1.json": "cb8ad04836c665826b8b34f04d6cbf8ce6d398989b03b5d2b7c9a7f1a2417702",
+    "evals/delete_feature_v1.json": "75ff790650681e80a1d716d1dc46b435a26838e0eae784aa80a3daa98df64a43",
+    "evals/delete_smoke_v1.json": "0592affe426efd307d1577553b038acfdb7d5e37d09219af49f9117b0e155110",
+    "evals/edit_feature_v1.json": "2b1627fa2db0715e28c811b2720da9fdbbb619552f301cf9fcd54f519895c0b8",
+    "evals/edit_smoke_v1.json": "d38d771dcba4b52e33569a6b5a0807f7972f38e15403725aaca5dff9898f79ae",
+    "evals/generalization_holdout_v1.json": "e8bdaf93a3b7ad6f64941d97e076b9bd4e1dc85fd0b6dfae13046bb2347dad3d",
+    "evals/generalization_holdout_v2.json": "488b564db728eef81682eb54053b3b5ac041d4197ff01dd5f2e00c2d8dcfa2ba",
+    "evals/prompt_comparison_cases.json": "fedff30b150bcc297a000f22b7407384a22a5b7eee4601ef6519fedcd729b4a9",
+    "evals/qwen-baseline-2026-09-09.json": "c088f64b4addab965aabf7cb2c8cf58311ed7c6c98654166abaac15dca43b67a",
+    "evals/qwen-prompt-v1-2026-09-09.json": "86d539456f9d83b315e794c53d2d7a4b6c4af67982315735e418b3701dbf1303",
+    "evals/session_conversations_v1.json": "174b273ddd96cb5bffa699a1cd722700ddcb3790db02b851e9fe9f6d7a58ff8a",
+    "evals/session_smoke_v1.json": "91870e74f711c1cf8e2a0f1f9b5a29999614dbc737b251b371fca59b60ba4abe",
+    "evals/session_smoke_v2.json": "c7258aa019a8138ba41dcd9d6f6ef405372cfc8f87ffb3e2762139ba0f7306f0",
+    "evals/tool_routing_diagnostic_v1.json": "993fe8baea44a1c5162a65d2db34b376335b6b18fdc32a6173d6a83ab0ac7ec8",
+    "evals/tool_routing_feature_v1.json": "c49d669903d845eb2ec7c8797be3125064eb1e0140f6236e7a68cb089cc637c1",
+    "evals/tool_routing_holdout_v1.json": "e90f1dfa9170f3951f8aa821e931e7e8105f800640e79010e00ff1897bcfa6d7",
+    "evals/tool_routing_manifest_v1.json": "aab8f24a14685c8560577acf26da1d535c4751004b4895c906dd7e8acf8a4696",
+    "evals/model_proposal_pilot_v1.json": "bff0021a3c4c0b08a316411307aeb6026ceaa09d2890f3d1d5e81473e1a3574a",
+    "src/nexus/agent/prompts.py": "fddf0c006713c490a8b9dcdfa76c662190999877a9061f7175545bf7ae49719c"
+  },
+  "records": [
+    {
+      "source": "evals/basic_tasks.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/basic_tasks.json",
+      "id": "keep_one_line",
+      "prompt": "Ghi lại việc: mua sữa, gọi mẹ và học Python",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/basic_tasks.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/basic_tasks.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/basic_tasks.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1.",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành task #1.",
+      "shape": "hoàn thành task <id>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 99.",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc",
+      "shape": "hoàn thành việc"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1.",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành báo cáo",
+      "shape": "hoàn thành <payload>"
+    },
+    {
+      "source": "evals/completion_feature_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: hoàn thành báo cáo",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1.",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành task #1.",
+      "shape": "hoàn thành task <id>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành task #1.",
+      "shape": "hoàn thành task <id>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 99.",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc",
+      "shape": "hoàn thành việc"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành báo cáo",
+      "shape": "hoàn thành <payload>"
+    },
+    {
+      "source": "evals/completion_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: hoàn thành báo cáo",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_save_task",
+      "prompt": "Lưu task mua vé xe giúp tôi.",
+      "shape": "lưu task <payload> giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_remember_list",
+      "prompt": "Nhớ ghi vào danh sách: thay lõi lọc nước",
+      "shape": "nhớ ghi vào danh sách <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_english_add",
+      "prompt": "Add giúp mình việc kiểm tra email",
+      "shape": "add giúp mình việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_make_task",
+      "prompt": "Tạo một task: sao lưu ảnh điện thoại",
+      "shape": "tạo một task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_put_on_list",
+      "prompt": "Cho việc đặt lịch khám vào danh sách.",
+      "shape": "cho việc <payload> vào danh sách"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "create_slang_note",
+      "prompt": "note hộ t mua cáp USB-C",
+      "shape": "note hộ t <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "exact_hash",
+      "prompt": "Ghi lại việc: sửa lỗi #123",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "exact_datetime",
+      "prompt": "Ghi lại việc: nộp báo cáo lúc 09:30 ngày 15/09",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "exact_symbols",
+      "prompt": "Lưu task: so sánh C++ & Rust",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "exact_path",
+      "prompt": "Note giúp: chạy pytest tests/test_cli.py",
+      "shape": "note giúp <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "exact_case_punctuation",
+      "prompt": "Thêm việc: Mua Sữa Đậu Nành!",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "boundary_semicolon",
+      "prompt": "Lưu một task: giặt đồ; phơi đồ; gấp đồ",
+      "shape": "lưu một task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "boundary_slash",
+      "prompt": "Ghi lại việc: học Go / viết unit test",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "boundary_inline_numbering",
+      "prompt": "Thêm việc: 1) gọi ngân hàng 2) kiểm tra số dư",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "boundary_two_times",
+      "prompt": "Lưu việc: họp lúc 8:00 và tập gym lúc 18:00",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "boundary_mixed_separators",
+      "prompt": "Note: mua táo, chuối & cam",
+      "shape": "note <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "multiline_two",
+      "prompt": "Ghi lại các việc sau:\nmua bánh mì\nđổ xăng",
+      "shape": "ghi lại các việc sau <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "multiline_three",
+      "prompt": "Thêm ba dòng này:\nđọc email\nreview pull request\nbackup database",
+      "shape": "thêm ba dòng này <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "multiline_case",
+      "prompt": "Lưu mỗi dòng thành một task:\nMua Cà Phê!\ngọi chị Hà",
+      "shape": "lưu mỗi dòng thành một task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "multiline_duplicates",
+      "prompt": "Ghi hai việc này:\nmua sữa\nmua sữa",
+      "shape": "ghi hai việc này <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "list_formal",
+      "prompt": "Liệt kê tất cả task hiện có.",
+      "shape": "liệt kê tất cả task hiện có"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "list_question",
+      "prompt": "Có những việc nào trong danh sách của tôi?",
+      "shape": "có những việc nào trong danh sách của tôi"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "list_mixed_language",
+      "prompt": "Show todo của tui với.",
+      "shape": "show todo của tui với"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "list_empty_indirect",
+      "prompt": "Kiểm tra xem tôi đã lưu gì chưa.",
+      "shape": "kiểm tra xem tôi đã lưu gì chưa"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "bare_call_father",
+      "prompt": "Gọi cho bố.",
+      "shape": "gọi cho bố"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "bare_tomorrow_exercise",
+      "prompt": "Ngày mai tập thể dục.",
+      "shape": "ngày mai tập thể dục"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "bare_fix_bug",
+      "prompt": "Sửa bug đăng nhập",
+      "shape": "sửa bug đăng nhập"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "bare_compound",
+      "prompt": "Học Rust và viết blog.",
+      "shape": "học rust và viết blog"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "bare_lowercase",
+      "prompt": "mua pin bàn phím",
+      "shape": "mua pin bàn phím"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "unsupported_delete_id",
+      "prompt": "Xóa task số 1.",
+      "shape": "xóa task số <id>"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "unsupported_edit",
+      "prompt": "Sửa việc đi chợ thành đi siêu thị.",
+      "shape": "sửa việc đi chợ thành đi siêu thị"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "unsupported_mark_done",
+      "prompt": "Đánh dấu task 1 đã hoàn tất.",
+      "shape": "đánh dấu task <id> đã hoàn tất"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "unsupported_complete_colloquial",
+      "prompt": "Việc mua sách xong rồi, complete nó đi.",
+      "shape": "việc mua sách xong rồi complete nó đi"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "negated_save",
+      "prompt": "Đừng ghi việc mua hoa.",
+      "shape": "đừng ghi việc mua hoa"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "negated_need",
+      "prompt": "Không cần lưu chuyện gọi điện cho Lan.",
+      "shape": "không cần lưu chuyện gọi điện cho lan"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "meta_quoted_create",
+      "prompt": "Câu ‘thêm việc đọc sách’ chỉ là ví dụ, không thực hiện.",
+      "shape": "câu thêm việc đọc sách chỉ là ví dụ không thực hiện"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "meta_tool_name",
+      "prompt": "Giải thích create_task dùng để làm gì, đừng gọi nó.",
+      "shape": "giải thích create_task dùng để làm gì đừng gọi nó"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "missing_record",
+      "prompt": "Ghi lại giúp tôi.",
+      "shape": "ghi lại giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "missing_save_task",
+      "prompt": "Lưu một task mới nhé.",
+      "shape": "lưu một task mới nhé"
+    },
+    {
+      "source": "evals/current_scope_holdout.json",
+      "id": "missing_reference",
+      "prompt": "Note cái này giúp mình.",
+      "shape": "note cái này giúp mình"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_create_put_todo",
+      "prompt": "Bỏ vào todo giúp mình: thay pin chuột",
+      "shape": "bỏ vào todo giúp mình <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_create_remember",
+      "prompt": "Ghi nhớ hộ việc đặt vé tàu",
+      "shape": "ghi nhớ hộ việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_create_save_task",
+      "prompt": "Lưu lại cho tôi task kiểm tra hóa đơn",
+      "shape": "lưu lại cho tôi task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_create_add_list",
+      "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+      "shape": "thêm vào danh sách việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_exact_endpoint_time",
+      "prompt": "Ghi task: gọi API /health lúc 07:05",
+      "shape": "ghi task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_exact_pr",
+      "prompt": "Lưu việc: Review PR #42!",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_exact_quantities",
+      "prompt": "Thêm việc: mua 2kg táo & 1kg lê",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_exact_windows_path",
+      "prompt": "Note giúp: đọc C:\\Docs\\todo.txt",
+      "shape": "note giúp <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_boundary_arrow",
+      "prompt": "Thêm một việc: rửa bát -> lau bàn",
+      "shape": "thêm một việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_boundary_names",
+      "prompt": "Ghi lại: gọi An, Bình; gửi mail cho Chi",
+      "shape": "ghi lại <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_boundary_schedule_slash",
+      "prompt": "Lưu task: 08:00 họp / 09:30 code",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_boundary_parentheses",
+      "prompt": "Note việc: (1) backup, (2) deploy",
+      "shape": "note việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_multiline_two",
+      "prompt": "Lưu các dòng này:\nđặt báo thức\nsạc tai nghe",
+      "shape": "lưu các dòng này <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_multiline_duplicates",
+      "prompt": "Thêm từng dòng:\nUống Nước!\nđọc báo\nUống Nước!",
+      "shape": "thêm từng dòng <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_multiline_blank",
+      "prompt": "Ghi mỗi dòng thành một việc:\nviết test\n\npush code",
+      "shape": "ghi mỗi dòng thành một việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_multiline_compounds",
+      "prompt": "Ghi hai dòng sau:\nmua bánh và sữa\ngọi taxi lúc 6:30",
+      "shape": "ghi hai dòng sau <payload>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_list_open",
+      "prompt": "Mở danh sách việc đã ghi cho tôi.",
+      "shape": "mở danh sách việc đã ghi cho tôi"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_list_todo_now",
+      "prompt": "Todo hiện giờ gồm gì?",
+      "shape": "todo hiện giờ gồm gì"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_list_noted",
+      "prompt": "Tôi đã note những gì vậy?",
+      "shape": "tôi đã note những gì vậy"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_list_empty",
+      "prompt": "Danh sách của mình đang có gì không?",
+      "shape": "danh sách của mình đang có gì không"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_bare_flight",
+      "prompt": "Đặt vé máy bay.",
+      "shape": "đặt vé máy bay"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_bare_afternoon",
+      "prompt": "chiều nay đọc tài liệu",
+      "shape": "chiều nay đọc tài liệu"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_bare_many_actions",
+      "prompt": "Mua rau, nấu cơm và rửa bát.",
+      "shape": "mua rau nấu cơm và rửa bát"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_bare_issue",
+      "prompt": "Fix issue #88",
+      "shape": "fix issue <id>"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_unsupported_remove",
+      "prompt": "Bỏ task số 2 khỏi danh sách.",
+      "shape": "bỏ task số <id> khỏi danh sách"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_unsupported_change",
+      "prompt": "Đổi nội dung task 1 thành gọi bác sĩ.",
+      "shape": "đổi nội dung task <id> thành gọi bác sĩ"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_unsupported_tick",
+      "prompt": "Tick hoàn thành việc nộp thuế.",
+      "shape": "tick hoàn thành việc nộp thuế"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_unsupported_reschedule",
+      "prompt": "Chuyển việc chạy bộ sang ngày mai.",
+      "shape": "chuyển việc chạy bộ sang ngày mai"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_negation_dont_add",
+      "prompt": "Đừng thêm việc mua quà vào danh sách.",
+      "shape": "đừng thêm việc mua quà vào danh sách"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_negation_dont_save",
+      "prompt": "Tôi không muốn lưu việc học đàn.",
+      "shape": "tôi không muốn lưu việc học đàn"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_meta_quoted",
+      "prompt": "Câu \"Ghi lại việc ngủ sớm\" chỉ là ví dụ, đừng thực hiện.",
+      "shape": "câu ghi lại việc ngủ sớm chỉ là ví dụ đừng thực hiện"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_meta_list_tool",
+      "prompt": "Cho tôi biết list_tasks hoạt động ra sao, không cần chạy.",
+      "shape": "cho tôi biết list_tasks hoạt động ra sao không cần chạy"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_missing_add",
+      "prompt": "Thêm một việc cho tôi.",
+      "shape": "thêm một việc cho tôi"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_missing_todo",
+      "prompt": "Ghi vào todo nhé.",
+      "shape": "ghi vào todo nhé"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_missing_reference",
+      "prompt": "Lưu lại chuyện đó.",
+      "shape": "lưu lại chuyện đó"
+    },
+    {
+      "source": "evals/current_scope_holdout_2026-09-11.json",
+      "id": "h2_missing_note",
+      "prompt": "Note giúp.",
+      "shape": "note giúp"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "create_polite",
+      "prompt": "Ghi giúp mình việc gọi cho mẹ nhé.",
+      "shape": "ghi giúp mình việc <payload> nhé"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "create_colloquial",
+      "prompt": "Note giúp tui: mua pin chuột",
+      "shape": "note giúp tui <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "create_duplicate",
+      "prompt": "Thêm việc mua sữa.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "keep_comma_one_line",
+      "prompt": "Ghi lại việc: giặt quần áo, lau bàn, tưới cây",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "keep_and_one_line",
+      "prompt": "Thêm việc: đọc sách và viết nhật ký",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "keep_times_one_line",
+      "prompt": "Ghi lại việc: đi ăn lúc 8:00 và đi ngủ lúc 10:00",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "preserve_punctuation",
+      "prompt": "Ghi lại việc: Ôn C++: vector, map & set",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "create_two_lines",
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nmua sữa\ngọi mẹ",
+      "shape": "ghi lại hai việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "list_empty",
+      "prompt": "Danh sách việc của tôi hiện có gì?",
+      "shape": "danh sách việc của tôi hiện có gì"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "list_colloquial",
+      "prompt": "Mình đã ghi những việc gì rồi nhỉ?",
+      "shape": "mình đã ghi những việc gì rồi nhỉ"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "general_question",
+      "prompt": "SQLite là gì?",
+      "shape": "sqlite là gì"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "quoted_command_example",
+      "prompt": "Tôi chỉ đang lấy ví dụ về câu ‘thêm việc mua sữa’, đừng thực hiện nhé.",
+      "shape": "tôi chỉ đang lấy ví dụ về câu thêm việc mua sữa đừng thực hiện nhé"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "unsupported_delete",
+      "prompt": "Xóa việc mua sữa giúp tôi.",
+      "shape": "xóa việc mua sữa giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "unsupported_complete",
+      "prompt": "Đánh dấu việc học C++ là đã xong.",
+      "shape": "đánh dấu việc học c là đã xong"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "bare_statement",
+      "prompt": "Mua sữa.",
+      "shape": "mua sữa"
+    },
+    {
+      "source": "evals/current_scope_tasks.json",
+      "id": "negated_create",
+      "prompt": "Đừng thêm việc mua sữa vào danh sách.",
+      "shape": "đừng thêm việc mua sữa vào danh sách"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "create_polite",
+      "prompt": "Ghi giúp mình việc gọi cho mẹ nhé.",
+      "shape": "ghi giúp mình việc <payload> nhé"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "create_colloquial",
+      "prompt": "Note giúp tui: mua pin chuột",
+      "shape": "note giúp tui <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "create_duplicate",
+      "prompt": "Thêm việc mua sữa.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "keep_comma_one_line",
+      "prompt": "Ghi lại việc: giặt quần áo, lau bàn, tưới cây",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "keep_and_one_line",
+      "prompt": "Thêm việc: đọc sách và viết nhật ký",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "keep_times_one_line",
+      "prompt": "Ghi lại việc: đi ăn lúc 8:00 và đi ngủ lúc 10:00",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "preserve_punctuation",
+      "prompt": "Ghi lại việc: Ôn C++: vector, map & set",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "create_two_lines",
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nmua sữa\ngọi mẹ",
+      "shape": "ghi lại hai việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "list_empty",
+      "prompt": "Danh sách việc của tôi hiện có gì?",
+      "shape": "danh sách việc của tôi hiện có gì"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "list_colloquial",
+      "prompt": "Mình đã ghi những việc gì rồi nhỉ?",
+      "shape": "mình đã ghi những việc gì rồi nhỉ"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "general_question",
+      "prompt": "SQLite là gì?",
+      "shape": "sqlite là gì"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "quoted_command_example",
+      "prompt": "Tôi chỉ đang lấy ví dụ về câu ‘thêm việc mua sữa’, đừng thực hiện nhé.",
+      "shape": "tôi chỉ đang lấy ví dụ về câu thêm việc mua sữa đừng thực hiện nhé"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "unsupported_delete",
+      "prompt": "Xóa việc mua sữa giúp tôi.",
+      "shape": "xóa việc mua sữa giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "unsupported_complete",
+      "prompt": "Đánh dấu việc học C++ là đã xong.",
+      "shape": "đánh dấu việc học c là đã xong"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "bare_statement",
+      "prompt": "Mua sữa.",
+      "shape": "mua sữa"
+    },
+    {
+      "source": "evals/current_scope_tasks_v2.json",
+      "id": "negated_create",
+      "prompt": "Đừng thêm việc mua sữa vào danh sách.",
+      "shape": "đừng thêm việc mua sữa vào danh sách"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt deadline task #1 là 28/09/2026 09:30.",
+      "shape": "đặt deadline task <id> là <payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt deadline task #1 là 28/09/2026 09:30.",
+      "shape": "đặt deadline task <id> là <payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn lúc 8 giờ sáng mai.",
+      "shape": "đặt hạn lúc <id> giờ sáng mai"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1.",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 và 2 lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc <id> và <id> lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "việc 2",
+      "shape": "việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc tuần sau.",
+      "shape": "đặt hạn việc <id> lúc tuần sau"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "tuần sau",
+      "shape": "tuần sau"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 99 lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc <id> lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc <id> lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00.",
+      "shape": "đặt hạn việc báo cáo lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "hủy",
+      "shape": "hủy"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "8 giờ sáng mai",
+      "shape": "<id> giờ sáng mai"
+    },
+    {
+      "source": "evals/deadline_feature_v1.json",
+      "id": null,
+      "prompt": "8 giờ sáng mai",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Cho tôi xem các việc quá hạn.",
+      "shape": "cho tôi xem các việc quá hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Ngày mai có những task nào đến hạn?",
+      "shape": "ngày mai có những task nào đến hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "hôm nay",
+      "shape": "hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem các task đến hạn",
+      "shape": "xem các task đến hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "tuần này",
+      "shape": "tuần này"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "quá hạn",
+      "shape": "quá hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "hủy",
+      "shape": "hủy"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Hôm nay tôi có gì?",
+      "shape": "hôm nay tôi có gì"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "hôm nay",
+      "shape": "hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_feature_v1.json",
+      "id": null,
+      "prompt": "ngày mai",
+      "shape": "ngày mai"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành bản cuối",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn lúc 27/09/2026 08:00",
+      "shape": "đặt hạn lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc tuần sau",
+      "shape": "đặt hạn việc <id> lúc tuần sau"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "hủy",
+      "shape": "hủy"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc báo cáo lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Cho tôi xem các việc quá hạn.",
+      "shape": "cho tôi xem các việc quá hạn"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "ngày mai",
+      "shape": "ngày mai"
+    },
+    {
+      "source": "evals/deadline_query_smoke_v1.json",
+      "id": null,
+      "prompt": "Hôm nay tôi có gì?",
+      "shape": "hôm nay tôi có gì"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành bản cuối",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn lúc 27/09/2026 08:00",
+      "shape": "đặt hạn lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc tuần sau",
+      "shape": "đặt hạn việc <id> lúc tuần sau"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "hủy",
+      "shape": "hủy"
+    },
+    {
+      "source": "evals/deadline_smoke_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc báo cáo lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1.",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xoá task #1.",
+      "shape": "xoá task <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "không",
+      "shape": "không"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc",
+      "shape": "xóa việc"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "xác nhận",
+      "shape": "xác nhận"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1 và việc 2",
+      "shape": "xóa việc <id> và việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "việc 2",
+      "shape": "việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "đồng ý",
+      "shape": "đồng ý"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Bỏ việc 99 khỏi danh sách.",
+      "shape": "bỏ việc <id> khỏi danh sách"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1.",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc báo cáo",
+      "shape": "xóa việc báo cáo"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1.",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành mới",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "xóa",
+      "shape": "xóa"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_feature_v1.json",
+      "id": null,
+      "prompt": "Đừng xóa việc 1.",
+      "shape": "đừng xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành bản cuối",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1.",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Bỏ việc 1 khỏi danh sách.",
+      "shape": "bỏ việc <id> khỏi danh sách"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "không",
+      "shape": "không"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xóa việc",
+      "shape": "xóa việc"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "xóa",
+      "shape": "xóa"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xoá task #99.",
+      "shape": "xoá task <id>"
+    },
+    {
+      "source": "evals/delete_smoke_v1.json",
+      "id": null,
+      "prompt": "Xóa việc báo cáo",
+      "shape": "xóa việc báo cáo"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành mua sữa không đường",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+      "shape": "đổi nội dung việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa task #1 thành đọc sách",
+      "shape": "sửa task <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 99 thành không tồn tại",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1",
+      "shape": "sửa việc <id>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "nội dung mới",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc thành nội dung mới",
+      "shape": "sửa việc thành nội dung mới"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành mới",
+      "shape": "sửa việc <id> thành mới"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành Mua SỮA",
+      "shape": "sửa việc <id> thành mua sữa"
+    },
+    {
+      "source": "evals/edit_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc báo cáo thành báo cáo tháng",
+      "shape": "sửa việc <payload> thành <payload> tháng"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành mua sữa không đường",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+      "shape": "đổi nội dung việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa task #1 thành đọc sách",
+      "shape": "sửa task <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 99 thành không tồn tại",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1",
+      "shape": "sửa việc <id>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "nội dung mới",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc thành nội dung mới",
+      "shape": "sửa việc thành nội dung mới"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "#1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/edit_smoke_v1.json",
+      "id": null,
+      "prompt": "Sửa việc báo cáo thành báo cáo tháng",
+      "shape": "sửa việc <payload> thành <payload> tháng"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_01",
+      "prompt": "Ghi việc thay vòi nước",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_02",
+      "prompt": "Lưu task kiểm tra máy in",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_03",
+      "prompt": "Thêm việc nạp thẻ điện thoại",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_04",
+      "prompt": "Ghi lại việc mang áo mưa",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_05",
+      "prompt": "Xin thêm task đọc chương cuối",
+      "shape": "xin thêm task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_06",
+      "prompt": "Nhờ bạn ghi việc mua lõi lọc nước",
+      "shape": "nhờ bạn ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_07",
+      "prompt": "Bạn thêm giúp mình việc giặt rèm cửa",
+      "shape": "bạn thêm giúp mình việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_08",
+      "prompt": "Cho việc dọn ngăn kéo vào danh sách",
+      "shape": "cho việc <payload> vào danh sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_09",
+      "prompt": "Tạo task lau bàn phím",
+      "shape": "tạo task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cd_10",
+      "prompt": "Note hộ tôi việc trả sách thư viện",
+      "shape": "note hộ tôi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_01",
+      "prompt": "Thêm việc thay bóng đèn nhé.",
+      "shape": "thêm việc <payload> nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_02",
+      "prompt": "Ghi lại việc mua giấy in giúp mình.",
+      "shape": "ghi lại việc <payload> giúp mình"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_03",
+      "prompt": "Lưu task rửa bình nước với.",
+      "shape": "lưu task <payload> với"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_04",
+      "prompt": "Thêm việc sửa khóa cửa vào danh sách giúp tui?",
+      "shape": "thêm việc <payload> vào danh sách giúp tui"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_05",
+      "prompt": "Ghi giúp tôi việc đi lấy bưu phẩm nhé!",
+      "shape": "ghi giúp tôi việc <payload> nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_06",
+      "prompt": "Bạn ghi lại giúp mình việc chuẩn bị vé xe được không?",
+      "shape": "bạn ghi lại giúp mình việc <payload> được không"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_07",
+      "prompt": "Làm ơn thêm việc thay mực bút vào danh sách.",
+      "shape": "làm ơn thêm việc <payload> vào danh sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_08",
+      "prompt": "Mình muốn lưu việc phân loại hóa đơn.",
+      "shape": "mình muốn lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_09",
+      "prompt": "Nhớ ghi hộ tui việc sạc tai nghe nhé.",
+      "shape": "nhớ ghi hộ tui việc <payload> nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cp_10",
+      "prompt": "Thêm giùm mình việc mua dây sạc với.",
+      "shape": "thêm giùm mình việc <payload> với"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_01",
+      "prompt": "Thêm việc: Đọc README.md.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_02",
+      "prompt": "Ghi việc: đừng quên thay nước cho mèo!",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_03",
+      "prompt": "Lưu task: xóa file nháp sau khi kiểm tra",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_04",
+      "prompt": "Thêm việc: Sửa xe đạp: phanh trước",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_05",
+      "prompt": "Ghi lại việc: kiểm tra hóa đơn #A-42",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_06",
+      "prompt": "Lưu việc: Ôn Python/SQL (phần JOIN)",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_07",
+      "prompt": "Thêm task: Mua sữa không đường, loại 1L.",
+      "shape": "thêm task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_08",
+      "prompt": "Ghi việc: hoàn thành bản nháp báo cáo",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_09",
+      "prompt": "Note giúp mình: sửa typo trong docs",
+      "shape": "note giúp mình <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cl_10",
+      "prompt": "Thêm việc:\nViết email hỏi lịch họp.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_01",
+      "prompt": "Thêm việc: thay ga giường, giặt vỏ gối",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_02",
+      "prompt": "Ghi việc: quét nhà và lau cửa kính",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_03",
+      "prompt": "Lưu task: đọc báo & ghi chú ý chính",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_04",
+      "prompt": "Thêm việc: đón em lúc 17:30 và ghé chợ",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_05",
+      "prompt": "Ghi lại việc: mua bút, vở và bìa hồ sơ",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_06",
+      "prompt": "Lưu việc: chỉnh CV; gửi email ứng tuyển",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_07",
+      "prompt": "Thêm task: mang laptop + sạc + chuột",
+      "shape": "thêm task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_08",
+      "prompt": "Ghi việc: 8:00 ăn sáng / 9:00 học bài",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_09",
+      "prompt": "Thêm việc: xem lại A/B test và viết kết luận",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ob_10",
+      "prompt": "Lưu việc: sửa bug #7, chạy test, đọc log",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_01",
+      "prompt": "Thêm các việc:\nđổ rác\nphơi quần áo",
+      "shape": "thêm các việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_02",
+      "prompt": "Ghi lại ba việc sau, mỗi dòng một việc:\nmua xà phòng\nlau bàn\ntưới sen đá",
+      "shape": "ghi lại ba việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_03",
+      "prompt": "Lưu các việc:\nđọc tài liệu\nviết ghi chú",
+      "shape": "lưu các việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_04",
+      "prompt": "Thêm việc:\ntrả áo khoác\nđặt nước uống",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_05",
+      "prompt": "Ghi hai task:\nchạy bộ\nnghe podcast",
+      "shape": "ghi hai task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_06",
+      "prompt": "Thêm các việc sau:\nĐọc sách.\nDọn tủ.",
+      "shape": "thêm các việc sau <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_07",
+      "prompt": "Ghi lại các việc, mỗi dòng một việc:\nmở cửa sổ\nđóng rèm",
+      "shape": "ghi lại các việc mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_08",
+      "prompt": "Thêm việc:\nmua trà, cà phê\nrửa cốc và đĩa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_09",
+      "prompt": "Lưu việc:\nkiểm tra pin\n\nđặt dây sạc",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "ml_10",
+      "prompt": "Ghi lại 2 việc sau, mỗi dòng một việc:\nôn vector C++\nđọc tài liệu Rust",
+      "shape": "ghi lại <id> việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_01",
+      "prompt": "Xem giúp tôi những việc đã ghi.",
+      "shape": "xem giúp tôi những việc đã ghi"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_02",
+      "prompt": "Danh sách việc đang có gì vậy?",
+      "shape": "danh sách việc đang có gì vậy"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_03",
+      "prompt": "Hiển thị các task đã lưu.",
+      "shape": "hiển thị các task đã lưu"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_04",
+      "prompt": "Liệt kê các việc của mình đi.",
+      "shape": "liệt kê các việc của mình đi"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_05",
+      "prompt": "Mình còn việc nào trong danh sách?",
+      "shape": "mình còn việc nào trong danh sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_06",
+      "prompt": "Cho mình biết đã lưu những task nào.",
+      "shape": "cho mình biết đã lưu những task nào"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_07",
+      "prompt": "Mở danh sách todo hiện tại.",
+      "shape": "mở danh sách todo hiện tại"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_08",
+      "prompt": "Bạn đọc lại những việc tôi đã ghi được không?",
+      "shape": "bạn đọc lại những việc tôi đã ghi được không"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_09",
+      "prompt": "Có những việc gì tôi đã note rồi?",
+      "shape": "có những việc gì tôi đã note rồi"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_10",
+      "prompt": "Tôi muốn xem lại danh sách công việc của mình.",
+      "shape": "tôi muốn xem lại danh sách công việc của mình"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_11",
+      "prompt": "Tính đến giờ tôi đã ghi những gì?",
+      "shape": "tính đến giờ tôi đã ghi những gì"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "li_12",
+      "prompt": "Kiểm tra giúp tôi danh sách việc đã lưu.",
+      "shape": "kiểm tra giúp tôi danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_01",
+      "prompt": "Chào NEXUS, hôm nay thế nào?",
+      "shape": "chào nexus hôm nay thế nào"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_02",
+      "prompt": "SQLite lưu dữ liệu kiểu gì?",
+      "shape": "sqlite lưu dữ liệu kiểu gì"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_03",
+      "prompt": "Tôi chỉ thử nói “thêm việc mua bánh” để xem bạn hiểu không, đừng lưu.",
+      "shape": "tôi chỉ thử nói thêm việc mua bánh để xem bạn hiểu không đừng lưu"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_04",
+      "prompt": "Nếu ai đó nói “ghi việc đi chợ” thì bạn sẽ làm gì?",
+      "shape": "nếu ai đó nói ghi việc đi chợ thì bạn sẽ làm gì"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_05",
+      "prompt": "Tôi vừa mua bánh mì xong.",
+      "shape": "tôi vừa mua bánh mì xong"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_06",
+      "prompt": "Bữa tối nay có gì nhỉ?",
+      "shape": "bữa tối nay có gì nhỉ"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_07",
+      "prompt": "Tôi đang giải thích câu “xem danh sách”, chưa cần xem thật.",
+      "shape": "tôi đang giải thích câu xem danh sách chưa cần xem thật"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_08",
+      "prompt": "Việc học C++ có khó không?",
+      "shape": "việc học c có khó không"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_09",
+      "prompt": "Có lẽ cuối tuần tôi sẽ dọn phòng.",
+      "shape": "có lẽ cuối tuần tôi sẽ dọn phòng"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "nt_10",
+      "prompt": "Cảm ơn nhé!",
+      "shape": "cảm ơn nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_01",
+      "prompt": "Thêm việc giúp mình nhé.",
+      "shape": "thêm việc giúp mình nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_02",
+      "prompt": "Ghi lại một task.",
+      "shape": "ghi lại một task"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_03",
+      "prompt": "Lưu việc:",
+      "shape": "lưu việc"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_04",
+      "prompt": "Chưa cần ghi việc rửa xe.",
+      "shape": "chưa cần ghi việc rửa xe"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_05",
+      "prompt": "Đừng lưu task mua bánh.",
+      "shape": "đừng lưu task mua bánh"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_06",
+      "prompt": "Không muốn thêm việc gọi thợ.",
+      "shape": "không muốn thêm việc gọi thợ"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_07",
+      "prompt": "Mình nghĩ cần mua áo mưa.",
+      "shape": "mình nghĩ cần mua áo mưa"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_08",
+      "prompt": "Nhớ kiểm tra cửa trước khi đi.",
+      "shape": "nhớ kiểm tra cửa trước khi đi"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_09",
+      "prompt": "Nếu tôi nói “thêm việc đổ rác” thì đừng thực hiện.",
+      "shape": "nếu tôi nói thêm việc đổ rác thì đừng thực hiện"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "cf_10",
+      "prompt": "Thêm việc nhé, lát nữa tôi gửi nội dung.",
+      "shape": "thêm việc nhé lát nữa tôi gửi nội dung"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_01",
+      "prompt": "Xóa task mua bánh giúp mình.",
+      "shape": "xóa task mua bánh giúp mình"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_02",
+      "prompt": "Sửa việc nộp báo cáo thành nộp slide.",
+      "shape": "sửa việc nộp báo cáo thành nộp slide"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_03",
+      "prompt": "Đánh dấu task đọc sách đã xong.",
+      "shape": "đánh dấu task đọc sách đã xong"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_04",
+      "prompt": "Hoàn thành việc thay lốp xe.",
+      "shape": "hoàn thành việc thay lốp xe"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_05",
+      "prompt": "Cập nhật việc mua trà thành mua cà phê.",
+      "shape": "cập nhật việc mua trà thành mua cà phê"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_06",
+      "prompt": "Xóa hết danh sách việc đi.",
+      "shape": "xóa hết danh sách việc đi"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_07",
+      "prompt": "Đổi tên task trả sách thành trả truyện.",
+      "shape": "đổi tên task trả sách thành trả truyện"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_08",
+      "prompt": "Đặt nhắc nhở lúc 20:00 cho việc uống thuốc.",
+      "shape": "đặt nhắc nhở lúc <id> <id> cho việc uống thuốc"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_09",
+      "prompt": "Sắp xếp lại thứ tự các việc đã lưu.",
+      "shape": "sắp xếp lại thứ tự các việc đã lưu"
+    },
+    {
+      "source": "evals/generalization_holdout_v1.json",
+      "id": "us_10",
+      "prompt": "Tắt thông báo cho task đọc tài liệu.",
+      "shape": "tắt thông báo cho task đọc tài liệu"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_01",
+      "prompt": "Nhờ bạn thêm việc sửa chân bàn",
+      "shape": "nhờ bạn thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_02",
+      "prompt": "Bạn lưu hộ tôi việc kiểm tra phanh xe",
+      "shape": "bạn lưu hộ tôi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_03",
+      "prompt": "Mình muốn ghi lại việc gửi biên lai",
+      "shape": "mình muốn ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_04",
+      "prompt": "Tạo task đóng cửa sổ",
+      "shape": "tạo task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_05",
+      "prompt": "Cho việc đổi pin đồng hồ vào danh sách",
+      "shape": "cho việc <payload> vào danh sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_06",
+      "prompt": "Làm ơn note giúp mình việc mang ô",
+      "shape": "làm ơn note giúp mình việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_07",
+      "prompt": "Thêm giùm tui việc rửa nồi",
+      "shape": "thêm giùm tui việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_08",
+      "prompt": "Nhớ ghi hộ mình việc đặt lịch khám",
+      "shape": "nhớ ghi hộ mình việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_09",
+      "prompt": "Bạn ghi lại giúp tui việc gửi bưu thiếp được không?",
+      "shape": "bạn ghi lại giúp tui việc <payload> được không"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_10",
+      "prompt": "Phiền bạn thêm việc thay nước bình hoa",
+      "shape": "phiền bạn thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_11",
+      "prompt": "Ghi dùm mình việc mua giấy nhám",
+      "shape": "ghi dùm mình việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "authorization_12",
+      "prompt": "Cho tôi lưu việc kiểm kê hộp thuốc",
+      "shape": "cho tôi lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_01",
+      "prompt": "Ghi việc lau gương với.",
+      "shape": "ghi việc <payload> với"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_02",
+      "prompt": "Lưu task đổi bóng tuýp giúp tôi!",
+      "shape": "lưu task <payload> giúp tôi"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_03",
+      "prompt": "Bạn thêm việc mua khăn giấy vào danh sách nhé.",
+      "shape": "bạn thêm việc <payload> vào danh sách nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_04",
+      "prompt": "Thêm việc đi lấy ảnh được không?",
+      "shape": "thêm việc <payload> được không"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_05",
+      "prompt": "Ghi việc đọc sách với em.",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_06",
+      "prompt": "Lưu task luyện hội thoại nhé.",
+      "shape": "lưu task <payload> nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_07",
+      "prompt": "Ghi lại việc mang tập tin giúp tui?",
+      "shape": "ghi lại việc <payload> giúp tui"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_08",
+      "prompt": "Thêm việc mua bút và dán nhãn vào danh sách.",
+      "shape": "thêm việc <payload> vào danh sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_09",
+      "prompt": "Thêm việc đi ngủ lúc 22:00 với.",
+      "shape": "thêm việc <payload> với"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "canonical_boundary_10",
+      "prompt": "Bạn lưu việc thay bộ lọc vào danh sách giúp mình nhé!",
+      "shape": "bạn lưu việc <payload> vào danh sách giúp mình nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_01",
+      "prompt": "Thêm việc: gọi bố nhé.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_02",
+      "prompt": "Ghi task: Nhớ mở cửa với.",
+      "shape": "ghi task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_03",
+      "prompt": "Lưu việc: Ôn SQL: window function",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_04",
+      "prompt": "Thêm task: đi lúc 08:30, về lúc 18:00",
+      "shape": "thêm task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_05",
+      "prompt": "Ghi việc:\n  nhắc về thuốc giúp mình.  ",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_06",
+      "prompt": "Lưu task: sửa câu “xóa task” trong tài liệu",
+      "shape": "lưu task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_07",
+      "prompt": "Thêm việc: mua dầu ăn & nước rửa chén",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "literal_boundary_08",
+      "prompt": "Ghi việc: đọc A/B test và viết ghi chú",
+      "shape": "ghi việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_01",
+      "prompt": "Ghi các việc:\nmua bánh mì\nthay pin chuột",
+      "shape": "ghi các việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_02",
+      "prompt": "Lưu hai task sau, mỗi dòng một việc:\ntrả dù\nđọc tài liệu Docker",
+      "shape": "lưu hai task sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_03",
+      "prompt": "Thêm việc:\nkiểm tra bếp\n\nkhóa cửa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_04",
+      "prompt": "Ghi lại các việc sau:\nĐọc báo.\nGửi email.",
+      "shape": "ghi lại các việc sau <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_05",
+      "prompt": "Thêm việc:\nđọc C++: vector\nđọc Python: asyncio",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "multiline_06",
+      "prompt": "Lưu các task:\nrửa xe và bơm lốp\nlau bàn, ghế",
+      "shape": "lưu các task <payload>"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_01",
+      "prompt": "Liệt kê các việc của tui đi.",
+      "shape": "liệt kê các việc của tui đi"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_02",
+      "prompt": "Cho tôi biết đã ghi những task nào?",
+      "shape": "cho tôi biết đã ghi những task nào"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_03",
+      "prompt": "Tui muốn xem lại danh sách việc.",
+      "shape": "tui muốn xem lại danh sách việc"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_04",
+      "prompt": "Bạn đọc lại những việc mình đã lưu nhé.",
+      "shape": "bạn đọc lại những việc mình đã lưu nhé"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_05",
+      "prompt": "Có những việc gì tôi đã ghi rồi?",
+      "shape": "có những việc gì tôi đã ghi rồi"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_06",
+      "prompt": "Tính đến giờ mình đã note những gì?",
+      "shape": "tính đến giờ mình đã note những gì"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_07",
+      "prompt": "Xem giúp tui danh sách task hiện tại.",
+      "shape": "xem giúp tui danh sách task hiện tại"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_08",
+      "prompt": "Mình còn việc nào trong todo?",
+      "shape": "mình còn việc nào trong todo"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_09",
+      "prompt": "Phiền bạn cho xem danh sách việc đã lưu.",
+      "shape": "phiền bạn cho xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "list_10",
+      "prompt": "Đọc cho mình nghe các việc đã ghi.",
+      "shape": "đọc cho mình nghe các việc đã ghi"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_01",
+      "prompt": "Tôi chỉ nói ví dụ “Tạo task xếp sách”, đừng làm thật.",
+      "shape": "tôi chỉ nói ví dụ tạo task xếp sách đừng làm thật"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_02",
+      "prompt": "Đừng thêm việc thay bóng đèn.",
+      "shape": "đừng thêm việc thay bóng đèn"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_03",
+      "prompt": "Không cần lưu task mua táo.",
+      "shape": "không cần lưu task mua táo"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_04",
+      "prompt": "Tôi đã ghi việc mua bánh hôm qua.",
+      "shape": "tôi đã ghi việc mua bánh hôm qua"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_05",
+      "prompt": "Cho việc đọc sách.",
+      "shape": "cho việc đọc sách"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_06",
+      "prompt": "Tạo task nhé, lát nữa gửi nội dung.",
+      "shape": "tạo task nhé lát nữa gửi nội dung"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_07",
+      "prompt": "Phiền bạn xóa task giặt áo.",
+      "shape": "phiền bạn xóa task giặt áo"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_08",
+      "prompt": "Bạn sửa task trả sách thành trả truyện.",
+      "shape": "bạn sửa task trả sách thành trả truyện"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_09",
+      "prompt": "Có những việc gì giúp tôi tập trung hơn?",
+      "shape": "có những việc gì giúp tôi tập trung hơn"
+    },
+    {
+      "source": "evals/generalization_holdout_v2.json",
+      "id": "no_tool_10",
+      "prompt": "Tôi kể câu “Liệt kê các việc của tui đi” làm ví dụ.",
+      "shape": "tôi kể câu liệt kê các việc của tui đi làm ví dụ"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "keep_one_line",
+      "prompt": "Ghi lại việc: mua sữa, gọi mẹ và học Python",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "new_comma_line",
+      "prompt": "Ghi lại việc: giặt quần áo, lau bàn, tưới cây",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/prompt_comparison_cases.json",
+      "id": "new_and_line",
+      "prompt": "Thêm việc: đọc sách và viết nhật ký",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/qwen-baseline-2026-09-09.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/qwen-baseline-2026-09-09.json",
+      "id": "keep_one_line",
+      "prompt": "Ghi lại việc: mua sữa, gọi mẹ và học Python",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/qwen-baseline-2026-09-09.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/qwen-baseline-2026-09-09.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/qwen-baseline-2026-09-09.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "create_one",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc <payload> vào danh sách giúp tôi"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "keep_one_line",
+      "prompt": "Ghi lại việc: mua sữa, gọi mẹ và học Python",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "list_existing",
+      "prompt": "Cho tôi xem danh sách việc đã lưu.",
+      "shape": "cho tôi xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "greeting",
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "missing_content",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "new_comma_line",
+      "prompt": "Ghi lại việc: giặt quần áo, lau bàn, tưới cây",
+      "shape": "ghi lại việc <payload>"
+    },
+    {
+      "source": "evals/qwen-prompt-v1-2026-09-09.json",
+      "id": "new_and_line",
+      "prompt": "Thêm việc: đọc sách và viết nhật ký",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "mua sữa",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Ghi việc:",
+      "shape": "ghi việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "đọc sách\ngọi mẹ",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "huỷ",
+      "shape": "huỷ"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "   ",
+      "shape": ""
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: mua táo",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc giúp tôi",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Hiện tại tôi đang có những việc gì nhỉ?",
+      "shape": "hiện tại tôi đang có những việc gì nhỉ"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Sắp xếp task cũ",
+      "shape": "sắp xếp task cũ"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "sửa xe",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "xóa file nháp",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "đừng quên mua sữa",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Hôm nay trời đẹp.",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm các việc:\na\nb",
+      "shape": "thêm các việc a b"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "việc mới\nlỗi",
+      "shape": "việc mới lỗi"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "việc mới",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "mua sữa",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "mua sữa",
+      "shape": "mua sữa"
+    },
+    {
+      "source": "evals/session_conversations_v1.json",
+      "id": null,
+      "prompt": "gọi mẹ",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "gọi mẹ",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nđọc sách\ntưới cây",
+      "shape": "ghi lại hai việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "thôi",
+      "shape": "thôi"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa.",
+      "shape": "thêm việc mua sữa"
+    },
+    {
+      "source": "evals/session_smoke_v1.json",
+      "id": null,
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Thêm việc: mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "gọi mẹ",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nđọc sách\ntưới cây",
+      "shape": "ghi lại hai việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Thêm việc",
+      "shape": "thêm việc"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "thôi",
+      "shape": "thôi"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/session_smoke_v2.json",
+      "id": null,
+      "prompt": "Chào bạn!",
+      "shape": "chào bạn"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Hoàn thành việc 1",
+      "shape": "hoàn thành việc <id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành bản cuối",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Xóa việc 1",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "có",
+      "shape": "có"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Xem danh sách",
+      "shape": "xem danh sách"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn lúc 27/09/2026 08:00",
+      "shape": "đặt hạn lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "1",
+      "shape": "<id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "27/09/2026 08:00",
+      "shape": "<payload>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc 1 lúc tuần sau",
+      "shape": "đặt hạn việc <id> lúc tuần sau"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "hủy",
+      "shape": "hủy"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00",
+      "shape": "đặt hạn việc báo cáo lúc <id> <id> <id> <id> <id>"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Cho tôi xem các việc quá hạn.",
+      "shape": "cho tôi xem các việc quá hạn"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Xem việc theo hạn",
+      "shape": "xem việc theo hạn"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "ngày mai",
+      "shape": "ngày mai"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Hôm nay tôi có gì?",
+      "shape": "hôm nay tôi có gì"
+    },
+    {
+      "source": "evals/tool_routing_diagnostic_v1.json",
+      "id": null,
+      "prompt": "Thêm việc mua sữa.",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/tool_routing_feature_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: xóa file nháp",
+      "shape": "thêm việc <payload>"
+    },
+    {
+      "source": "evals/tool_routing_feature_v1.json",
+      "id": null,
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/tool_routing_feature_v1.json",
+      "id": null,
+      "prompt": "Cuối tuần có gì vui?",
+      "shape": "cuối tuần có gì vui"
+    },
+    {
+      "source": "evals/tool_routing_feature_v1.json",
+      "id": null,
+      "prompt": "Sửa việc 1 thành bản mới",
+      "shape": "sửa việc <id> thành bản mới"
+    },
+    {
+      "source": "evals/tool_routing_feature_v1.json",
+      "id": null,
+      "prompt": "Thêm việc: a",
+      "shape": "thêm việc a"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Lưu việc: kiểm tra hóa đơn.",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Liệt kê các việc đã lưu.",
+      "shape": "liệt kê các việc đã lưu"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Đánh dấu task #1 là hoàn thành.",
+      "shape": "đánh dấu task <id> là hoàn thành"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Cập nhật nội dung task #1 thành gửi bản chính",
+      "shape": "cập nhật nội dung task <id> thành <payload>"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Bỏ task #1 khỏi danh sách.",
+      "shape": "bỏ task <id> khỏi danh sách"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "xóa",
+      "shape": "xóa"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+      "shape": "đặt thời hạn cho task <id> vào <payload>"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Hiển thị những task tới hạn ngày mai.",
+      "shape": "hiển thị những task tới hạn ngày mai"
+    },
+    {
+      "source": "evals/tool_routing_holdout_v1.json",
+      "id": null,
+      "prompt": "Cuối tuần có gì vui?",
+      "shape": "cuối tuần có gì vui"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "create_literal",
+      "prompt": "Lưu việc: kiểm tra hóa đơn.",
+      "shape": "lưu việc <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "create_multiline",
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nÔn C++: vector\ngọi mẹ lúc 8:00",
+      "shape": "ghi lại hai việc sau mỗi dòng một việc <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "list_direct",
+      "prompt": "Xem danh sách việc đã lưu.",
+      "shape": "xem danh sách việc đã lưu"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "list_paraphrase",
+      "prompt": "Cho tôi xem toàn bộ những đầu việc đã ghi lại nhé.",
+      "shape": "cho tôi xem toàn bộ những đầu việc đã ghi lại nhé"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "complete_id",
+      "prompt": "Hoàn thành task #7.",
+      "shape": "hoàn thành task <id>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "complete_paraphrase",
+      "prompt": "Đánh dấu việc 12 là đã xong.",
+      "shape": "đánh dấu việc <id> là đã xong"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "edit_literal",
+      "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+      "shape": "sửa việc <id> thành <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "edit_courteous",
+      "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+      "shape": "cập nhật nội dung task <id> thành <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "delete_direct",
+      "prompt": "Xóa việc 3.",
+      "shape": "xóa việc <id>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "delete_drop",
+      "prompt": "Bỏ task #11 khỏi danh sách.",
+      "shape": "bỏ task <id> khỏi danh sách"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "deadline_absolute",
+      "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+      "shape": "đặt deadline task <id> là <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "deadline_relative",
+      "prompt": "Đặt hạn việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+      "shape": "đặt hạn việc <id> lúc <payload>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "due_today",
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "shape": "xem việc đến hạn hôm nay"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "due_overdue",
+      "prompt": "Cho tôi xem các việc quá hạn.",
+      "shape": "cho tôi xem các việc quá hạn"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "missing_create",
+      "prompt": "Thêm việc giúp tôi.",
+      "shape": "thêm việc giúp tôi"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "missing_complete_id",
+      "prompt": "Hoàn thành việc.",
+      "shape": "hoàn thành việc"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "missing_deadline_time",
+      "prompt": "Đặt hạn việc 2.",
+      "shape": "đặt hạn việc <id>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "missing_due_scope",
+      "prompt": "Xem các việc theo hạn.",
+      "shape": "xem các việc theo hạn"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "negated_delete",
+      "prompt": "Đừng xóa việc 3.",
+      "shape": "đừng xóa việc <id>"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "negated_create",
+      "prompt": "Không cần thêm việc mua sữa.",
+      "shape": "không cần thêm việc mua sữa"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "unsupported_reminder",
+      "prompt": "Nhắc tôi uống nước mỗi giờ.",
+      "shape": "nhắc tôi uống nước mỗi giờ"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "unsupported_content_lookup",
+      "prompt": "Xóa việc có nội dung mua sữa.",
+      "shape": "xóa việc có nội dung mua sữa"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "bare_statement",
+      "prompt": "Mua bánh.",
+      "shape": "mua bánh"
+    },
+    {
+      "source": "evals/model_proposal_pilot_v1.json",
+      "id": "ambiguous_today",
+      "prompt": "Hôm nay tôi có gì?",
+      "shape": "hôm nay tôi có gì"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v6:user:0",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc mua sữa vào danh sách giúp tôi"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v6:user:4",
+      "prompt": "Ghi giúp mình việc gọi cho mẹ nhé.",
+      "shape": "ghi giúp mình việc gọi cho mẹ nhé"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v6:user:8",
+      "prompt": "Mua sữa.",
+      "shape": "mua sữa"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v6:user:10",
+      "prompt": "Đánh dấu việc học C++ là đã xong.",
+      "shape": "đánh dấu việc học c là đã xong"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v7:user:0",
+      "prompt": "Thêm việc mua sữa vào danh sách giúp tôi.",
+      "shape": "thêm việc mua sữa vào danh sách giúp tôi"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v7:user:4",
+      "prompt": "Ghi giúp mình việc gọi cho mẹ nhé.",
+      "shape": "ghi giúp mình việc gọi cho mẹ nhé"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v7:user:8",
+      "prompt": "Mua sữa.",
+      "shape": "mua sữa"
+    },
+    {
+      "source": "src/nexus/agent/prompts.py",
+      "id": "v7:user:10",
+      "prompt": "Đánh dấu việc học C++ là đã xong.",
+      "shape": "đánh dấu việc học c là đã xong"
+    }
+  ]
+}

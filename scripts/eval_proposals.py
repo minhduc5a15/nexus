@@ -300,6 +300,7 @@ def evaluate_case(case, generate, *, prompt_version="v13", settings=None,
     record = {
         "id": case["id"], "family": case["family"], "prompt": case["prompt"],
         "rationale": case["rationale"], "expected": deepcopy(case["expected"]),
+        "known_fields": deepcopy(case.get("known_fields", {})),
         "model_called": True, "model_request": deepcopy(payload), "routing": routing,
         "raw_response": None, "error": None,
     }

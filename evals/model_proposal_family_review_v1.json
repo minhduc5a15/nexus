@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "reviewer": {
+    "name": "Codex",
+    "kind": "assistant"
+  },
+  "independent_human_review": "pending",
+  "label_review": "Đã đọc nhãn theo contract bảy action; không lấy classifier/policy/model làm đáp án. Gold CREATE/EDIT/when giữ substring nguyên văn; deadline action chỉ dùng grammar hiện có. Hai ID yêu cầu chọn một; thao tác ngoài phạm vi không chuyển thành hành động khác.",
+  "family_review": "84 action holdout có 42 family, mỗi family hai biến thể. Các biến thể cùng family luôn nằm trong cùng split. Các family là khung yêu cầu cụ thể; action và từ khóa contract được chia sẻ. Hai tập không được coi là độc lập về mọi ý nghĩa ngôn ngữ.",
+  "similarity_decisions": [
+    {
+      "id": "hold_047",
+      "nearest_source": "evals/model_proposal_pilot_v1.json",
+      "nearest_prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+      "similarity": 0.791667,
+      "decision": "keep_distinct_framing",
+      "reason": "Lời yêu cầu pha English Please update được giữ ở family edit_switch_language_request; development EDIT dùng động từ tiếng Việt. Từ thành và tên trường content là contract chung, không thể bỏ chỉ để làm giảm similarity."
+    },
+    {
+      "id": "hold_048",
+      "nearest_source": "evals/model_proposal_pilot_v1.json",
+      "nearest_prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+      "similarity": 0.791667,
+      "decision": "keep_distinct_framing",
+      "reason": "Cùng family edit_switch_language_request với hold_047; cả hai ở holdout. Payload khác nhưng không được coi là hai family độc lập."
+    },
+    {
+      "id": "hold_067",
+      "nearest_source": "evals/model_proposal_pilot_v1.json",
+      "nearest_prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+      "similarity": 0.794872,
+      "decision": "keep_distinct_framing",
+      "reason": "Khung câu yêu cầu đặt deadline hoàn toàn tiếng Anh được giữ riêng ở holdout; development dùng lời dẫn tiếng Việt với danh từ deadline. Không phải chỉ thay ID/time."
+    },
+    {
+      "id": "hold_068",
+      "nearest_source": "evals/model_proposal_pilot_v1.json",
+      "nearest_prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+      "similarity": 0.794872,
+      "decision": "keep_distinct_framing",
+      "reason": "Cùng family English deadline với hold_067 và ở cùng split. Thay cụm thời gian chỉ tạo biến thể trong holdout, không chia sang development."
+    },
+    {
+      "id": "hold_118",
+      "nearest_source": "evals/model_proposal_development_v1.json",
+      "nearest_prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+      "similarity": 0.780488,
+      "decision": "keep_distinct_framing",
+      "reason": "Yêu cầu gửi email nhắc việc là thao tác ngoài phạm vi; câu gần nhất là phủ định đặt hạn. Giống cụm nhắc việc/giờ không làm hai framing đồng nhất; rationale no_action khác nhau."
+    }
+  ],
+  "additional_nearest_review": {
+    "count": 16,
+    "decision": "Đọc 16 cặp gần nhất: giữ các framing đảo vị trí ID, thay phần chữ, dời hạn, English riêng. Không sửa gold theo classifier hoặc model."
+  },
+  "limits": [
+    "Ngưỡng lexical 0.75 là công cụ sàng lọc, không chứng minh không rò rỉ ngữ nghĩa.",
+    "Tác giả đã đọc lịch sử và holdout để gán nhãn; holdout chỉ chưa có kết quả model, không phải tập do bên độc lập bí mật xây dựng.",
+    "Chỉ mục lịch sử bao phủ JSON eval và few-shot user có sẵn tại thời điểm này; không chứng minh phủ hết mọi cuộc trò chuyện hoặc dữ liệu pretraining.",
+    "Các họ câu holdout phải được loại khỏi training về sau; không chỉ so ID/prompt bằng exact match."
+  ]
+}

@@ -1,0 +1,1751 @@
+{
+  "schema_version": 1,
+  "split": "development",
+  "version": 1,
+  "purpose": "Development: includes the exposed pilot; never a blind test.",
+  "label_source": "Authored from product contract; no classifier or model outputs used as gold. Author/reviewer: Codex; independent human review pending.",
+  "cases": [
+    {
+      "id": "create_literal",
+      "prompt": "Lưu việc: kiểm tra hóa đơn.",
+      "family": "create_delimited",
+      "rationale": "Sau dấu hai chấm, dấu chấm thuộc dữ liệu task; phải giữ nguyên.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra hóa đơn."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "create_multiline",
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nÔn C++: vector\ngọi mẹ lúc 8:00",
+      "family": "create_multiline",
+      "rationale": "Một proposal giữ nguyên cả hai dòng; dấu hai chấm trong content không phải framing.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "Ôn C++: vector\ngọi mẹ lúc 8:00"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "list_direct",
+      "prompt": "Xem danh sách việc đã lưu.",
+      "family": "list_command",
+      "rationale": "Yêu cầu đọc toàn bộ danh sách, không thay đổi dữ liệu.",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "list_paraphrase",
+      "prompt": "Cho tôi xem toàn bộ những đầu việc đã ghi lại nhé.",
+      "family": "list_new_phrasing",
+      "rationale": "Yêu cầu LIST rõ nghĩa dù classifier có thể không nhận diện; gold không lấy từ classifier.",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "complete_id",
+      "prompt": "Hoàn thành task #7.",
+      "family": "complete_explicit_id",
+      "rationale": "Chỉ ID 7 được chỉ định, không được tự đổi sang ID khác.",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 7
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "complete_paraphrase",
+      "prompt": "Đánh dấu việc 12 là đã xong.",
+      "family": "complete_mark",
+      "rationale": "Đánh dấu trạng thái hoàn thành của đúng một ID.",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 12
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "edit_literal",
+      "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+      "family": "edit_content_boundary",
+      "rationale": "Nội dung sau thành được giữ nguyên, gồm chữ hoa và dấu chấm.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 4,
+              "content": "Nộp bản cuối."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "edit_courteous",
+      "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+      "family": "edit_update",
+      "rationale": "ID và toàn bộ nội dung mới đều đã có; không cần tra cứu tên task.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 9,
+              "content": "gửi email cho Lan"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "delete_direct",
+      "prompt": "Xóa việc 3.",
+      "family": "delete_id",
+      "rationale": "Model đề xuất DELETE theo ID; xác nhận và thực thi thuộc ứng dụng, evaluator không xóa.",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 3
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "delete_drop",
+      "prompt": "Bỏ task #11 khỏi danh sách.",
+      "family": "delete_drop_from_list",
+      "rationale": "Xóa đúng ID 11, không phải lệnh hủy trạng thái đang chờ.",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 11
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "deadline_absolute",
+      "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+      "family": "deadline_absolute",
+      "rationale": "when là cụm thời gian nguyên văn, không phải timestamp; dấu kết câu không thuộc cụm thời gian.",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 5,
+              "when": "27/09/2026 08:00"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "deadline_relative",
+      "prompt": "Đặt hạn việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+      "family": "deadline_relative",
+      "rationale": "Giữ nguyên cụm thời gian; evaluator không tính ngày và không đặt deadline.",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 6,
+              "when": "8 giờ 30 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "due_today",
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "family": "due_today",
+      "rationale": "Người dùng chỉ định today, không phải tomorrow hoặc LIST toàn bộ.",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "due_overdue",
+      "prompt": "Cho tôi xem các việc quá hạn.",
+      "family": "due_overdue",
+      "rationale": "Phạm vi overdue được nêu rõ.",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "missing_create",
+      "prompt": "Thêm việc giúp tôi.",
+      "family": "clarify_create",
+      "rationale": "Có yêu cầu thêm nhưng thiếu content; phải hỏi nội dung, không tạo task.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "create",
+        "accepted_calls": [],
+        "missing_slots": [
+          "content"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "missing_complete_id",
+      "prompt": "Hoàn thành việc.",
+      "family": "clarify_id",
+      "rationale": "Thiếu ID, không được suy ID từ task trong database.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "complete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "missing_deadline_time",
+      "prompt": "Đặt hạn việc 2.",
+      "family": "clarify_time",
+      "rationale": "ID đã có nhưng thiếu thời gian, không tự chọn deadline.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "when"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1",
+      "known_fields": {
+        "id": 2
+      }
+    },
+    {
+      "id": "missing_due_scope",
+      "prompt": "Xem các việc theo hạn.",
+      "family": "clarify_scope",
+      "rationale": "Chưa xác định today/tomorrow/overdue, cần hỏi scope.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "due_query",
+        "accepted_calls": [],
+        "missing_slots": [
+          "scope"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "negated_delete",
+      "prompt": "Đừng xóa việc 3.",
+      "family": "negation_delete",
+      "rationale": "Phủ định hành động xóa dù ID đã rõ.",
+      "expected": {
+        "behavior": "no_action",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "negated_create",
+      "prompt": "Không cần thêm việc mua sữa.",
+      "family": "negation_create",
+      "rationale": "Không có quyền CREATE từ yêu cầu phủ định.",
+      "expected": {
+        "behavior": "no_action",
+        "action": "create",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "unsupported_reminder",
+      "prompt": "Nhắc tôi uống nước mỗi giờ.",
+      "family": "unsupported_recurrence",
+      "rationale": "Reminder và recurrence chưa hỗ trợ; không được chuyển sang CREATE.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "unsupported_content_lookup",
+      "prompt": "Xóa việc có nội dung mua sữa.",
+      "family": "unsupported_lookup",
+      "rationale": "Không có ID; không tìm task theo content. Hỏi ID nhưng chưa đề xuất DELETE.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "bare_statement",
+      "prompt": "Mua bánh.",
+      "family": "bare_statement",
+      "rationale": "Chỉ nêu nội dung, chưa yêu cầu thêm task theo contract hiện hành.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "ambiguous_today",
+      "prompt": "Hôm nay tôi có gì?",
+      "family": "ambiguous_scope",
+      "rationale": "Chưa nói về task hoặc deadline; không tự chọn truy vấn today.",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "ý định: danh sách task hay việc đến hạn"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "dev_025",
+      "prompt": "Thêm việc: sửa xe, rồi rửa xe.",
+      "family": "create_delimited",
+      "rationale": "CREATE với lời dẫn rõ; giữ toàn khối sau dấu hai chấm.",
+      "dimensions": [
+        "punctuation",
+        "same_line_conjunction"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "sửa xe, rồi rửa xe."
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_026",
+      "prompt": "Note giúp tui: kiểm tra API & viết README!",
+      "family": "create_colloquial_note",
+      "rationale": "Lời yêu cầu note với đại từ đời thường.",
+      "dimensions": [
+        "colloquial",
+        "code_switch",
+        "punctuation"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra API & viết README!"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_027",
+      "prompt": "Ghi giúp mình việc đặt bàn nhà hàng",
+      "family": "create_polite_record",
+      "rationale": "Yêu cầu ghi giúp và từ chỉ việc trước content.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đặt bàn nhà hàng"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_028",
+      "prompt": "Thêm các việc:\nđọc RFC\n\nđừng quên gọi bố",
+      "family": "create_multiline",
+      "rationale": "Một yêu cầu CREATE chứa các dòng; không tách thành nhiều call.",
+      "dimensions": [
+        "multiline",
+        "blank_line",
+        "negation_in_content"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đọc RFC\n\nđừng quên gọi bố"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_029",
+      "prompt": "Thêm việc mua vé tàu vào danh sách giúp tôi.",
+      "family": "create_natural_suffix",
+      "rationale": "Câu tự nhiên có lời kết vào danh sách; dấu chấm thuộc lời yêu cầu.",
+      "dimensions": [
+        "polite",
+        "boundary"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "mua vé tàu"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_030",
+      "prompt": "Thêmm việc: mang sạc dự phòng",
+      "family": "create_typo_command",
+      "rationale": "Lỗi gõ nhẹ ở lời dẫn không đổi ý định CREATE hoặc content.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "mang sạc dự phòng"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_031",
+      "prompt": "Xem danh sách task giúp tui.",
+      "family": "list_command",
+      "rationale": "Lệnh xem toàn bộ danh sách task đã lưu.",
+      "dimensions": [
+        "colloquial",
+        "code_switch"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_032",
+      "prompt": "Liệt kê toàn bộ các việc đã lưu nhé.",
+      "family": "list_enumerate",
+      "rationale": "Yêu cầu liệt kê toàn bộ task đã ghi.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_033",
+      "prompt": "Danh sách việc của tôi hiện có gì?",
+      "family": "list_stored_question",
+      "rationale": "Hỏi nội dung danh sách việc đã lưu, không lọc deadline.",
+      "dimensions": [
+        "question"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_034",
+      "prompt": "Cho mình xem danh sách công việc đã ghi.",
+      "family": "list_show_polite",
+      "rationale": "Lời yêu cầu cho xem danh sách đã lưu.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_035",
+      "prompt": "Show mình danh sách task đã lưu với.",
+      "family": "list_code_switch_verb",
+      "rationale": "Động từ show pha với tân ngữ danh sách tiếng Việt.",
+      "dimensions": [
+        "code_switch"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_036",
+      "prompt": "Xem danh sáhc công việc đã lưu.",
+      "family": "list_typo_command",
+      "rationale": "Lỗi gõ nhỏ ở danh sách vẫn chỉ rõ LIST.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_037",
+      "prompt": "Hoàn thành việc 18.",
+      "family": "complete_explicit_id",
+      "rationale": "Hoàn thành với ID rõ ràng.",
+      "dimensions": [
+        "id"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 18
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_038",
+      "prompt": "Đánh dấu task #22 là đã xong.",
+      "family": "complete_mark",
+      "rationale": "Đánh dấu đã xong theo đúng một ID.",
+      "dimensions": [
+        "id",
+        "code_switch"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 22
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_039",
+      "prompt": "Hoàn thành giúp tôi task #34 nhé.",
+      "family": "complete_polite_command",
+      "rationale": "Xin hoàn thành một task với đại từ lịch sự.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 34
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_040",
+      "prompt": "Tick xong việc 45 giúp tui.",
+      "family": "complete_colloquial_tick",
+      "rationale": "Tick xong là yêu cầu đổi trạng thái, ID đã rõ.",
+      "dimensions": [
+        "colloquial",
+        "code_switch"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 45
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_041",
+      "prompt": "Hoàn thànnh việc 56.",
+      "family": "complete_typo_command",
+      "rationale": "Lỗi gõ ở hoàn thành nhưng ID không mơ hồ.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 56
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_042",
+      "prompt": "Hoàn thành task #9876.",
+      "family": "complete_large_id",
+      "rationale": "ID không cần tồn tại khi chấm proposal; không tự đổi ID lớn.",
+      "dimensions": [
+        "id"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 9876
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_043",
+      "prompt": "Sửa việc 14 thành kiểm tra báo cáo!",
+      "family": "edit_content_boundary",
+      "rationale": "Nội dung sau thành được giữ nguyên cả dấu câu.",
+      "dimensions": [
+        "punctuation"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 14,
+              "content": "kiểm tra báo cáo!"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_044",
+      "prompt": "Cập nhật nội dung task #26 thành Ôn Python: dict",
+      "family": "edit_update",
+      "rationale": "Cập nhật nội dung theo ID, giữ nguyên dấu câu và chữ hoa.",
+      "dimensions": [
+        "code_switch",
+        "case_sensitive",
+        "colon_in_content"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 26,
+              "content": "Ôn Python: dict"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_045",
+      "prompt": "Đổi nội dung việc 38 thành xóa file nháp",
+      "family": "edit_rename",
+      "rationale": "Đổi nội dung task theo ID, phần sau thành là dữ liệu.",
+      "dimensions": [
+        "action_word_in_content"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 38,
+              "content": "xóa file nháp"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_046",
+      "prompt": "Giúp tôi sửa task #49 thành gọi chị Mai",
+      "family": "edit_polite_prefix",
+      "rationale": "Lời nhờ sửa; phần nội dung không có lời kết để tránh mơ hồ.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 49,
+              "content": "gọi chị Mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_047",
+      "prompt": "Sửaa việc 61 thành mua mực in",
+      "family": "edit_typo_command",
+      "rationale": "Lỗi gõ nhẹ ở sửa; content vẫn phải giữ nguyên.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 61,
+              "content": "mua mực in"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_048",
+      "prompt": "Sửa việc 72 thành giặt áo, phơi áo và cất áo.",
+      "family": "edit_content_boundary",
+      "rationale": "Dấu phẩy/và trong content không làm phát sinh task mới.",
+      "dimensions": [
+        "same_line_conjunction",
+        "punctuation"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 72,
+              "content": "giặt áo, phơi áo và cất áo."
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_049",
+      "prompt": "Xóa việc 16.",
+      "family": "delete_id",
+      "rationale": "Xóa chỉ theo ID; ứng dụng xác nhận sau proposal.",
+      "dimensions": [
+        "id"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 16
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_050",
+      "prompt": "Xoá task #28.",
+      "family": "delete_accent_variant",
+      "rationale": "Xoá là biến thể chính tả của xóa, ID giữ nguyên.",
+      "dimensions": [
+        "accent_variant"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 28
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_051",
+      "prompt": "Bỏ việc 39 khỏi danh sách.",
+      "family": "delete_drop_from_list",
+      "rationale": "Bỏ đúng task khỏi danh sách là DELETE, không phải hủy pending.",
+      "dimensions": [
+        "phrasing"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 39
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_052",
+      "prompt": "Xóa giúp mình task #51 nhé.",
+      "family": "delete_polite_command",
+      "rationale": "Lời nhờ xóa một ID rõ ràng.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 51
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_053",
+      "prompt": "Xóaa việc 63.",
+      "family": "delete_typo_command",
+      "rationale": "Lỗi gõ ở động từ xóa không làm mơ hồ ID.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 63
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_054",
+      "prompt": "Xóa task #8765.",
+      "family": "delete_large_id",
+      "rationale": "ID lớn vẫn phải được chép đúng, không cần biết DB.",
+      "dimensions": [
+        "id"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 8765
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_055",
+      "prompt": "Đặt deadline task #17 là 12/10/2026 14:20.",
+      "family": "deadline_absolute",
+      "rationale": "Cụm ngày giờ nguyên văn, bỏ dấu kết câu yêu cầu.",
+      "dimensions": [
+        "absolute_time"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 17,
+              "when": "12/10/2026 14:20"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_056",
+      "prompt": "Đặt thời hạn cho việc 29 vào 07:45 ngày 11/11/2026.",
+      "family": "deadline_time_first",
+      "rationale": "Đặt thời hạn với cụm giờ trước ngày theo grammar.",
+      "dimensions": [
+        "absolute_time"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 29,
+              "when": "07:45 ngày 11/11/2026"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_057",
+      "prompt": "Đặt hạn việc 41 lúc 7 giờ sáng hôm nay.",
+      "family": "deadline_relative",
+      "rationale": "Cụm giờ sáng/ngày tương đối giữ nguyên.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 41,
+              "when": "7 giờ sáng hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_058",
+      "prompt": "Đặt hạn việc 52 lúc 18:15 ngày mai.",
+      "family": "deadline_colon_relative",
+      "rationale": "Cụm thời gian giờ:phút với ngày mai.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 52,
+              "when": "18:15 ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_059",
+      "prompt": "Đặtt hạn việc 64 lúc 9 giờ tối mai.",
+      "family": "deadline_typo_command",
+      "rationale": "Lỗi gõ trong lời dẫn; when không được model viết lại.",
+      "dimensions": [
+        "typo",
+        "relative_time"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 64,
+              "when": "9 giờ tối mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_060",
+      "prompt": "Đặt deadline task #75 là 29/02/2028 00:00.",
+      "family": "deadline_leap_date",
+      "rationale": "Ngày nhuận hợp lệ; model chỉ chép, không tính timestamp.",
+      "dimensions": [
+        "absolute_time",
+        "leap_year"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 75,
+              "when": "29/02/2028 00:00"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_061",
+      "prompt": "Xem các task đến hạn hôm nay nhé.",
+      "family": "due_today",
+      "rationale": "Yêu cầu deadline hôm nay rõ ràng.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_062",
+      "prompt": "Ngày mai có những task nào đến hạn?",
+      "family": "due_tomorrow_question",
+      "rationale": "Hỏi task đến hạn ngày mai, không LIST toàn bộ.",
+      "dimensions": [
+        "question"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "tomorrow"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_063",
+      "prompt": "Cho mình xem các việc quá hạn.",
+      "family": "due_overdue",
+      "rationale": "Yêu cầu xem việc quá hạn, không lọc khác.",
+      "dimensions": [
+        "polite"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_064",
+      "prompt": "Show các task overdue giúp tui.",
+      "family": "due_code_switch",
+      "rationale": "Deadline/overdue pha tiếng Anh nhưng scope rõ.",
+      "dimensions": [
+        "code_switch",
+        "colloquial"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_065",
+      "prompt": "Xem việc đếnh hạn ngày mai.",
+      "family": "due_typo_command",
+      "rationale": "Lỗi gõ ở đến hạn vẫn chỉ rõ ngày mai.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "tomorrow"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_066",
+      "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+      "family": "due_explicit_incomplete",
+      "rationale": "Chỉ task chưa xong đến hạn hôm nay đúng contract query.",
+      "dimensions": [
+        "completion_filter"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_067",
+      "prompt": "Sửa nội dung việc 83.",
+      "family": "clarify_edit_content",
+      "rationale": "Thiếu nội dung mới, ID đã có.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": [
+          "content"
+        ]
+      },
+      "known_fields": {
+        "id": 83
+      }
+    },
+    {
+      "id": "dev_068",
+      "prompt": "Xóa một việc giúp tôi.",
+      "family": "clarify_delete_id",
+      "rationale": "Yêu cầu xóa nhưng chưa có ID.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_069",
+      "prompt": "Đặt hạn lúc 08:30 mai.",
+      "family": "clarify_deadline_id",
+      "rationale": "Thời gian đã rõ nhưng chưa chọn ID.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {
+        "when": "08:30 mai"
+      }
+    },
+    {
+      "id": "dev_070",
+      "prompt": "Hoàn thành việc 81 và 82.",
+      "family": "clarify_multiple_complete",
+      "rationale": "Nhiều ID ngoài contract một call/một task; cần chọn một ID.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "complete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_071",
+      "prompt": "Sửa việc 84 và 85 thành đọc tài liệu.",
+      "family": "clarify_multiple_edit",
+      "rationale": "Không sửa hai ID trong một lượt.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "known_fields": {
+        "content": "đọc tài liệu."
+      }
+    },
+    {
+      "id": "dev_072",
+      "prompt": "Xóa việc 86 và 87.",
+      "family": "clarify_multiple_delete",
+      "rationale": "Không được tự chọn trong hai ID để xóa.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_073",
+      "prompt": "Đừng hoàn thành việc 88.",
+      "family": "negation_complete",
+      "rationale": "Phủ định hoàn thành dù có ID.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": "complete",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {
+        "id": 88
+      }
+    },
+    {
+      "id": "dev_074",
+      "prompt": "Không sửa việc 89 thành mua loa.",
+      "family": "negation_edit",
+      "rationale": "Phủ định sửa dù có đủ nội dung và ID.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {
+        "id": 89
+      }
+    },
+    {
+      "id": "dev_075",
+      "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+      "family": "negation_deadline",
+      "rationale": "Phủ định đặt hạn, không gọi tool.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {
+        "id": 90
+      }
+    },
+    {
+      "id": "dev_076",
+      "prompt": "Bỏ trạng thái hoàn thành của việc 91.",
+      "family": "unsupported_undo",
+      "rationale": "Chưa hỗ trợ hoàn tác hoàn thành.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_077",
+      "prompt": "Xóa deadline của việc 92.",
+      "family": "unsupported_remove_deadline",
+      "rationale": "Chưa hỗ trợ xóa deadline, không được chuyển sang DELETE task.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_078",
+      "prompt": "Xem các việc đến hạn tuần sau.",
+      "family": "unsupported_week_filter",
+      "rationale": "Query tuần sau nằm ngoài ba scope.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_079",
+      "prompt": "Ví dụ câu lệnh là \"Xóa việc 93\"; tôi không yêu cầu thực hiện.",
+      "family": "quoted_example",
+      "rationale": "Câu trích dẫn làm ví dụ không phải yêu cầu thực thi.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev_080",
+      "prompt": "Giúp tôi xử lý danh sách việc với.",
+      "family": "ambiguous_help",
+      "rationale": "Yêu cầu giúp chung chưa xác định hành động.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "hành động cần thực hiện"
+        ]
+      },
+      "known_fields": {}
+    }
+  ]
+}

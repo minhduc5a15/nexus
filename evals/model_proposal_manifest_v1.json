@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "locked_at": "2026-09-29T19:31:54.005178+00:00",
+  "base_commit": "ffe8b2d0c0acf2e17b58ef76d239522b925ea1f9",
+  "holdout_status": "locked; no model inference or candidate results",
+  "development_status": "80 cases: 24 exposed pilot + 56 new; expanded baseline not run",
+  "counts": {
+    "development": {
+      "total": 80,
+      "actions": 56,
+      "controls": 24
+    },
+    "holdout": {
+      "total": 120,
+      "actions": 84,
+      "controls": 36
+    }
+  },
+  "files": {
+    "evals/model_proposal_development_v1.json": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+    "evals/model_proposal_holdout_v1.json": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+    "evals/model_proposal_families_v1.json": "9436beffa6260d7377b5e77506dcabf3b5cc4e04486c7983b6cf2da22292f1be",
+    "evals/model_proposal_history_v1.json": "5130705b30bcf29236551077de8ee2b7f65021996a2ae40720f7bb130fbe1b8f",
+    "evals/model_proposal_overlap_v1.json": "d89f1c42692a317f202a382e78bfab3a3aefa89d4c892107720f1462a4fe5c1c",
+    "evals/model_proposal_family_review_v1.json": "d4950cd2eba5e614d6dc3ab32ec59e860c54f6387d2df3651bed8843a0bb1d05"
+  },
+  "audit": "evals/model_proposal_overlap_v1.json",
+  "family_review": "evals/model_proposal_family_review_v1.json",
+  "contract_reference_hashes": {
+    "src/nexus/agent/prompts.py": "fddf0c006713c490a8b9dcdfa76c662190999877a9061f7175545bf7ae49719c",
+    "src/nexus/agent/tools.py": "cd5e953d42bb78c44bd28cc7003be11fa129d9c34434426ad478b34fa97efe04",
+    "src/nexus/core/deadlines.py": "2849d87cb814bb0a786d980ad57395fdcf4bc448c3361cb54de80bbf127bf3c2"
+  },
+  "rules": [
+    "No inference on final holdout until candidate and configuration are frozen.",
+    "Pilot and historical evals are diagnostic/regression, not blind holdout.",
+    "Do not add holdout request families or near variants to future training.",
+    "Version any correction; never silently change locked labels after seeing results.",
+    "Hashes detect file changes; this is not an access-control mechanism.",
+    "Label/family review performed by Codex; independent human review is pending."
+  ]
+}

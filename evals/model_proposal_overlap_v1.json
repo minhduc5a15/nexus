@@ -1,0 +1,1693 @@
+{
+  "schema_version": 1,
+  "method": "NFKC/casefold; mask gold content/when and digits; SequenceMatcher. Screening only, not a semantic proof.",
+  "threshold": 0.75,
+  "counts": {
+    "development": {
+      "create": 8,
+      "list": 8,
+      "complete": 8,
+      "edit": 8,
+      "delete": 8,
+      "deadline": 8,
+      "due_query": 8
+    },
+    "holdout": {
+      "create": 12,
+      "list": 12,
+      "complete": 12,
+      "edit": 12,
+      "delete": 12,
+      "deadline": 12,
+      "due_query": 12
+    }
+  },
+  "dataset_hashes": {
+    "development": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+    "holdout": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+    "families": "9436beffa6260d7377b5e77506dcabf3b5cc4e04486c7983b6cf2da22292f1be"
+  },
+  "history_files": {
+    "evals/basic_tasks.json": "a935c35e523c96bd0bc9e16ae544a766ac7d67e44f60b94d9bd19bf5d98c6286",
+    "evals/completion_feature_v1.json": "12c6146aa8dcda8b8ed2761252d718534e2883f2fdf66a89c6f96ad8979d37c8",
+    "evals/completion_smoke_v1.json": "17a46ecc9198668703b6d23e64f74400ecd8d0e7272a9e621bd626c5db6f979e",
+    "evals/current_scope_holdout.json": "d1ae7e93c053f3d6806711d515633618434d53b0b018160713d0dcc826255c90",
+    "evals/current_scope_holdout_2026-09-11.json": "9b86f518edcbe16053bad38fbc421d4a0132564f980c9478d11f39ee7766b19b",
+    "evals/current_scope_tasks.json": "98e847bbb42947e4a1a990d9dd9e7d8608f57bebb5fd9a23bbb008b021e27bb9",
+    "evals/current_scope_tasks_v2.json": "37cd70f8923953747d9ff61c1f93b97f8d1ddf1ed628817c9feff49b505822c5",
+    "evals/deadline_feature_v1.json": "66b4b660a6c560606e0b61955134d48ca3dcf8479973492a79c6951608dc16f0",
+    "evals/deadline_query_feature_v1.json": "207c31ff48f74a0f5b35889dd1530635998afea122c526e19825e60fd429cef1",
+    "evals/deadline_query_smoke_v1.json": "21b919f5eea852cb43b4baf8b8c02904a4f9ac270306c9bf41a1d2cdfbf5ffc3",
+    "evals/deadline_smoke_v1.json": "cb8ad04836c665826b8b34f04d6cbf8ce6d398989b03b5d2b7c9a7f1a2417702",
+    "evals/delete_feature_v1.json": "75ff790650681e80a1d716d1dc46b435a26838e0eae784aa80a3daa98df64a43",
+    "evals/delete_smoke_v1.json": "0592affe426efd307d1577553b038acfdb7d5e37d09219af49f9117b0e155110",
+    "evals/edit_feature_v1.json": "2b1627fa2db0715e28c811b2720da9fdbbb619552f301cf9fcd54f519895c0b8",
+    "evals/edit_smoke_v1.json": "d38d771dcba4b52e33569a6b5a0807f7972f38e15403725aaca5dff9898f79ae",
+    "evals/generalization_holdout_v1.json": "e8bdaf93a3b7ad6f64941d97e076b9bd4e1dc85fd0b6dfae13046bb2347dad3d",
+    "evals/generalization_holdout_v2.json": "488b564db728eef81682eb54053b3b5ac041d4197ff01dd5f2e00c2d8dcfa2ba",
+    "evals/prompt_comparison_cases.json": "fedff30b150bcc297a000f22b7407384a22a5b7eee4601ef6519fedcd729b4a9",
+    "evals/qwen-baseline-2026-09-09.json": "c088f64b4addab965aabf7cb2c8cf58311ed7c6c98654166abaac15dca43b67a",
+    "evals/qwen-prompt-v1-2026-09-09.json": "86d539456f9d83b315e794c53d2d7a4b6c4af67982315735e418b3701dbf1303",
+    "evals/session_conversations_v1.json": "174b273ddd96cb5bffa699a1cd722700ddcb3790db02b851e9fe9f6d7a58ff8a",
+    "evals/session_smoke_v1.json": "91870e74f711c1cf8e2a0f1f9b5a29999614dbc737b251b371fca59b60ba4abe",
+    "evals/session_smoke_v2.json": "c7258aa019a8138ba41dcd9d6f6ef405372cfc8f87ffb3e2762139ba0f7306f0",
+    "evals/tool_routing_diagnostic_v1.json": "993fe8baea44a1c5162a65d2db34b376335b6b18fdc32a6173d6a83ab0ac7ec8",
+    "evals/tool_routing_feature_v1.json": "c49d669903d845eb2ec7c8797be3125064eb1e0140f6236e7a68cb089cc637c1",
+    "evals/tool_routing_holdout_v1.json": "e90f1dfa9170f3951f8aa821e931e7e8105f800640e79010e00ff1897bcfa6d7",
+    "evals/tool_routing_manifest_v1.json": "aab8f24a14685c8560577acf26da1d535c4751004b4895c906dd7e8acf8a4696",
+    "evals/model_proposal_pilot_v1.json": "bff0021a3c4c0b08a316411307aeb6026ceaa09d2890f3d1d5e81473e1a3574a",
+    "src/nexus/agent/prompts.py": "fddf0c006713c490a8b9dcdfa76c662190999877a9061f7175545bf7ae49719c"
+  },
+  "history_index_sha256": "5130705b30bcf29236551077de8ee2b7f65021996a2ae40720f7bb130fbe1b8f",
+  "history_records": 572,
+  "exact_or_masked_holdout_duplicates": [],
+  "flagged_pairs": [
+    {
+      "id": "hold_047",
+      "family": "edit_switch_language_request",
+      "prompt": "Please update phần nội dung task #131 thành trả sách trước 17:00.",
+      "shape": "please update phần nội dung task <id> thành <payload>",
+      "similarity": 0.791667,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_048",
+      "family": "edit_switch_language_request",
+      "prompt": "Please update phần nội dung task #132 thành đừng quên khóa cổng",
+      "shape": "please update phần nội dung task <id> thành <payload>",
+      "similarity": 0.791667,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_067",
+      "family": "deadline_english_framing",
+      "prompt": "Set the deadline for task #167 to 08:20 ngày 20/12/2026.",
+      "shape": "set the deadline for task <id> to <payload>",
+      "similarity": 0.794872,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_068",
+      "family": "deadline_english_framing",
+      "prompt": "Set the deadline for task #168 to 11 giờ tối hôm nay.",
+      "shape": "set the deadline for task <id> to <payload>",
+      "similarity": 0.794872,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_118",
+      "family": "unsupported_notification_channel",
+      "prompt": "Gửi email nhắc việc 206 lúc 09:00 mai.",
+      "shape": "gửi email nhắc việc <id> lúc <id> <id> mai",
+      "similarity": 0.780488,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_075",
+        "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+        "shape": "đừng đặt hạn việc <id> lúc <id> <id> mai"
+      }
+    }
+  ],
+  "nearest_pairs": [
+    {
+      "id": "hold_001",
+      "family": "create_relative_content_intro",
+      "prompt": "Đây là nội dung tôi yêu cầu đưa vào danh sách công việc:\nkiểm tra ổ cắm.",
+      "shape": "đây là nội dung tôi yêu cầu đưa vào danh sách công việc <payload>",
+      "similarity": 0.632653,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_002",
+      "family": "create_relative_content_intro",
+      "prompt": "Đây là nội dung tôi yêu cầu đưa vào danh sách công việc:\nÔn Rust: ownership\nđọc trang 8 & trang 9",
+      "shape": "đây là nội dung tôi yêu cầu đưa vào danh sách công việc <payload>",
+      "similarity": 0.632653,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_003",
+      "family": "create_location_of_payload",
+      "prompt": "Phần cần lưu vào danh sách nằm ở dòng dưới:\nđóng tiền điện!",
+      "shape": "phần cần lưu vào danh sách nằm ở dòng dưới <payload>",
+      "similarity": 0.635294,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_004",
+      "family": "create_location_of_payload",
+      "prompt": "Phần cần lưu vào danh sách nằm ở dòng dưới:\nhọp lúc 9:15 và gửi biên bản",
+      "shape": "phần cần lưu vào danh sách nằm ở dòng dưới <payload>",
+      "similarity": 0.635294,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_005",
+      "family": "create_english_full_request",
+      "prompt": "Please add the following task, preserving its text:\nđăng ký thẻ thư viện.",
+      "shape": "please add the following task preserving its text <payload>",
+      "similarity": 0.510638,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_006",
+      "family": "create_english_full_request",
+      "prompt": "Please add the following task, preserving its text:\nSửa README\n\ngửi thư cho Hà",
+      "shape": "please add the following task preserving its text <payload>",
+      "similarity": 0.510638,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_007",
+      "family": "create_destination_fronted",
+      "prompt": "Trong sổ việc cần làm, hãy tạo mới mục có nội dung:\nđừng quên tưới lan",
+      "shape": "trong sổ việc cần làm hãy tạo mới mục có nội dung <payload>",
+      "similarity": 0.494845,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "cf_10",
+        "prompt": "Thêm việc nhé, lát nữa tôi gửi nội dung.",
+        "shape": "thêm việc nhé lát nữa tôi gửi nội dung"
+      }
+    },
+    {
+      "id": "hold_008",
+      "family": "create_destination_fronted",
+      "prompt": "Trong sổ việc cần làm, hãy tạo mới mục có nội dung:\nxóa bản PDF cũ, rồi tải bản mới.",
+      "shape": "trong sổ việc cần làm hãy tạo mới mục có nội dung <payload>",
+      "similarity": 0.494845,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "cf_10",
+        "prompt": "Thêm việc nhé, lát nữa tôi gửi nội dung.",
+        "shape": "thêm việc nhé lát nữa tôi gửi nội dung"
+      }
+    },
+    {
+      "id": "hold_009",
+      "family": "create_submit_payload",
+      "prompt": "Tôi gửi nội dung để bạn ghi thành task mới:\nđo lại cửa sổ",
+      "shape": "tôi gửi nội dung để bạn ghi thành task mới <payload>",
+      "similarity": 0.644444,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_010",
+      "family": "create_submit_payload",
+      "prompt": "Tôi gửii nội dung để bạn ghi thành task mới:\nMua GIẤY A4!",
+      "shape": "tôi gửii nội dung để bạn ghi thành task mới <payload>",
+      "similarity": 0.637363,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_011",
+      "family": "create_desired_list_entry",
+      "prompt": "Tôi muốn danh sách cần làm có thêm mục với nội dung:\nđặt lịch bảo dưỡng xe.",
+      "shape": "tôi muốn danh sách cần làm có thêm mục với nội dung <payload>",
+      "similarity": 0.510638,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_012",
+      "family": "create_desired_list_entry",
+      "prompt": "Tôi muốn danh sách cần làm có thêm mục với nội dung:\nđọc changelog\ncheck bản build",
+      "shape": "tôi muốn danh sách cần làm có thêm mục với nội dung <payload>",
+      "similarity": 0.510638,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_add_list",
+        "prompt": "Thêm vào danh sách việc tưới cây tối nay",
+        "shape": "thêm vào danh sách việc <payload>"
+      }
+    },
+    {
+      "id": "hold_013",
+      "family": "list_inventory_question",
+      "prompt": "Những gì tôi đã ghi thành task gồm những mục nào?",
+      "shape": "những gì tôi đã ghi thành task gồm những mục nào",
+      "similarity": 0.585366,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_02",
+        "prompt": "Cho tôi biết đã ghi những task nào?",
+        "shape": "cho tôi biết đã ghi những task nào"
+      }
+    },
+    {
+      "id": "hold_014",
+      "family": "list_inventory_question",
+      "prompt": "Những gì mình đã ghi thành task gồm những mục nào vậy?",
+      "shape": "những gì mình đã ghi thành task gồm những mục nào vậy",
+      "similarity": 0.505747,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_06",
+        "prompt": "Tính đến giờ mình đã note những gì?",
+        "shape": "tính đến giờ mình đã note những gì"
+      }
+    },
+    {
+      "id": "hold_015",
+      "family": "list_readback",
+      "prompt": "Đọc lại cho tôi toàn bộ sổ việc cần làm đang lưu nhé.",
+      "shape": "đọc lại cho tôi toàn bộ sổ việc cần làm đang lưu nhé",
+      "similarity": 0.6,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_04",
+        "prompt": "Bạn đọc lại những việc mình đã lưu nhé.",
+        "shape": "bạn đọc lại những việc mình đã lưu nhé"
+      }
+    },
+    {
+      "id": "hold_016",
+      "family": "list_readback",
+      "prompt": "Đọc lại cho tui toàn bộ sổ việc cần làm đang lưu nhé.",
+      "shape": "đọc lại cho tui toàn bộ sổ việc cần làm đang lưu nhé",
+      "similarity": 0.6,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_04",
+        "prompt": "Bạn đọc lại những việc mình đã lưu nhé.",
+        "shape": "bạn đọc lại những việc mình đã lưu nhé"
+      }
+    },
+    {
+      "id": "hold_017",
+      "family": "list_english_full_request",
+      "prompt": "Could you display every saved task?",
+      "shape": "could you display every saved task",
+      "similarity": 0.366667,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "authorization_12",
+        "prompt": "Cho tôi lưu việc kiểm kê hộp thuốc",
+        "shape": "cho tôi lưu việc <payload>"
+      }
+    },
+    {
+      "id": "hold_018",
+      "family": "list_english_full_request",
+      "prompt": "Please display every saved task, including completed ones.",
+      "shape": "please display every saved task including completed ones",
+      "similarity": 0.365591,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "unsupported_complete_colloquial",
+        "prompt": "Việc mua sách xong rồi, complete nó đi.",
+        "shape": "việc mua sách xong rồi complete nó đi"
+      }
+    },
+    {
+      "id": "hold_019",
+      "family": "list_need_to_inspect",
+      "prompt": "Tôi cần rà lại các task đã ghi; đưa toàn bộ danh sách ra xem nào.",
+      "shape": "tôi cần rà lại các task đã ghi đưa toàn bộ danh sách ra xem nào",
+      "similarity": 0.474576,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "nt_07",
+        "prompt": "Tôi đang giải thích câu “xem danh sách”, chưa cần xem thật.",
+        "shape": "tôi đang giải thích câu xem danh sách chưa cần xem thật"
+      }
+    },
+    {
+      "id": "hold_020",
+      "family": "list_need_to_inspect",
+      "prompt": "Mình cần rà lại các task đã ghi; đưa toàn bộ danh sách ra xem nào.",
+      "shape": "mình cần rà lại các task đã ghi đưa toàn bộ danh sách ra xem nào",
+      "similarity": 0.515464,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "li_05",
+        "prompt": "Mình còn việc nào trong danh sách?",
+        "shape": "mình còn việc nào trong danh sách"
+      }
+    },
+    {
+      "id": "hold_021",
+      "family": "list_screen_request",
+      "prompt": "Đưa lên màn hình tất cả mục công việc hiện đang lưu giúp tôi.",
+      "shape": "đưa lên màn hình tất cả mục công việc hiện đang lưu giúp tôi",
+      "similarity": 0.466667,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_036",
+        "prompt": "Xem danh sáhc công việc đã lưu.",
+        "shape": "xem danh sáhc công việc đã lưu"
+      }
+    },
+    {
+      "id": "hold_022",
+      "family": "list_screen_request",
+      "prompt": "Đưa lên màn hình tất cả mục công việc hiện đagn lưu giúp tôi.",
+      "shape": "đưa lên màn hình tất cả mục công việc hiện đagn lưu giúp tôi",
+      "similarity": 0.466667,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_036",
+        "prompt": "Xem danh sáhc công việc đã lưu.",
+        "shape": "xem danh sáhc công việc đã lưu"
+      }
+    },
+    {
+      "id": "hold_023",
+      "family": "list_complete_inventory",
+      "prompt": "Mở cho tôi bản liệt kê mọi task đã ghi, gồm cả những việc đã xong.",
+      "shape": "mở cho tôi bản liệt kê mọi task đã ghi gồm cả những việc đã xong",
+      "similarity": 0.55102,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_02",
+        "prompt": "Cho tôi biết đã ghi những task nào?",
+        "shape": "cho tôi biết đã ghi những task nào"
+      }
+    },
+    {
+      "id": "hold_024",
+      "family": "list_complete_inventory",
+      "prompt": "Mở cho tui bản liệt kê mọi task đã ghi, gồm cả những việc đã xong.",
+      "shape": "mở cho tui bản liệt kê mọi task đã ghi gồm cả những việc đã xong",
+      "similarity": 0.530612,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_02",
+        "prompt": "Cho tôi biết đã ghi những task nào?",
+        "shape": "cho tôi biết đã ghi những task nào"
+      }
+    },
+    {
+      "id": "hold_025",
+      "family": "complete_id_topic",
+      "prompt": "Task #101, hãy đánh dấu là đã hoàn thành giúp tôi.",
+      "shape": "task <id> hãy đánh dấu là đã hoàn thành giúp tôi",
+      "similarity": 0.575,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đánh dấu task #1 là hoàn thành.",
+        "shape": "đánh dấu task <id> là hoàn thành"
+      }
+    },
+    {
+      "id": "hold_026",
+      "family": "complete_id_topic",
+      "prompt": "Việc #102, hãy đánh dấu là đã hoàn thành giúp tui.",
+      "shape": "việc <id> hãy đánh dấu là đã hoàn thành giúp tui",
+      "similarity": 0.55,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đánh dấu task #1 là hoàn thành.",
+        "shape": "đánh dấu task <id> là hoàn thành"
+      }
+    },
+    {
+      "id": "hold_027",
+      "family": "complete_apply_status",
+      "prompt": "Áp dụng trạng thái đã xong cho task ID 103.",
+      "shape": "áp dụng trạng thái đã xong cho task id <id>",
+      "similarity": 0.567901,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_076",
+        "prompt": "Bỏ trạng thái hoàn thành của việc 91.",
+        "shape": "bỏ trạng thái hoàn thành của việc <id>"
+      }
+    },
+    {
+      "id": "hold_028",
+      "family": "complete_apply_status",
+      "prompt": "Áp dụng trạng thái đã xong cho task ID 104 nhé.",
+      "shape": "áp dụng trạng thái đã xong cho task id <id> nhé",
+      "similarity": 0.541176,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_076",
+        "prompt": "Bỏ trạng thái hoàn thành của việc 91.",
+        "shape": "bỏ trạng thái hoàn thành của việc <id>"
+      }
+    },
+    {
+      "id": "hold_029",
+      "family": "complete_target_change",
+      "prompt": "Với công việc mang số 105, hãy chuyển trạng thái sang đã hoàn thành.",
+      "shape": "với công việc mang số <id> hãy chuyển trạng thái sang đã hoàn thành",
+      "similarity": 0.424242,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đánh dấu task #1 là hoàn thành.",
+        "shape": "đánh dấu task <id> là hoàn thành"
+      }
+    },
+    {
+      "id": "hold_030",
+      "family": "complete_target_change",
+      "prompt": "Với công việc mang số 106, hãy chuyển trạng thái sang đã hoàn thành.",
+      "shape": "với công việc mang số <id> hãy chuyển trạng thái sang đã hoàn thành",
+      "similarity": 0.424242,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đánh dấu task #1 là hoàn thành.",
+        "shape": "đánh dấu task <id> là hoàn thành"
+      }
+    },
+    {
+      "id": "hold_031",
+      "family": "complete_english_full_request",
+      "prompt": "Please mark task #107 as completed.",
+      "shape": "please mark task <id> as completed",
+      "similarity": 0.492754,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_032",
+      "family": "complete_english_full_request",
+      "prompt": "Please mark task #108 as completed.",
+      "shape": "please mark task <id> as completed",
+      "similarity": 0.492754,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_033",
+      "family": "complete_record_finished",
+      "prompt": "Ghi nhận việc mang ID 109 là đã hoàn tất.",
+      "shape": "ghi nhận việc mang id <id> là đã hoàn tất",
+      "similarity": 0.619718,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "unsupported_mark_done",
+        "prompt": "Đánh dấu task 1 đã hoàn tất.",
+        "shape": "đánh dấu task <id> đã hoàn tất"
+      }
+    },
+    {
+      "id": "hold_034",
+      "family": "complete_record_finished",
+      "prompt": "Ghi nhận việc mang ID 110 là đã hoàn tấtt.",
+      "shape": "ghi nhận việc mang id <id> là đã hoàn tấtt",
+      "similarity": 0.611111,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "unsupported_mark_done",
+        "prompt": "Đánh dấu task 1 đã hoàn tất.",
+        "shape": "đánh dấu task <id> đã hoàn tất"
+      }
+    },
+    {
+      "id": "hold_035",
+      "family": "complete_update_status_field",
+      "prompt": "Cập nhật trạng thái của task số 111: đã xong.",
+      "shape": "cập nhật trạng thái của task số <id> đã xong",
+      "similarity": 0.575342,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_038",
+        "prompt": "Đánh dấu task #22 là đã xong.",
+        "shape": "đánh dấu task <id> là đã xong"
+      }
+    },
+    {
+      "id": "hold_036",
+      "family": "complete_update_status_field",
+      "prompt": "Cập nhật trạng thái của task số 112: đã hoàn thành.",
+      "shape": "cập nhật trạng thái của task số <id> đã hoàn thành",
+      "similarity": 0.609756,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đánh dấu task #1 là hoàn thành.",
+        "shape": "đánh dấu task <id> là hoàn thành"
+      }
+    },
+    {
+      "id": "hold_037",
+      "family": "edit_id_topic",
+      "prompt": "Task #121, sửa nội dung thành Nộp hồ sơ!",
+      "shape": "task <id> sửa nội dung thành <payload>",
+      "similarity": 0.746269,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Sửa task #1 thành đọc sách",
+        "shape": "sửa task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_038",
+      "family": "edit_id_topic",
+      "prompt": "Việc #122, sửa nội dung thành học C++: vector",
+      "shape": "việc <id> sửa nội dung thành <payload>",
+      "similarity": 0.746269,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_literal",
+        "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+        "shape": "sửa việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_039",
+      "family": "edit_replace_current_text",
+      "prompt": "Thay phần chữ đang lưu ở việc 123 thành đặt vé xe khách.",
+      "shape": "thay phần chữ đang lưu ở việc <id> thành <payload>",
+      "similarity": 0.704545,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_040",
+      "family": "edit_replace_current_text",
+      "prompt": "Thay phần chữ đang lưu ở việc 124 thành gọi Nam và hỏi lịch họp",
+      "shape": "thay phần chữ đang lưu ở việc <id> thành <payload>",
+      "similarity": 0.704545,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_041",
+      "family": "edit_existing_entry",
+      "prompt": "Ở mục công việc số 125 đang có, sửa nội dung thành Đọc FAQ.",
+      "shape": "ở mục công việc số <id> đang có sửa nội dung thành <payload>",
+      "similarity": 0.58427,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_literal",
+        "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+        "shape": "sửa việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_042",
+      "family": "edit_existing_entry",
+      "prompt": "Ở mục công việc số 126 đang có, sửa nội dung thành xóa cache sau build",
+      "shape": "ở mục công việc số <id> đang có sửa nội dung thành <payload>",
+      "similarity": 0.58427,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_literal",
+        "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+        "shape": "sửa việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_043",
+      "family": "edit_desired_text_change",
+      "prompt": "Tôi muốn phần nội dung của task 127 được đổi thành kiểm tra Máy In",
+      "shape": "tôi muốn phần nội dung của task <id> được đổi thành <payload>",
+      "similarity": 0.692308,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_044",
+      "family": "edit_desired_text_change",
+      "prompt": "Tôi muốn phần nội dung của task 128 được đổi thành mua bút, vở & thước.",
+      "shape": "tôi muốn phần nội dung của task <id> được đổi thành <payload>",
+      "similarity": 0.692308,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_045",
+      "family": "edit_correct_record",
+      "prompt": "Chỉnh lại bản ghi việc số 129 thành gửi ảnh gốc.",
+      "shape": "chỉnh lại bản ghi việc số <id> thành <payload>",
+      "similarity": 0.738095,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_046",
+      "family": "edit_correct_record",
+      "prompt": "Chỉnh lại bản ghi việc số 130 thànnh gửi hóa đơn PDF",
+      "shape": "chỉnh lại bản ghi việc số <id> thànnh <payload>",
+      "similarity": 0.729412,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Đổi nội dung việc 1 thành gọi mẹ tối nay",
+        "shape": "đổi nội dung việc <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_047",
+      "family": "edit_switch_language_request",
+      "prompt": "Please update phần nội dung task #131 thành trả sách trước 17:00.",
+      "shape": "please update phần nội dung task <id> thành <payload>",
+      "similarity": 0.791667,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_048",
+      "family": "edit_switch_language_request",
+      "prompt": "Please update phần nội dung task #132 thành đừng quên khóa cổng",
+      "shape": "please update phần nội dung task <id> thành <payload>",
+      "similarity": 0.791667,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_049",
+      "family": "delete_id_topic",
+      "prompt": "Task #141, xóa hẳn khỏi danh sách giúp tôi.",
+      "shape": "task <id> xóa hẳn khỏi danh sách giúp tôi",
+      "similarity": 0.705882,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "delete_drop",
+        "prompt": "Bỏ task #11 khỏi danh sách.",
+        "shape": "bỏ task <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_050",
+      "family": "delete_id_topic",
+      "prompt": "Việc #142, xóa hẳn khỏi danh sách giúp tui.",
+      "shape": "việc <id> xóa hẳn khỏi danh sách giúp tui",
+      "similarity": 0.705882,
+      "nearest": {
+        "source": "evals/delete_smoke_v1.json",
+        "id": null,
+        "prompt": "Bỏ việc 1 khỏi danh sách.",
+        "shape": "bỏ việc <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_051",
+      "family": "delete_permanent_entry",
+      "prompt": "Loại bỏ vĩnh viễn mục công việc mang ID 143.",
+      "shape": "loại bỏ vĩnh viễn mục công việc mang id <id>",
+      "similarity": 0.506024,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_034",
+        "prompt": "Cho mình xem danh sách công việc đã ghi.",
+        "shape": "cho mình xem danh sách công việc đã ghi"
+      }
+    },
+    {
+      "id": "hold_052",
+      "family": "delete_permanent_entry",
+      "prompt": "Loại bỏ vĩnh viễn mục công việc mang ID 144.",
+      "shape": "loại bỏ vĩnh viễn mục công việc mang id <id>",
+      "similarity": 0.506024,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_034",
+        "prompt": "Cho mình xem danh sách công việc đã ghi.",
+        "shape": "cho mình xem danh sách công việc đã ghi"
+      }
+    },
+    {
+      "id": "hold_053",
+      "family": "delete_no_longer_needed",
+      "prompt": "Không cần giữ task 145 nữa; hãy xóa task đó khỏi danh sách.",
+      "shape": "không cần giữ task <id> nữa hãy xóa task đó khỏi danh sách",
+      "similarity": 0.588235,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "delete_drop",
+        "prompt": "Bỏ task #11 khỏi danh sách.",
+        "shape": "bỏ task <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_054",
+      "family": "delete_no_longer_needed",
+      "prompt": "Không cần giữ task 146 nữa; hãy xóa task đó khỏi danh sách.",
+      "shape": "không cần giữ task <id> nữa hãy xóa task đó khỏi danh sách",
+      "similarity": 0.588235,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "delete_drop",
+        "prompt": "Bỏ task #11 khỏi danh sách.",
+        "shape": "bỏ task <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_055",
+      "family": "delete_english_full_request",
+      "prompt": "Please permanently delete task #147.",
+      "shape": "please permanently delete task <id>",
+      "similarity": 0.458333,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_054",
+        "prompt": "Xóa task #8765.",
+        "shape": "xóa task <id>"
+      }
+    },
+    {
+      "id": "hold_056",
+      "family": "delete_english_full_request",
+      "prompt": "Please permanently delete task #148.",
+      "shape": "please permanently delete task <id>",
+      "similarity": 0.458333,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_054",
+        "prompt": "Xóa task #8765.",
+        "shape": "xóa task <id>"
+      }
+    },
+    {
+      "id": "hold_057",
+      "family": "delete_record_erasure",
+      "prompt": "Xóa bản ghi công việc có ID là 149 khỏi sổ task.",
+      "shape": "xóa bản ghi công việc có id là <id> khỏi sổ task",
+      "similarity": 0.521739,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_072",
+        "prompt": "Xóa việc 86 và 87.",
+        "shape": "xóa việc <id> và <id>"
+      }
+    },
+    {
+      "id": "hold_058",
+      "family": "delete_record_erasure",
+      "prompt": "Xóaa bản ghi công việc có ID là 150 khỏi sổ task.",
+      "shape": "xóaa bản ghi công việc có id là <id> khỏi sổ task",
+      "similarity": 0.514286,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_072",
+        "prompt": "Xóa việc 86 và 87.",
+        "shape": "xóa việc <id> và <id>"
+      }
+    },
+    {
+      "id": "hold_059",
+      "family": "delete_target_removal",
+      "prompt": "Mục số 151 trong danh sách task, vui lòng loại bỏ hẳn.",
+      "shape": "mục số <id> trong danh sách task vui lòng loại bỏ hẳn",
+      "similarity": 0.561798,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_07",
+        "prompt": "Xem giúp tui danh sách task hiện tại.",
+        "shape": "xem giúp tui danh sách task hiện tại"
+      }
+    },
+    {
+      "id": "hold_060",
+      "family": "delete_target_removal",
+      "prompt": "Mục số 152 trong danh sách task, vui lòng loại bỏ hẳn.",
+      "shape": "mục số <id> trong danh sách task vui lòng loại bỏ hẳn",
+      "similarity": 0.561798,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "list_07",
+        "prompt": "Xem giúp tui danh sách task hiện tại.",
+        "shape": "xem giúp tui danh sách task hiện tại"
+      }
+    },
+    {
+      "id": "hold_061",
+      "family": "deadline_id_topic",
+      "prompt": "Task #161, ấn định hạn chót là 16/12/2026 09:25.",
+      "shape": "task <id> ấn định hạn chót là <payload>",
+      "similarity": 0.647059,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Sửa task #1 thành đọc sách",
+        "shape": "sửa task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_062",
+      "family": "deadline_id_topic",
+      "prompt": "Task #162, ấn định hạn chót là 10 giờ sáng mai.",
+      "shape": "task <id> ấn định hạn chót là <payload>",
+      "similarity": 0.647059,
+      "nearest": {
+        "source": "evals/edit_smoke_v1.json",
+        "id": null,
+        "prompt": "Sửa task #1 thành đọc sách",
+        "shape": "sửa task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_063",
+      "family": "deadline_time_fronted",
+      "prompt": "09:40 ngày 18/12/2026 là hạn tôi muốn đặt cho việc 163.",
+      "shape": "<payload> là hạn tôi muốn đặt cho việc <id>",
+      "similarity": 0.539683,
+      "nearest": {
+        "source": "evals/tool_routing_diagnostic_v1.json",
+        "id": null,
+        "prompt": "Hoàn thành việc 1",
+        "shape": "hoàn thành việc <id>"
+      }
+    },
+    {
+      "id": "hold_064",
+      "family": "deadline_time_fronted",
+      "prompt": "6 giờ chiều ngày mai là hạn tôi muốn đặt cho việc 164.",
+      "shape": "<payload> là hạn tôi muốn đặt cho việc <id>",
+      "similarity": 0.539683,
+      "nearest": {
+        "source": "evals/tool_routing_diagnostic_v1.json",
+        "id": null,
+        "prompt": "Hoàn thành việc 1",
+        "shape": "hoàn thành việc <id>"
+      }
+    },
+    {
+      "id": "hold_065",
+      "family": "deadline_move_to",
+      "prompt": "Dời thời hạn của việc mang ID 165 sang 22:10 mai.",
+      "shape": "dời thời hạn của việc mang id <id> sang <payload>",
+      "similarity": 0.719101,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_056",
+        "prompt": "Đặt thời hạn cho việc 29 vào 07:45 ngày 11/11/2026.",
+        "shape": "đặt thời hạn cho việc <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_066",
+      "family": "deadline_move_to",
+      "prompt": "Dời thời hạn của việc mang ID 166 sang 05/01/2027 06:35.",
+      "shape": "dời thời hạn của việc mang id <id> sang <payload>",
+      "similarity": 0.719101,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_056",
+        "prompt": "Đặt thời hạn cho việc 29 vào 07:45 ngày 11/11/2026.",
+        "shape": "đặt thời hạn cho việc <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_067",
+      "family": "deadline_english_framing",
+      "prompt": "Set the deadline for task #167 to 08:20 ngày 20/12/2026.",
+      "shape": "set the deadline for task <id> to <payload>",
+      "similarity": 0.794872,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_068",
+      "family": "deadline_english_framing",
+      "prompt": "Set the deadline for task #168 to 11 giờ tối hôm nay.",
+      "shape": "set the deadline for task <id> to <payload>",
+      "similarity": 0.794872,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "deadline_absolute",
+        "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+        "shape": "đặt deadline task <id> là <payload>"
+      }
+    },
+    {
+      "id": "hold_069",
+      "family": "deadline_assign_timestamp_phrase",
+      "prompt": "Gán mốc hết hạn cho công việc số 169: 00:15 ngày mai.",
+      "shape": "gán mốc hết hạn cho công việc số <id> <payload>",
+      "similarity": 0.689655,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_056",
+        "prompt": "Đặt thời hạn cho việc 29 vào 07:45 ngày 11/11/2026.",
+        "shape": "đặt thời hạn cho việc <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_070",
+      "family": "deadline_assign_timestamp_phrase",
+      "prompt": "Gán mốc hết hạn cho công việc số 170: 28/02/2027 23:59.",
+      "shape": "gán mốc hết hạn cho công việc số <id> <payload>",
+      "similarity": 0.689655,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_056",
+        "prompt": "Đặt thời hạn cho việc 29 vào 07:45 ngày 11/11/2026.",
+        "shape": "đặt thời hạn cho việc <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_071",
+      "family": "deadline_record_due",
+      "prompt": "Ghi nhận thời hạn cần đặt của task 171 là 12 giờ sáng mai.",
+      "shape": "ghi nhận thời hạn cần đặt của task <id> là <payload>",
+      "similarity": 0.717391,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+        "shape": "đặt thời hạn cho task <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_072",
+      "family": "deadline_record_due",
+      "prompt": "Ghi nhận thời hạn cần đặt của task 172 là 12 giờ chiều hôm nay.",
+      "shape": "ghi nhận thời hạn cần đặt của task <id> là <payload>",
+      "similarity": 0.717391,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+        "shape": "đặt thời hạn cho task <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_073",
+      "family": "due_calendar_membership",
+      "prompt": "Những task chưa xong có hạn rơi vào hôm nay là các mục nào?",
+      "shape": "những task chưa xong có hạn rơi vào hôm nay là các mục nào",
+      "similarity": 0.466667,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_061",
+        "prompt": "Xem các task đến hạn hôm nay nhé.",
+        "shape": "xem các task đến hạn hôm nay nhé"
+      }
+    },
+    {
+      "id": "hold_074",
+      "family": "due_calendar_membership",
+      "prompt": "Những task chưa xong có hạn rơi vào ngày mai là các mục nào?",
+      "shape": "những task chưa xong có hạn rơi vào ngày mai là các mục nào",
+      "similarity": 0.505263,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Hiển thị những task tới hạn ngày mai.",
+        "shape": "hiển thị những task tới hạn ngày mai"
+      }
+    },
+    {
+      "id": "hold_075",
+      "family": "due_missed_cutoff",
+      "prompt": "Đưa ra các task chưa làm xong mà thời hạn đã trôi qua.",
+      "shape": "đưa ra các task chưa làm xong mà thời hạn đã trôi qua",
+      "similarity": 0.43299,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_066",
+        "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+        "shape": "liệt kê việc chưa hoàn thành đến hạn hôm nay"
+      }
+    },
+    {
+      "id": "hold_076",
+      "family": "due_missed_cutoff",
+      "prompt": "Đưa ra các task chưa làm xong mà thời hạn đã trôi qua giúp mình.",
+      "shape": "đưa ra các task chưa làm xong mà thời hạn đã trôi qua giúp mình",
+      "similarity": 0.466667,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "us_01",
+        "prompt": "Xóa task mua bánh giúp mình.",
+        "shape": "xóa task mua bánh giúp mình"
+      }
+    },
+    {
+      "id": "hold_077",
+      "family": "due_target_day_fronted",
+      "prompt": "Riêng hôm nay, lọc cho tôi các task chưa xong có deadline trong ngày.",
+      "shape": "riêng hôm nay lọc cho tôi các task chưa xong có deadline trong ngày",
+      "similarity": 0.412371,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_create_save_task",
+        "prompt": "Lưu lại cho tôi task kiểm tra hóa đơn",
+        "shape": "lưu lại cho tôi task <payload>"
+      }
+    },
+    {
+      "id": "hold_078",
+      "family": "due_target_day_fronted",
+      "prompt": "Riêng ngày mai, lọc cho tôi các task chưa xong có deadline trong ngày đó.",
+      "shape": "riêng ngày mai lọc cho tôi các task chưa xong có deadline trong ngày đó",
+      "similarity": 0.4,
+      "nearest": {
+        "source": "evals/deadline_query_feature_v1.json",
+        "id": null,
+        "prompt": "Ngày mai có những task nào đến hạn?",
+        "shape": "ngày mai có những task nào đến hạn"
+      }
+    },
+    {
+      "id": "hold_079",
+      "family": "due_english_full_request",
+      "prompt": "Which unfinished tasks have a deadline tomorrow?",
+      "shape": "which unfinished tasks have a deadline tomorrow",
+      "similarity": 0.383562,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "no_tool_03",
+        "prompt": "Không cần lưu task mua táo.",
+        "shape": "không cần lưu task mua táo"
+      }
+    },
+    {
+      "id": "hold_080",
+      "family": "due_english_full_request",
+      "prompt": "Which unfinished tasks are overdue?",
+      "shape": "which unfinished tasks are overdue",
+      "similarity": 0.46875,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_064",
+        "prompt": "Show các task overdue giúp tui.",
+        "shape": "show các task overdue giúp tui"
+      }
+    },
+    {
+      "id": "hold_081",
+      "family": "due_deadline_inventory",
+      "prompt": "Tôi cần bản liệt kê task chưa xong có hạn chót trong hôm nay.",
+      "shape": "tôi cần bản liệt kê task chưa xong có hạn chót trong hôm nay",
+      "similarity": 0.557692,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_066",
+        "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+        "shape": "liệt kê việc chưa hoàn thành đến hạn hôm nay"
+      }
+    },
+    {
+      "id": "hold_082",
+      "family": "due_deadline_inventory",
+      "prompt": "Tôi cần bản liệt kê task chưa xong có hạn chót trong ngày mai.",
+      "shape": "tôi cần bản liệt kê task chưa xong có hạn chót trong ngày mai",
+      "similarity": 0.495238,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_066",
+        "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+        "shape": "liệt kê việc chưa hoàn thành đến hạn hôm nay"
+      }
+    },
+    {
+      "id": "hold_083",
+      "family": "due_filter_existing_records",
+      "prompt": "Từ những task đang lưu, lấy ra việc chưa xong và đã trễ hạn.",
+      "shape": "từ những task đang lưu lấy ra việc chưa xong và đã trễ hạn",
+      "similarity": 0.47191,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_negation_dont_save",
+        "prompt": "Tôi không muốn lưu việc học đàn.",
+        "shape": "tôi không muốn lưu việc học đàn"
+      }
+    },
+    {
+      "id": "hold_084",
+      "family": "due_filter_existing_records",
+      "prompt": "Từ những task đang lưu, lấy ra việc chưa xong và đến hạn hôm nay.",
+      "shape": "từ những task đang lưu lấy ra việc chưa xong và đến hạn hôm nay",
+      "similarity": 0.635514,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_066",
+        "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+        "shape": "liệt kê việc chưa hoàn thành đến hạn hôm nay"
+      }
+    },
+    {
+      "id": "hold_085",
+      "family": "clarify_create_empty_payload",
+      "prompt": "Tạo cho danh sách một mục mới; tôi chưa gửi nội dung.",
+      "shape": "tạo cho danh sách một mục mới tôi chưa gửi nội dung",
+      "similarity": 0.606742,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "cf_10",
+        "prompt": "Thêm việc nhé, lát nữa tôi gửi nội dung.",
+        "shape": "thêm việc nhé lát nữa tôi gửi nội dung"
+      }
+    },
+    {
+      "id": "hold_086",
+      "family": "clarify_complete_unspecified_record",
+      "prompt": "Chuyển một task sang trạng thái đã xong giúp tôi.",
+      "shape": "chuyển một task sang trạng thái đã xong giúp tôi",
+      "similarity": 0.48,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "canonical_boundary_02",
+        "prompt": "Lưu task đổi bóng tuýp giúp tôi!",
+        "shape": "lưu task <payload> giúp tôi"
+      }
+    },
+    {
+      "id": "hold_087",
+      "family": "clarify_edit_empty_replacement",
+      "prompt": "Bản ghi số 181 trong sổ task cần được sửa nội dung; hỏi tôi nội dung mới nhé.",
+      "shape": "bản ghi số <id> trong sổ task cần được sửa nội dung hỏi tôi nội dung mới nhé",
+      "similarity": 0.440367,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "no_tool_06",
+        "prompt": "Tạo task nhé, lát nữa gửi nội dung.",
+        "shape": "tạo task nhé lát nữa gửi nội dung"
+      }
+    },
+    {
+      "id": "hold_088",
+      "family": "clarify_delete_unspecified_record",
+      "prompt": "Tôi cần loại bỏ vĩnh viễn một mục trong sổ công việc.",
+      "shape": "tôi cần loại bỏ vĩnh viễn một mục trong sổ công việc",
+      "similarity": 0.494845,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "li_10",
+        "prompt": "Tôi muốn xem lại danh sách công việc của mình.",
+        "shape": "tôi muốn xem lại danh sách công việc của mình"
+      }
+    },
+    {
+      "id": "hold_089",
+      "family": "clarify_deadline_empty_value",
+      "prompt": "Gán hạn chót cho task mang ID 182; thời gian tôi sẽ bổ sung.",
+      "shape": "gán hạn chót cho task mang id <id> thời gian tôi sẽ bổ sung",
+      "similarity": 0.426966,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_unsupported_remove",
+        "prompt": "Bỏ task số 2 khỏi danh sách.",
+        "shape": "bỏ task số <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_090",
+      "family": "clarify_due_unselected_period",
+      "prompt": "Lọc task chưa xong theo thời hạn cho tôi; chưa chọn khoảng hôm nay, mai hay quá hạn.",
+      "shape": "lọc task chưa xong theo thời hạn cho tôi chưa chọn khoảng hôm nay mai hay quá hạn",
+      "similarity": 0.416,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_066",
+        "prompt": "Liệt kê việc chưa hoàn thành đến hạn hôm nay.",
+        "shape": "liệt kê việc chưa hoàn thành đến hạn hôm nay"
+      }
+    },
+    {
+      "id": "hold_091",
+      "family": "clarify_complete_disjunction",
+      "prompt": "Please complete either task #183 or task #184.",
+      "shape": "please complete either task <id> or task <id>",
+      "similarity": 0.477273,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "edit_courteous",
+        "prompt": "Cập nhật nội dung task #9 thành gửi email cho Lan",
+        "shape": "cập nhật nội dung task <id> thành <payload>"
+      }
+    },
+    {
+      "id": "hold_092",
+      "family": "clarify_delete_disjunction",
+      "prompt": "Loại khỏi danh sách task số 185 hoặc số 186 giúp tôi.",
+      "shape": "loại khỏi danh sách task số <id> hoặc số <id> giúp tôi",
+      "similarity": 0.567901,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_031",
+        "prompt": "Xem danh sách task giúp tui.",
+        "shape": "xem danh sách task giúp tui"
+      }
+    },
+    {
+      "id": "hold_093",
+      "family": "clarify_deadline_two_targets",
+      "prompt": "Gán 07:20 mai làm hạn cho cả hai task #187 và #188.",
+      "shape": "gán <id> <id> mai làm hạn cho cả hai task <id> và <id>",
+      "similarity": 0.574468,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+        "shape": "đặt thời hạn cho task <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_094",
+      "family": "ambiguous_unanchored_today",
+      "prompt": "Trong ngày hôm nay có gì cần chú ý không?",
+      "shape": "trong ngày hôm nay có gì cần chú ý không",
+      "similarity": 0.459459,
+      "nearest": {
+        "source": "evals/deadline_query_feature_v1.json",
+        "id": null,
+        "prompt": "Ngày mai có những task nào đến hạn?",
+        "shape": "ngày mai có những task nào đến hạn"
+      }
+    },
+    {
+      "id": "hold_095",
+      "family": "ambiguous_unanchored_tomorrow",
+      "prompt": "Còn ngày mai thì sao nhỉ?",
+      "shape": "còn ngày mai thì sao nhỉ",
+      "similarity": 0.545455,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "bare_tomorrow_exercise",
+        "prompt": "Ngày mai tập thể dục.",
+        "shape": "ngày mai tập thể dục"
+      }
+    },
+    {
+      "id": "hold_096",
+      "family": "ambiguous_record_attention",
+      "prompt": "Task số 189 ấy, tôi cần bạn giúp một chút.",
+      "shape": "task số <id> ấy tôi cần bạn giúp một chút",
+      "similarity": 0.535211,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_unsupported_remove",
+        "prompt": "Bỏ task số 2 khỏi danh sách.",
+        "shape": "bỏ task số <id> khỏi danh sách"
+      }
+    },
+    {
+      "id": "hold_097",
+      "family": "negated_permission_create",
+      "prompt": "Tôi không cho phép ghi thêm task: kiểm kê kho.",
+      "shape": "tôi không cho phép ghi thêm task kiểm kê kho",
+      "similarity": 0.485714,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "no_tool_03",
+        "prompt": "Không cần lưu task mua táo.",
+        "shape": "không cần lưu task mua táo"
+      }
+    },
+    {
+      "id": "hold_098",
+      "family": "negated_permission_complete",
+      "prompt": "Việc mang ID 191 phải giữ nguyên, tuyệt đối không đánh dấu xong.",
+      "shape": "việc mang id <id> phải giữ nguyên tuyệt đối không đánh dấu xong",
+      "similarity": 0.375,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "nt_03",
+        "prompt": "Tôi chỉ thử nói “thêm việc mua bánh” để xem bạn hiểu không, đừng lưu.",
+        "shape": "tôi chỉ thử nói thêm việc mua bánh để xem bạn hiểu không đừng lưu"
+      }
+    },
+    {
+      "id": "hold_099",
+      "family": "negated_permission_edit",
+      "prompt": "Giữ nguyên chữ trong task #192; đừng thay thành đi công tác.",
+      "shape": "giữ nguyên chữ trong task <id> đừng thay thành đi công tác",
+      "similarity": 0.556701,
+      "nearest": {
+        "source": "evals/current_scope_holdout_2026-09-11.json",
+        "id": "h2_unsupported_change",
+        "prompt": "Đổi nội dung task 1 thành gọi bác sĩ.",
+        "shape": "đổi nội dung task <id> thành gọi bác sĩ"
+      }
+    },
+    {
+      "id": "hold_100",
+      "family": "negated_permission_delete",
+      "prompt": "Keep task #193. Do not delete it.",
+      "shape": "keep task <id> do not delete it",
+      "similarity": 0.491803,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "unsupported_mark_done",
+        "prompt": "Đánh dấu task 1 đã hoàn tất.",
+        "shape": "đánh dấu task <id> đã hoàn tất"
+      }
+    },
+    {
+      "id": "hold_101",
+      "family": "negated_permission_deadline",
+      "prompt": "Không được gán mốc 08:50 mai cho hạn của task 194.",
+      "shape": "không được gán mốc <id> <id> mai cho hạn của task <id>",
+      "similarity": 0.485437,
+      "nearest": {
+        "source": "evals/tool_routing_diagnostic_v1.json",
+        "id": null,
+        "prompt": "Đặt hạn việc báo cáo lúc 27/09/2026 08:00",
+        "shape": "đặt hạn việc báo cáo lúc <id> <id> <id> <id> <id>"
+      }
+    },
+    {
+      "id": "hold_102",
+      "family": "negated_permission_query",
+      "prompt": "Tôi không cần bạn lọc các task trễ hạn lúc này.",
+      "shape": "tôi không cần bạn lọc các task trễ hạn lúc này",
+      "similarity": 0.5,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "no_tool_03",
+        "prompt": "Không cần lưu task mua táo.",
+        "shape": "không cần lưu task mua táo"
+      }
+    },
+    {
+      "id": "hold_103",
+      "family": "quoted_documentation_question",
+      "prompt": "Trong tài liệu, câu \"Hoàn thành task #195\" nghĩa là gì?",
+      "shape": "trong tài liệu câu hoàn thành task <id> nghĩa là gì",
+      "similarity": 0.56338,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "complete_id",
+        "prompt": "Hoàn thành task #7.",
+        "shape": "hoàn thành task <id>"
+      }
+    },
+    {
+      "id": "hold_104",
+      "family": "quoted_translation_request",
+      "prompt": "Dịch câu \"Please delete task #196\" sang tiếng Việt giúp tôi.",
+      "shape": "dịch câu please delete task <id> sang tiếng việt giúp tôi",
+      "similarity": 0.452381,
+      "nearest": {
+        "source": "evals/generalization_holdout_v2.json",
+        "id": "canonical_boundary_02",
+        "prompt": "Lưu task đổi bóng tuýp giúp tôi!",
+        "shape": "lưu task <payload> giúp tôi"
+      }
+    },
+    {
+      "id": "hold_105",
+      "family": "reported_past_action",
+      "prompt": "Hôm qua tôi đã xóa việc 197 rồi; đây chỉ là lời kể.",
+      "shape": "hôm qua tôi đã xóa việc <id> rồi đây chỉ là lời kể",
+      "similarity": 0.478873,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_072",
+        "prompt": "Xóa việc 86 và 87.",
+        "shape": "xóa việc <id> và <id>"
+      }
+    },
+    {
+      "id": "hold_106",
+      "family": "reported_other_person_request",
+      "prompt": "Lan từng nói \"thêm việc đóng phí\"; tôi đang thuật lại câu nói đó.",
+      "shape": "lan từng nói thêm việc đóng phí tôi đang thuật lại câu nói đó",
+      "similarity": 0.592593,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "cf_09",
+        "prompt": "Nếu tôi nói “thêm việc đổ rác” thì đừng thực hiện.",
+        "shape": "nếu tôi nói thêm việc đổ rác thì đừng thực hiện"
+      }
+    },
+    {
+      "id": "hold_107",
+      "family": "bare_future_intention",
+      "prompt": "Tối nay chắc tôi sẽ đọc xong chương cuối.",
+      "shape": "tối nay chắc tôi sẽ đọc xong chương cuối",
+      "similarity": 0.454545,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "unsupported_reminder",
+        "prompt": "Nhắc tôi uống nước mỗi giờ.",
+        "shape": "nhắc tôi uống nước mỗi giờ"
+      }
+    },
+    {
+      "id": "hold_108",
+      "family": "bare_english_intention",
+      "prompt": "I plan to repair my bicycle this weekend.",
+      "shape": "i plan to repair my bicycle this weekend",
+      "similarity": 0.358974,
+      "nearest": {
+        "source": "evals/generalization_holdout_v1.json",
+        "id": "us_07",
+        "prompt": "Đổi tên task trả sách thành trả truyện.",
+        "shape": "đổi tên task trả sách thành trả truyện"
+      }
+    },
+    {
+      "id": "hold_109",
+      "family": "unsupported_priority_assignment",
+      "prompt": "Gắn mức ưu tiên cao cho task #201.",
+      "shape": "gắn mức ưu tiên cao cho task <id>",
+      "similarity": 0.566038,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "complete_id",
+        "prompt": "Hoàn thành task #7.",
+        "shape": "hoàn thành task <id>"
+      }
+    },
+    {
+      "id": "hold_110",
+      "family": "unsupported_priority_assignment",
+      "prompt": "Gắn mức ưu tiên thấp cho task #202.",
+      "shape": "gắn mức ưu tiên thấp cho task <id>",
+      "similarity": 0.555556,
+      "nearest": {
+        "source": "evals/model_proposal_pilot_v1.json",
+        "id": "complete_id",
+        "prompt": "Hoàn thành task #7.",
+        "shape": "hoàn thành task <id>"
+      }
+    },
+    {
+      "id": "hold_111",
+      "family": "unsupported_label_assignment",
+      "prompt": "Gắn nhãn công ty vào task số 203.",
+      "shape": "gắn nhãn công ty vào task số <id>",
+      "similarity": 0.545455,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_039",
+        "prompt": "Hoàn thành giúp tôi task #34 nhé.",
+        "shape": "hoàn thành giúp tôi task <id> nhé"
+      }
+    },
+    {
+      "id": "hold_112",
+      "family": "unsupported_label_assignment",
+      "prompt": "Gắn nhãn gia đình vào task số 204.",
+      "shape": "gắn nhãn gia đình vào task số <id>",
+      "similarity": 0.56,
+      "nearest": {
+        "source": "evals/current_scope_holdout.json",
+        "id": "unsupported_delete_id",
+        "prompt": "Xóa task số 1.",
+        "shape": "xóa task số <id>"
+      }
+    },
+    {
+      "id": "hold_113",
+      "family": "unsupported_export",
+      "prompt": "Xuất danh sách task thành file CSV giúp tôi.",
+      "shape": "xuất danh sách task thành file csv giúp tôi",
+      "similarity": 0.685714,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_031",
+        "prompt": "Xem danh sách task giúp tui.",
+        "shape": "xem danh sách task giúp tui"
+      }
+    },
+    {
+      "id": "hold_114",
+      "family": "unsupported_export",
+      "prompt": "Xuất danh sách task thành file PDF giúp tôi.",
+      "shape": "xuất danh sách task thành file pdf giúp tôi",
+      "similarity": 0.685714,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_031",
+        "prompt": "Xem danh sách task giúp tui.",
+        "shape": "xem danh sách task giúp tui"
+      }
+    },
+    {
+      "id": "hold_115",
+      "family": "unsupported_custom_date_query",
+      "prompt": "Lọc task có hạn đúng ngày 17/03/2027.",
+      "shape": "lọc task có hạn đúng ngày <id> <id> <id>",
+      "similarity": 0.584615,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_069",
+        "prompt": "Đặt hạn lúc 08:30 mai.",
+        "shape": "đặt hạn lúc <id> <id> mai"
+      }
+    },
+    {
+      "id": "hold_116",
+      "family": "unsupported_custom_date_query",
+      "prompt": "Lọc task có hạn đúng ngày 21/04/2027.",
+      "shape": "lọc task có hạn đúng ngày <id> <id> <id>",
+      "similarity": 0.584615,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_069",
+        "prompt": "Đặt hạn lúc 08:30 mai.",
+        "shape": "đặt hạn lúc <id> <id> mai"
+      }
+    },
+    {
+      "id": "hold_117",
+      "family": "unsupported_notification_channel",
+      "prompt": "Gửi thông báo lên điện thoại nhắc việc 205 lúc 08:00 mai.",
+      "shape": "gửi thông báo lên điện thoại nhắc việc <id> lúc <id> <id> mai",
+      "similarity": 0.653465,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_075",
+        "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+        "shape": "đừng đặt hạn việc <id> lúc <id> <id> mai"
+      }
+    },
+    {
+      "id": "hold_118",
+      "family": "unsupported_notification_channel",
+      "prompt": "Gửi email nhắc việc 206 lúc 09:00 mai.",
+      "shape": "gửi email nhắc việc <id> lúc <id> <id> mai",
+      "similarity": 0.780488,
+      "nearest": {
+        "source": "evals/model_proposal_development_v1.json",
+        "id": "dev_075",
+        "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+        "shape": "đừng đặt hạn việc <id> lúc <id> <id> mai"
+      }
+    },
+    {
+      "id": "hold_119",
+      "family": "unsupported_recurring_copy",
+      "prompt": "Tự tạo bản sao task 207 vào mỗi thứ hai hàng tuần.",
+      "shape": "tự tạo bản sao task <id> vào mỗi thứ hai hàng tuần",
+      "similarity": 0.511111,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+        "shape": "đặt thời hạn cho task <id> vào <payload>"
+      }
+    },
+    {
+      "id": "hold_120",
+      "family": "unsupported_recurring_copy",
+      "prompt": "Tự tạo bản sao task 208 vào ngày đầu mỗi tháng.",
+      "shape": "tự tạo bản sao task <id> vào ngày đầu mỗi tháng",
+      "similarity": 0.528736,
+      "nearest": {
+        "source": "evals/tool_routing_holdout_v1.json",
+        "id": null,
+        "prompt": "Đặt thời hạn cho task #1 vào 8 giờ 30 phút tối ngày mai.",
+        "shape": "đặt thời hạn cho task <id> vào <payload>"
+      }
+    }
+  ]
+}

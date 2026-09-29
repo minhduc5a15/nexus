@@ -29,6 +29,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `21_tool_routing_eval.sh` | Chấm mapping, fallback, tool ngoài route và batch bằng response cố định | Không |
 | `22_tool_routing_diagnostic.sh` | Chạy diagnostic Qwen v13 với classified routing | Có |
 | `23_proposal_eval.sh` | Chấm 24 proposal giả lập, có sáu lỗi cố ý; không chạy tool hoặc SQLite | Không |
+| `24_proposal_data_review.sh` | Kiểm tra khóa dataset và tạo review riêng từ fixture pilot | Không |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -194,7 +195,7 @@ Hoặc chỉ định đúng file JSON được script benchmark in ra:
 
 ## Dữ liệu sinh ra
 
-Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`23`) tạo thư mục riêng dưới
+Các script sinh dữ liệu (`01`, `03`, `04`, `05`, `08`–`24`) tạo thư mục riêng dưới
 `evals/results/demos/`, được Git ignore. Mỗi lần chạy có đường dẫn mới và được
 in ngay từ đầu; database chính của ứng dụng không được sử dụng.
 
@@ -211,3 +212,6 @@ mong đợi là 18 proposal đạt, sáu trượt và exit code 1; unit test xá
 sáu lỗi này. Đây không phải điểm Qwen. Report giữ request, raw response, từng
 trường arguments và checklist review câu trả lời. Xem
 [hướng dẫn chi tiết](../../evals/README.proposals.md).
+
+`24_proposal_data_review.sh` không chạy model trên development/holdout. Nó tạo review
+pending để bạn điền bằng chứng; xem [hướng dẫn review](../../evals/README.proposal-data.md).
