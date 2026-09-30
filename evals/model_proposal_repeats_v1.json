@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "purpose": "Fixed mixed-action repeats: 12 development + 2 historical proposal regressions. No DB context, never final holdout.",
+  "cases": [
+    {
+      "id": "create_duplicate",
+      "prompt": "Thêm việc mua sữa.",
+      "family": "historical_create_duplicate",
+      "rationale": "Proposal-only replay of historical duplicate CREATE; prior SQLite task is NOT shown to model and no duplicate-storage behavior is evaluated.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "mua sữa"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "origin": "evals/tool_routing_diagnostic_v1.json"
+    },
+    {
+      "id": "complete_id",
+      "prompt": "Hoàn thành task #7.",
+      "family": "complete_explicit_id",
+      "rationale": "Chỉ ID 7 được chỉ định, không được tự đổi sang ID khác.",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 7
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "edit_literal",
+      "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+      "family": "edit_content_boundary",
+      "rationale": "Nội dung sau thành được giữ nguyên, gồm chữ hoa và dấu chấm.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 4,
+              "content": "Nộp bản cuối."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "list_paraphrase",
+      "prompt": "Cho tôi xem toàn bộ những đầu việc đã ghi lại nhé.",
+      "family": "list_new_phrasing",
+      "rationale": "Yêu cầu LIST rõ nghĩa dù classifier có thể không nhận diện; gold không lấy từ classifier.",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "deadline_relative",
+      "prompt": "Đặt hạn việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+      "family": "deadline_relative",
+      "rationale": "Giữ nguyên cụm thời gian; evaluator không tính ngày và không đặt deadline.",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 6,
+              "when": "8 giờ 30 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "delete_direct",
+      "prompt": "Xóa việc 3.",
+      "family": "delete_id",
+      "rationale": "Model đề xuất DELETE theo ID; xác nhận và thực thi thuộc ứng dụng, evaluator không xóa.",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 3
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "due_today",
+      "prompt": "Xem việc đến hạn hôm nay.",
+      "family": "due_today",
+      "rationale": "Người dùng chỉ định today, không phải tomorrow hoặc LIST toàn bộ.",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "regression_edit",
+      "prompt": "Sửa việc 1 thành bản cuối",
+      "family": "historical_regression_edit",
+      "rationale": "Historical EDIT request with explicit ID and unambiguous replacement text; preserve exact arguments.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 1,
+              "content": "bản cuối"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "origin": "evals/tool_routing_diagnostic_v1.json"
+    },
+    {
+      "id": "create_multiline",
+      "prompt": "Ghi lại hai việc sau, mỗi dòng một việc:\nÔn C++: vector\ngọi mẹ lúc 8:00",
+      "family": "create_multiline",
+      "rationale": "Một proposal giữ nguyên cả hai dòng; dấu hai chấm trong content không phải framing.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "Ôn C++: vector\ngọi mẹ lúc 8:00"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "missing_deadline_time",
+      "prompt": "Đặt hạn việc 2.",
+      "family": "clarify_time",
+      "rationale": "ID đã có nhưng thiếu thời gian, không tự chọn deadline.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "when"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1",
+      "known_fields": {
+        "id": 2
+      }
+    },
+    {
+      "id": "negated_delete",
+      "prompt": "Đừng xóa việc 3.",
+      "family": "negation_delete",
+      "rationale": "Phủ định hành động xóa dù ID đã rõ.",
+      "expected": {
+        "behavior": "no_action",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "bare_statement",
+      "prompt": "Mua bánh.",
+      "family": "bare_statement",
+      "rationale": "Chỉ nêu nội dung, chưa yêu cầu thêm task theo contract hiện hành.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "ambiguous_today",
+      "prompt": "Hôm nay tôi có gì?",
+      "family": "ambiguous_scope",
+      "rationale": "Chưa nói về task hoặc deadline; không tự chọn truy vấn today.",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "ý định: danh sách task hay việc đến hạn"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "dev_047",
+      "prompt": "Sửaa việc 61 thành mua mực in",
+      "family": "edit_typo_command",
+      "rationale": "Lỗi gõ nhẹ ở sửa; content vẫn phải giữ nguyên.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 61,
+              "content": "mua mực in"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    }
+  ]
+}
