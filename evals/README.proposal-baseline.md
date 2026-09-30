@@ -116,3 +116,27 @@ này là diagnostic, chưa phải bằng chứng generalization hay lý do đổ
 Artifact raw, metadata, server log và smoke report nằm ở
 `evals/results/modal-gpu-20260930-downloaded/` (Git ignore). Báo cáo diễn giải
 nằm ở `reports/modal-qwen3-4b-quantization-baseline-2026-09-30.md` (Git ignore).
+
+## Audit lỗi trước SFT
+
+Audit tracked tại `model_proposal_error_audit_v1.json` bao phủ đúng 19 case từng
+fail ở ít nhất một trong bốn cấu hình Modal, tổng cộng 61 failure observation.
+Mỗi failure có đúng một primary cause, raw observation gắn với SHA-256 của report
+và quyết định dùng cho SFT, regression guard hoặc sửa kiến trúc.
+
+Kết quả: 52/61 failure observation thuộc proposal model, 9/61 liên quan routing;
+14 case là mục tiêu SFT, ba case là regression guard và hai case (`dev_061`,
+`dev_064`) chỉ thuộc classifier expose sai tool. 19/19 nhãn được đối chiếu với
+contract hiện hành; đây là review của assistant, chưa phải review độc lập của
+người thứ hai. Prompt, policy, routing và dataset không bị sửa trong audit.
+
+Chạy lại kiểm tra bằng:
+
+```sh
+./scripts/demo/25_model_error_audit.sh
+# hoặc
+.venv/bin/python -m scripts.audit_model_errors
+```
+
+Lệnh chỉ đọc development report cục bộ và không gọi model, tool hay SQLite.
+Final holdout vẫn chưa được mở.

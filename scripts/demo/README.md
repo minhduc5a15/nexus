@@ -30,6 +30,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `22_tool_routing_diagnostic.sh` | Chạy diagnostic Qwen v13 với classified routing | Có |
 | `23_proposal_eval.sh` | Chấm 24 proposal giả lập, có sáu lỗi cố ý; không chạy tool hoặc SQLite | Không |
 | `24_proposal_data_review.sh` | Kiểm tra khóa dataset và tạo review riêng từ fixture pilot | Không |
+| `25_model_error_audit.sh` | Xác minh 19 ca lỗi Q4/Q8, attribution và quyết định SFT/routing | Không |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -45,6 +46,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/17_deadline_eval.sh
 ./scripts/demo/19_deadline_query_eval.sh
 ./scripts/demo/21_tool_routing_eval.sh
+./scripts/demo/25_model_error_audit.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -215,3 +217,8 @@ trường arguments và checklist review câu trả lời. Xem
 
 `24_proposal_data_review.sh` không chạy model trên development/holdout. Nó tạo review
 pending để bạn điền bằng chứng; xem [hướng dẫn review](../../evals/README.proposal-data.md).
+
+`25_model_error_audit.sh` không gọi model, tool hoặc SQLite. Nó kiểm tra audit
+tracked với bốn raw development report trong `evals/results/modal-gpu-20260930-downloaded/`,
+gồm hash, coverage, raw observation, attribution và quy tắc không dùng lỗi expose
+sai tool làm mục tiêu SFT. Final holdout không được đọc.

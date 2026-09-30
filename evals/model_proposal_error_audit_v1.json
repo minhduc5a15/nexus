@@ -1,0 +1,3159 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-30T16:09:43.798632+00:00",
+  "purpose": "Attribute every automatic development failure across Modal Q4/Q8 all/classified before creating SFT data.",
+  "reviewer": {
+    "name": "Codex",
+    "kind": "assistant",
+    "independent": false
+  },
+  "source_run": {
+    "run_id": "modal-gpu-20260930",
+    "dataset": "evals/model_proposal_development_v1.json",
+    "dataset_sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+    "holdout_inference": false,
+    "reports_root": "evals/results/modal-gpu-20260930-downloaded",
+    "reports": {
+      "q4_all": {
+        "relative_path": "q4_k_m/development-all.json",
+        "sha256": "6fbdaa526ece128a93780afa35a9adc8cf337d679ed68ce8e34154f799b59afe",
+        "model": "Qwen3-4B-Instruct-2507 Q4_K_M",
+        "model_sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+        "routing": "all",
+        "prompt_version": "v13",
+        "automatic": {
+          "pass": 66,
+          "fail": 14,
+          "error": 0
+        }
+      },
+      "q4_classified": {
+        "relative_path": "q4_k_m/development-classified.json",
+        "sha256": "64b3221e3f490732f459f75a99d377b86b48793ac5ee7416e088545f9dcfa23b",
+        "model": "Qwen3-4B-Instruct-2507 Q4_K_M",
+        "model_sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+        "routing": "classified",
+        "prompt_version": "v13",
+        "automatic": {
+          "pass": 63,
+          "fail": 17,
+          "error": 0
+        }
+      },
+      "q8_all": {
+        "relative_path": "q8_0/development-all.json",
+        "sha256": "bdeb1dcb55503c3599eba64db0b96e4d536b49e2ad9e8c1e4f62e7e3ece923e0",
+        "model": "Qwen3-4B-Instruct-2507 Q8_0",
+        "model_sha256": "391c1e410fd9f4cf2de2b510273b56a84c19ce18f4fa3bfb3774031dac4ef068",
+        "routing": "all",
+        "prompt_version": "v13",
+        "automatic": {
+          "pass": 67,
+          "fail": 13,
+          "error": 0
+        }
+      },
+      "q8_classified": {
+        "relative_path": "q8_0/development-classified.json",
+        "sha256": "22f08229a4055e4cb9a514efc1b09c5138693856d530e03611ceeb47b7bab89a",
+        "model": "Qwen3-4B-Instruct-2507 Q8_0",
+        "model_sha256": "391c1e410fd9f4cf2de2b510273b56a84c19ce18f4fa3bfb3774031dac4ef068",
+        "routing": "classified",
+        "prompt_version": "v13",
+        "automatic": {
+          "pass": 63,
+          "fail": 17,
+          "error": 0
+        }
+      }
+    }
+  },
+  "taxonomy": {
+    "owners": [
+      "model",
+      "routing"
+    ],
+    "primary_causes": [
+      "argument_fidelity",
+      "clarification_failure",
+      "missed_action",
+      "routing_induced_regression",
+      "routing_wrong_exposure",
+      "unauthorized_action"
+    ],
+    "training_dispositions": [
+      "architecture_only",
+      "sft_regression_guard",
+      "sft_target"
+    ],
+    "label_statuses": [
+      "accepted",
+      "disputed",
+      "excluded"
+    ]
+  },
+  "rules": [
+    "Each failing configuration has exactly one primary cause and zero or more secondary causes.",
+    "Passing observations have no failure attribution.",
+    "Routing-only failures do not become SFT targets for the all-tools model.",
+    "Development is diagnostic; final holdout remains unopened.",
+    "Do not change prompt, routing, policy, or labels as part of this audit."
+  ],
+  "cases": [
+    {
+      "id": "create_literal",
+      "family": "create_delimited",
+      "prompt": "Lưu việc: kiểm tra hóa đơn.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra hóa đơn."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy sao chép nguyên văn toàn khối sau dấu hai chấm, gồm dấu câu cuối.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "kiểm tra hóa đơn"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "kiểm tra hóa đơn"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "kiểm tra hóa đơn"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "kiểm tra hóa đơn"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "edit_literal",
+      "family": "edit_content_boundary",
+      "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 4,
+              "content": "Nộp bản cuối."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy giữ nguyên content EDIT sau “thành”, gồm chữ hoa và dấu chấm.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 4,
+                "content": "Nộp bản cuối"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 4,
+                "content": "Nộp bản cuối"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 4,
+                "content": "Nộp bản cuối"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 4,
+                "content": "Nộp bản cuối"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "bare_statement",
+      "family": "bare_statement",
+      "prompt": "Mua bánh.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy no-action cho câu chỉ nêu nội dung mà không có lời yêu cầu lưu.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "bare_statement_as_create"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "bare_statement_as_create"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "bare_statement_as_create"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "bare_statement_as_create"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Mua bánh."
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Mua bánh."
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Mua bánh"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Mua bánh"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      }
+    },
+    {
+      "id": "ambiguous_today",
+      "family": "ambiguous_scope",
+      "prompt": "Hôm nay tôi có gì?",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "ý định: danh sách task hay việc đến hạn"
+        ]
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy model hỏi người dùng muốn xem danh sách chung hay task đến hạn, không tự chọn scope today.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "scope_assumption"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "scope_assumption"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "scope_assumption"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "scope_assumption"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_025",
+      "family": "create_delimited",
+      "prompt": "Thêm việc: sửa xe, rồi rửa xe.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "sửa xe, rồi rửa xe."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy giữ một dòng và toàn bộ dấu phẩy/từ nối thay vì tự tách content.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "content_resegmented"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "content_resegmented"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "content_resegmented"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "content_resegmented"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "sửa xe\nrửa xe"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "sửa xe\nrửa xe"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "sửa xe\nrửa xe"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "sửa xe\nrửa xe"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_026",
+      "family": "create_colloquial_note",
+      "prompt": "Note giúp tui: kiểm tra API & viết README!",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra API & viết README!"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Mở rộng cách nhận diện CREATE đời thường nhưng vẫn chép nguyên văn payload.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "colloquial_create_unrecognized"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "colloquial_create_unrecognized"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "colloquial_create_unrecognized"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "colloquial_create_unrecognized"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Không có hành động cụ thể được yêu cầu như tạo, liệt kê, hoàn thành, sửa, xóa hoặc đặt thời hạn. Vui lòng cung cấp thêm chi tiết để tôi có thể hỗ trợ bạn.",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Không có hành động cụ thể được yêu cầu (tạo, liệt kê, hoàn thành, sửa, xóa, đặt thời hạn hoặc tra cứu hạn chót). Vui lòng nêu rõ hành động bạn muốn thực hiện (ví dụ: \"Tạo việc kiểm tra API\", \"Đặt thời hạn cho việc viết README\", v.v.).",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Chưa rõ yêu cầu cụ thể về việc kiểm tra API hay viết README. Bạn có thể nêu rõ hơn không? Ví dụ:  \n- Bạn muốn kiểm tra API nào?  \n- Bạn cần viết README cho dự án gì?  \n- Có cần thêm thông tin như chức năng, cấu trúc, hoặc định dạng không?  \n\nTôi sẽ hỗ trợ nếu bạn cung cấp chi tiết.",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Chưa rõ yêu cầu cụ thể về việc kiểm tra API hay viết README. Vui lòng nêu rõ hơn để tôi hỗ trợ.",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_027",
+      "family": "create_polite_record",
+      "prompt": "Ghi giúp mình việc đặt bàn nhà hàng",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đặt bàn nhà hàng"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Nhận diện lời nhờ ghi việc và giữ đúng chữ thường của content.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "polite_create_unrecognized"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "polite_create_unrecognized"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "letter_case_changed"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "letter_case_changed"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Chắc chắn rồi! Bạn muốn ghi việc gì cụ thể? Ví dụ: \"Đặt bàn nhà hàng vào 19h hôm nay\" hoặc \"Đặt bàn cho 4 người vào ngày mai\". Hãy cung cấp nội dung chi tiết nhé!",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Chắc chắn rồi! Bạn muốn mình ghi việc gì cụ thể? Ví dụ: \"Đặt bàn cho bữa tối thứ Bảy, 20h tại nhà hàng A\". Nếu có nội dung cụ thể, hãy cung cấp để mình ghi lại chính xác nhé!",
+          "error_tags": [
+            "content_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Đặt bàn nhà hàng"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "Đặt bàn nhà hàng"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_028",
+      "family": "create_multiline",
+      "prompt": "Thêm các việc:\nđọc RFC\n\nđừng quên gọi bố",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đọc RFC\n\nđừng quên gọi bố"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Giữ nguyên cấu trúc nhiều dòng, kể cả dòng trống và chính tả.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "blank_line_removed",
+            "content_typo"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "blank_line_removed"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "blank_line_removed"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "blank_line_removed"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "đọc RFC\ndừng quên gọi bố"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "đọc RFC\nđừng quên gọi bố"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "đọc RFC\nđừng quên gọi bố"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "create",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "create_task",
+              "arguments": {
+                "content": "đọc RFC\nđừng quên gọi bố"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_line_count_changed",
+            "content_mismatch",
+            "content_not_verbatim"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "create",
+            "tools": [
+              "create_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_043",
+      "family": "edit_content_boundary",
+      "prompt": "Sửa việc 14 thành kiểm tra báo cáo!",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 14,
+              "content": "kiểm tra báo cáo!"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Gọi EDIT khi đã có đủ ID/content; không lặp lại chỉ dẫn hệ thống trong reply.",
+      "failed_configurations": [
+        "q4_all"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "system_instruction_leak"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "EDIT: chỉ gọi update_task khi người dùng nêu đúng một ID và nội dung mới sau từ \"thành\"; truyền đúng ID và chép nguyên văn toàn bộ nội dung mới.  \nVui lòng cung cấp nội dung mới cụ thể sau từ \"thành\" để tôi có thể thực hiện thay đổi.  \nVí dụ: \"thành kiểm tra báo cáo!\"",
+          "error_tags": [
+            "content_unavailable",
+            "id_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 14,
+                "content": "kiểm tra báo cáo!"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 14,
+                "content": "kiểm tra báo cáo!"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 14,
+                "content": "kiểm tra báo cáo!"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_048",
+      "family": "edit_content_boundary",
+      "prompt": "Sửa việc 72 thành giặt áo, phơi áo và cất áo.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 72,
+              "content": "giặt áo, phơi áo và cất áo."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Giữ nguyên toàn bộ content EDIT, gồm dấu phẩy, từ nối và dấu chấm.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "argument_fidelity",
+          "secondary_causes": [
+            "terminal_punctuation_dropped"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 72,
+                "content": "giặt áo, phơi áo và cất áo"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 72,
+                "content": "giặt áo, phơi áo và cất áo"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 72,
+                "content": "giặt áo, phơi áo và cất áo"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 72,
+                "content": "giặt áo, phơi áo và cất áo"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "content_mismatch",
+            "content_punctuation_missing",
+            "content_truncated"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_053",
+      "family": "delete_typo_command",
+      "prompt": "Xóaa việc 63.",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 63
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Nhận diện lỗi gõ nhẹ ở động từ DELETE mà không đổi ID.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "light_typo_unrecognized"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "light_typo_unrecognized"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "light_typo_unrecognized"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "missed_action",
+          "secondary_causes": [
+            "light_typo_unrecognized"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Bạn có thể làm rõ hơn về việc bạn muốn thực hiện với việc số 63 không? Ví dụ: bạn muốn hoàn thành, sửa đổi, đặt thời hạn hay xóa việc đó?",
+          "error_tags": [
+            "id_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Không rõ yêu cầu cụ thể. Bạn muốn làm gì với việc có ID 63? Ví dụ: hoàn thành, sửa nội dung, đặt thời hạn hay xóa?",
+          "error_tags": [
+            "id_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Không rõ hành động cụ thể. Bạn muốn xóa việc có ID 63? Nếu đúng, vui lòng xác nhận. Nếu không, hãy nêu rõ yêu cầu (ví dụ: hoàn thành, sửa đổi, đặt thời hạn).",
+          "error_tags": [
+            "id_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [],
+          "model_reply": "Xin vui lòng cung cấp thêm thông tin để tôi có thể hỗ trợ bạn. Bạn muốn xóa việc có ID 63 hay có yêu cầu khác về việc này? Nếu muốn xóa, vui lòng xác nhận để tôi thực hiện thao tác này.",
+          "error_tags": [
+            "id_unavailable",
+            "missing_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_061",
+      "family": "due_today",
+      "prompt": "Xem các task đến hạn hôm nay nhé.",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Cả Q4 và Q8 đều pass với all nhưng fail với classified; trace classified chỉ expose list_tasks."
+      },
+      "training_disposition": "architecture_only",
+      "training_need": "Sửa classifier để ưu tiên DEADLINE_QUERY trước LIST khi có “đến hạn hôm nay”; không dùng làm lỗi SFT.",
+      "failed_configurations": [
+        "q4_classified",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "deadline_query_misclassified_as_list"
+          ]
+        },
+        "q8_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "deadline_query_misclassified_as_list"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "scope_unavailable",
+            "wrong_tool"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "today"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "scope_unavailable",
+            "wrong_tool"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_064",
+      "family": "due_code_switch",
+      "prompt": "Show các task overdue giúp tui.",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Cả Q4 và Q8 đều pass với all nhưng fail với classified; trace classified chỉ expose list_tasks."
+      },
+      "training_disposition": "architecture_only",
+      "training_need": "Sửa classifier để nhận diện “overdue” là DEADLINE_QUERY; không dùng làm lỗi SFT.",
+      "failed_configurations": [
+        "q4_classified",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "deadline_query_misclassified_as_list"
+          ]
+        },
+        "q8_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "deadline_query_misclassified_as_list"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "overdue"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "scope_unavailable",
+            "wrong_tool"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "overdue"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "scope_unavailable",
+            "wrong_tool"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_070",
+      "family": "clarify_multiple_complete",
+      "prompt": "Hoàn thành việc 81 và 82.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "complete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Ba cấu hình hỏi lại đúng; chỉ Q8 classified phát hai complete_task call."
+      },
+      "training_disposition": "sft_regression_guard",
+      "training_need": "Giữ làm regression guard cho contract một ID/một call; Q4 all hiện đã làm đúng.",
+      "failed_configurations": [
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q8_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_induced_regression",
+          "secondary_causes": [
+            "multiple_calls_after_narrowing"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể hoàn thành nhiều việc cùng lúc. Vui lòng chỉ định một ID cụ thể để hoàn thành.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_complete",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể hoàn thành nhiều việc cùng lúc. Vui lòng chỉ định một ID cụ thể để hoàn thành.",
+          "error_tags": [],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_complete",
+            "tools": [
+              "complete_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không hỗ trợ hoàn thành nhiều việc cùng lúc. Vui lòng chỉ định một ID để hoàn thành.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_complete",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "complete_task",
+              "arguments": {
+                "id": 81
+              }
+            },
+            {
+              "name": "complete_task",
+              "arguments": {
+                "id": 82
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_complete",
+            "tools": [
+              "complete_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_071",
+      "family": "clarify_multiple_edit",
+      "prompt": "Sửa việc 84 và 85 thành đọc tài liệu.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Cả hai model pass với all nhưng phát hai update_task call ở classified."
+      },
+      "training_disposition": "sft_regression_guard",
+      "training_need": "Giữ làm regression guard cho EDIT nhiều ID; lỗi chỉ xuất hiện khi thu hẹp tool.",
+      "failed_configurations": [
+        "q4_classified",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_induced_regression",
+          "secondary_causes": [
+            "multiple_calls_after_narrowing"
+          ]
+        },
+        "q8_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_induced_regression",
+          "secondary_causes": [
+            "multiple_calls_after_narrowing"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể sửa nhiều việc cùng lúc. Vui lòng chỉ định một ID cụ thể và nội dung mới để sửa.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 84,
+                "content": "đọc tài liệu"
+              }
+            },
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 85,
+                "content": "đọc tài liệu"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể sửa nhiều việc cùng lúc. Vui lòng chỉ định một ID và nội dung mới để sửa.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_edit",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 84,
+                "content": "đọc tài liệu"
+              }
+            },
+            {
+              "name": "update_task",
+              "arguments": {
+                "id": 85,
+                "content": "đọc tài liệu"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_edit",
+            "tools": [
+              "update_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_072",
+      "family": "clarify_multiple_delete",
+      "prompt": "Xóa việc 86 và 87.",
+      "expected": {
+        "behavior": "clarify",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "một id"
+        ]
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy hỏi chọn đúng một ID thay vì phát hai DELETE call.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "multiple_ids_executed"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "multiple_ids_executed"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "multiple_ids_executed"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "clarification_failure",
+          "secondary_causes": [
+            "multiple_ids_executed"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 86
+              }
+            },
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 87
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_delete",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 86
+              }
+            },
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 87
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_delete",
+            "tools": [
+              "delete_task"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 86
+              }
+            },
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 87
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "multiple_delete",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 86
+              }
+            },
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 87
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_during_clarification",
+            "multiple_calls",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "multiple_delete",
+            "tools": [
+              "delete_task"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_075",
+      "family": "negation_deadline",
+      "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+      "expected": {
+        "behavior": "no_action",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy phủ định phải dẫn tới no-action, bất kể action và arguments có vẻ đầy đủ.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "negation_ignored",
+            "wrong_tool"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "negation_ignored",
+            "wrong_tool"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "negation_ignored"
+          ]
+        },
+        "q8_classified": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "negation_ignored"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 90
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "negated",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "delete_task",
+              "arguments": {
+                "id": 90
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "negated",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "set_task_deadline",
+              "arguments": {
+                "id": 90,
+                "when": "lúc 08:00 mai"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "negated",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "set_task_deadline",
+              "arguments": {
+                "id": 90,
+                "when": "lúc 08:00 mai"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "negated",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_076",
+      "family": "unsupported_undo",
+      "prompt": "Bỏ trạng thái hoàn thành của việc 91.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Prompt, rationale, gold proposal và contract hiện hành nhất quán; lỗi thuộc proposal model."
+      },
+      "training_disposition": "sft_target",
+      "training_need": "Dạy không ánh xạ thao tác undo chưa hỗ trợ thành COMPLETE.",
+      "failed_configurations": [
+        "q4_all",
+        "q4_classified"
+      ],
+      "failure_attribution": {
+        "q4_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "unsupported_undo_mapped_to_complete"
+          ]
+        },
+        "q4_classified": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "unsupported_undo_mapped_to_complete"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "complete_task",
+              "arguments": {
+                "id": 91
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "complete_task",
+              "arguments": {
+                "id": 91
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        },
+        "q8_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể bỏ trạng thái hoàn thành của việc. Bạn có thể muốn xem danh sách các việc để kiểm tra, hoặc yêu cầu sửa nội dung. Vui lòng làm rõ hơn.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không thể bỏ trạng thái hoàn thành của việc 91. Bạn có thể muốn hoàn thành việc đó hoặc xem danh sách các việc để kiểm tra. Vui lòng xác minh lại yêu cầu.",
+          "error_tags": [],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "other",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": true
+          }
+        }
+      }
+    },
+    {
+      "id": "dev_078",
+      "family": "unsupported_week_filter",
+      "prompt": "Xem các việc đến hạn tuần sau.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "label_review": {
+        "status": "accepted",
+        "evidence": "Q4 all từ chối đúng; classified expose list_tasks, còn Q8 all tự ép “tuần sau” thành tomorrow."
+      },
+      "training_disposition": "sft_regression_guard",
+      "training_need": "Giữ làm regression guard cho scope chưa hỗ trợ; classifier hiện cũng route sai sang LIST.",
+      "failed_configurations": [
+        "q4_classified",
+        "q8_all",
+        "q8_classified"
+      ],
+      "failure_attribution": {
+        "q4_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "unsupported_scope_misclassified_as_list"
+          ]
+        },
+        "q8_classified": {
+          "owner": "routing",
+          "primary_cause": "routing_wrong_exposure",
+          "secondary_causes": [
+            "unsupported_scope_misclassified_as_list"
+          ]
+        },
+        "q8_all": {
+          "owner": "model",
+          "primary_cause": "unauthorized_action",
+          "secondary_causes": [
+            "unsupported_scope_coerced_to_tomorrow"
+          ]
+        }
+      },
+      "observations": {
+        "q4_all": {
+          "automatic_status": "pass",
+          "proposed_calls": [],
+          "model_reply": "Không hỗ trợ xem việc đến hạn tuần sau. Bạn có thể thử xem việc đến hạn hôm nay, ngày mai hoặc quá hạn.",
+          "error_tags": [],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q4_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_all": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks_by_deadline",
+              "arguments": {
+                "scope": "tomorrow"
+              }
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "all",
+            "request_kind": "list",
+            "tools": [
+              "create_task",
+              "list_tasks",
+              "list_tasks_by_deadline",
+              "complete_task",
+              "update_task",
+              "delete_task",
+              "set_task_deadline"
+            ],
+            "fallback": false
+          }
+        },
+        "q8_classified": {
+          "automatic_status": "fail",
+          "proposed_calls": [
+            {
+              "name": "list_tasks",
+              "arguments": {}
+            }
+          ],
+          "model_reply": "",
+          "error_tags": [
+            "call_without_authorization",
+            "unexpected_call"
+          ],
+          "routing": {
+            "mode": "classified",
+            "request_kind": "list",
+            "tools": [
+              "list_tasks"
+            ],
+            "fallback": false
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "unique_failed_cases": 19,
+    "failure_observations": 61,
+    "configuration_failures": {
+      "q4_all": 14,
+      "q4_classified": 17,
+      "q8_all": 13,
+      "q8_classified": 17
+    },
+    "owner_counts": {
+      "model": 52,
+      "routing": 9
+    },
+    "primary_cause_counts": {
+      "argument_fidelity": 22,
+      "clarification_failure": 8,
+      "missed_action": 11,
+      "routing_induced_regression": 3,
+      "routing_wrong_exposure": 6,
+      "unauthorized_action": 11
+    },
+    "training_disposition_counts": {
+      "architecture_only": 2,
+      "sft_regression_guard": 3,
+      "sft_target": 14
+    },
+    "label_review_counts": {
+      "accepted": 19
+    }
+  }
+}
