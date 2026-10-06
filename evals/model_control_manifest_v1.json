@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "protocol_id": "qwen3-30b-a3b-control-v1",
+  "purpose": "Test whether Qwen 4B proposal failures persist when only model capacity changes.",
+  "holdout_inference": false,
+  "comparison": {
+    "baseline": "Qwen3-4B-Instruct-2507 Q8_0 on Modal, v13/all: 67/80",
+    "changed_variable": "model artifact",
+    "fixed_variables": [
+      "llama.cpp commit",
+      "prompt v13",
+      "all tool routing",
+      "tool schemas",
+      "development dataset",
+      "sampling settings",
+      "context size"
+    ]
+  },
+  "model": {
+    "id": "qwen3-30b-a3b-instruct-2507-q8_0",
+    "base_model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+    "artifact_repository": "ggml-org/Qwen3-30B-A3B-Instruct-2507-Q8_0-GGUF",
+    "artifact_revision": "c9abf4f74f8da42fe93a72a3debcca56c8f363dc",
+    "filename": "qwen3-30b-a3b-instruct-2507-q8_0.gguf",
+    "url": "https://huggingface.co/ggml-org/Qwen3-30B-A3B-Instruct-2507-Q8_0-GGUF/resolve/c9abf4f74f8da42fe93a72a3debcca56c8f363dc/qwen3-30b-a3b-instruct-2507-q8_0.gguf",
+    "size_bytes": 32483930432,
+    "sha256": "66cbfc7624628ca4725a6a0581b95f2155aa6aa073a6ed4ff8d158794ee8fee3",
+    "quantization": "Q8_0",
+    "provenance_note": "GGUF conversion published by ggml-org for llama.cpp; it is not an official Qwen GGUF file."
+  },
+  "runtime": {
+    "llama_commit": "5266f24da75dc449bd56cbed7addb9c8e4a6a73e",
+    "gpu": "A100-80GB",
+    "cuda_architecture": "80",
+    "context_size": 4096,
+    "parallel": 1,
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "settings": {
+      "temperature": 0.0,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 256,
+      "seed": 42,
+      "enable_thinking": false
+    }
+  },
+  "datasets": {
+    "canary": {
+      "path": "evals/model_control_canary_v1.json",
+      "sha256": "9796a10912230d116a5f6207e8f77fc6a4abc7a974b34509b2fbb93c759d5031",
+      "count": 10,
+      "case_ids": [
+        "create_literal",
+        "list_direct",
+        "deadline_absolute",
+        "edit_literal",
+        "bare_statement",
+        "ambiguous_today",
+        "dev_026",
+        "dev_028",
+        "dev_053",
+        "dev_075"
+      ]
+    },
+    "development": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+      "count": 80
+    }
+  },
+  "execution": {
+    "stages": [
+      "preflight",
+      "canary",
+      "development"
+    ],
+    "default_stage": "preflight",
+    "canary_timeout_seconds": 1200,
+    "development_timeout_seconds": 3600,
+    "development_requires_explicit_canary_run_id": true,
+    "development_requires_error_free_canary": true,
+    "automatic_retry": false,
+    "maximum_planned_gpu_seconds": 4800,
+    "pricing_snapshot": {
+      "date": "2026-10-01",
+      "gpu_usd_per_second": 0.000694,
+      "maximum_planned_gpu_cost_usd": 3.3312,
+      "source": "https://modal.com/pricing",
+      "excludes": [
+        "CPU",
+        "memory",
+        "storage",
+        "network"
+      ]
+    }
+  },
+  "interpretation": {
+    "material_capacity_gap": "At least 73/80 exact proposals with no new unauthorized action compared with the 4B Q8_0 baseline.",
+    "mixed_result": "Between 68/80 and 72/80, requiring case-by-case review.",
+    "no_capacity_evidence": "At most 67/80 or the same failures persist.",
+    "note": "These thresholds guide diagnosis and are not rollout criteria."
+  }
+}

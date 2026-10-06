@@ -101,7 +101,7 @@ SHA-256: Q4_K_M `3605803b...c67e597`, Q8_0 `391c1e41...c4ef068`.
 Final holdout vẫn chưa được gửi tới model.
 
 | Backend/model | v13/all | v13/classified | Median warm all | Median warm classified |
-|---|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: |
 | CPU Q4_K_M lịch sử | 65/80 | 62/80 | 5,330 s | 5,215 s |
 | Modal T4 Q4_K_M | 66/80 | 63/80 | 0,398 s | 0,509 s |
 | Modal T4 Q8_0 | 67/80 | 63/80 | 0,561 s | 0,705 s |
@@ -140,3 +140,115 @@ Chạy lại kiểm tra bằng:
 
 Lệnh chỉ đọc development report cục bộ và không gọi model, tool hay SQLite.
 Final holdout vẫn chưa được mở.
+
+## Protocol đối chứng Qwen3-30B-A3B
+
+Đối chứng model mạnh hơn được khóa trong
+`model_control_manifest_v1.json`; runner riêng là `modal_control_benchmark.py`.
+Phép đo chỉ đổi model so với baseline Qwen 4B Q8_0: prompt v13, routing all,
+tool schema, sampling, context, llama.cpp và development v1 được giữ nguyên.
+Không dùng classified routing vì audit đã chỉ ra lỗi expose tool riêng của tầng đó.
+
+Artifact là `Qwen3-30B-A3B-Instruct-2507` Q8_0 do `ggml-org` chuyển sang GGUF,
+không phải GGUF chính thức từ Qwen. Revision, kích thước 32.483.930.432 byte và
+SHA-256 được khóa trong manifest. Modal dùng A100 80 GB; download model là hàm
+CPU riêng và không giữ GPU trong lúc tải.
+
+Chạy preflight offline:
+
+```sh
+./scripts/demo/26_model_control_preflight.sh
+# hoặc
+.venv/bin/python -m scripts.audit_model_control
+```
+
+Preflight không gọi Modal, model hoặc final holdout. Khi đã duyệt chi phí, canary
+và development phải được gọi thành hai lệnh riêng:
+
+```sh
+.venv/bin/modal run modal_control_benchmark.py \
+  --stage canary --run-id qwen30b-control-canary-YYYYMMDD
+
+.venv/bin/modal run modal_control_benchmark.py \
+  --stage development --run-id qwen30b-control-development-YYYYMMDD \
+  --canary-run-id qwen30b-control-canary-YYYYMMDD
+```
+
+Canary gồm mười ca development đã có, bao phủ argument fidelity, missed action,
+unauthorized action, clarification và hai control pass. Một ca chấm fail không
+chặn development vì mục tiêu canary là kiểm tra tích hợp; generation error, sai
+hash/protocol, thiếu ca hoặc run chưa hoàn tất sẽ chặn. Runner không tự chuyển từ
+canary sang development và không retry generation.
+
+Timeout GPU khóa ở 1.200 giây cho canary và 3.600 giây cho development. Theo giá
+A100 80 GB ghi nhận ngày 01/10/2026, trần lý thuyết của một lượt mỗi stage là
+3,3312 USD tiền GPU, chưa gồm CPU, RAM, storage và network. Đây là snapshot để
+kiểm soát thí nghiệm, không phải cam kết giá của Modal.
+
+### Kết quả canary ngày 06/10/2026
+
+Canary chạy đủ 10/10 ca trên NVIDIA A100 80GB PCIe, không có generation error:
+Qwen 30B đạt **3/10**, trong khi Qwen 4B Q4_K_M và Q8_0 đều đạt **2/10** trên
+chính mười ca này. Model 30B sửa được duy nhất `dev_053` (nhận ra lỗi gõ
+`Xóaa việc 63`), giữ đúng hai control pass và không làm hỏng control pass nào.
+
+Bảy lỗi còn lại giống hai baseline về bản chất: bỏ dấu câu cuối ở CREATE/EDIT,
+tự biến bare statement thành CREATE, tự suy scope `today`, viết lại nội dung có
+`&`, xóa dòng trống trong multiline và bỏ qua phủ định. Ở `dev_075`, model 30B
+còn chọn nhầm DELETE cho ID 90 thay vì không gọi tool.
+
+Raw report có SHA-256
+`39d2fbd018f01c52b0d603818947b5ad9935f139fd352ea3aef3d1b3e782399d`, nằm
+trong `evals/results/qwen30b-control-canary-20261006/` và bị Git ignore. Artifact
+model khớp SHA-256 đã khóa; runtime là llama.cpp commit `5266f24`, request dùng
+v13/all và đúng sampling trong manifest. Tại thời điểm review canary, development
+80 ca và final holdout chưa được chạy. Canary được chọn thiên về ca khó nên 3/10
+không dự đoán trực tiếp điểm 80 ca; nó chỉ cho thấy model lớn hơn không tự giải
+quyết phần lớn nhóm lỗi đã lấy mẫu.
+
+Xác minh report canary đã tải mà không gọi model:
+
+```sh
+.venv/bin/python -m scripts.audit_model_control \
+  --canary-report \
+  evals/results/qwen30b-control-canary-20261006/qwen3-30b-a3b-instruct-2507-q8_0/canary.json
+```
+
+### Kết quả development ngày 06/10/2026
+
+Sau khi canary được review và người dùng duyệt, development chạy đủ **80/80** ca,
+không có generation error. Qwen 30B Q8_0 đạt **66/80 (82,50%)**, thấp hơn Qwen
+4B Q8_0 đúng một ca (**67/80**) và bằng Qwen 4B Q4_K_M (**66/80**). Theo ngưỡng
+đã khóa trước inference, kết quả này thuộc `no_capacity_evidence`, không cho thấy
+khoảng cách năng lực đủ rõ cho tác vụ proposal hiện tại.
+
+So với 4B Q8_0, 30B sửa ba ca: lỗi gõ `Xóaa`, yêu cầu xóa hai ID cần hỏi lại và
+query `tuần sau` ngoài scope. Nó làm hỏng bốn ca 4B từng đạt: tự chuyển reminder
+thành CREATE, gọi hai COMPLETE, đảo thao tác “bỏ trạng thái hoàn thành” thành
+COMPLETE và biến “xóa deadline” thành đặt deadline chuỗi `null`. Vì vậy số
+unexpected call tăng từ 5 lên 7; đây là hồi quy đáng kể dù policy phía sau có thể
+chặn một phần proposal sai.
+
+Các nhóm CREATE/EDIT vẫn giữ lỗi cũ: bỏ dấu câu thuộc dữ liệu, tự viết hoa, tách
+một dòng thành nhiều dòng và xóa dòng trống. ID, `when` và `scope` của các action
+rõ ràng đạt toàn bộ; content chỉ đạt 9/16. Kết quả cho thấy đổi sang model lớn hơn
+không tự giải quyết contract chép nguyên văn và không đảm bảo tuân thủ giới hạn
+chức năng tốt hơn.
+
+Median inference của 30B là 0,209 giây và p95 là 0,352 giây trên A100 80 GB.
+Không so trực tiếp số này với 4B chạy trên T4 để kết luận model nhanh hơn, vì phần
+cứng khác nhau. Raw report có SHA-256
+`1cac83fa0e24977cf5f4038ed13b442bd9e0e2443514be8b9e0d9401c63636ab`, nằm
+trong `evals/results/qwen30b-control-development-20261006/` và bị Git ignore.
+
+Xác minh đồng thời canary và development đã tải:
+
+```sh
+.venv/bin/python -m scripts.audit_model_control \
+  --canary-report \
+  evals/results/qwen30b-control-canary-20261006/qwen3-30b-a3b-instruct-2507-q8_0/canary.json \
+  --development-report \
+  evals/results/qwen30b-control-development-20261006/qwen3-30b-a3b-instruct-2507-q8_0/development-all.json
+```
+
+Final holdout 120 ca vẫn chưa được gửi tới bất kỳ candidate mới nào.

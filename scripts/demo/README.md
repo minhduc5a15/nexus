@@ -31,6 +31,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `23_proposal_eval.sh` | Chấm 24 proposal giả lập, có sáu lỗi cố ý; không chạy tool hoặc SQLite | Không |
 | `24_proposal_data_review.sh` | Kiểm tra khóa dataset và tạo review riêng từ fixture pilot | Không |
 | `25_model_error_audit.sh` | Xác minh 19 ca lỗi Q4/Q8, attribution và quyết định SFT/routing | Không |
+| `26_model_control_preflight.sh` | Kiểm tra protocol đối chứng Qwen3-30B, model lock, canary và giới hạn chi phí | Không |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -47,6 +48,7 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/19_deadline_query_eval.sh
 ./scripts/demo/21_tool_routing_eval.sh
 ./scripts/demo/25_model_error_audit.sh
+./scripts/demo/26_model_control_preflight.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -222,3 +224,12 @@ pending để bạn điền bằng chứng; xem [hướng dẫn review](../../ev
 tracked với bốn raw development report trong `evals/results/modal-gpu-20260930-downloaded/`,
 gồm hash, coverage, raw observation, attribution và quy tắc không dùng lỗi expose
 sai tool làm mục tiêu SFT. Final holdout không được đọc.
+
+`26_model_control_preflight.sh` chỉ kiểm tra protocol Qwen3-30B-A3B trên máy cục
+bộ. Nó xác minh runner và manifest không lệch nhau, canary gồm đúng mười ca sao
+nguyên từ development, stage mặc định là preflight, download không dùng GPU,
+development cần canary hoàn tất và image Modal không chứa final holdout. Công cụ
+`scripts.audit_model_control` còn nhận `--canary-report` và
+`--development-report` để xác minh artifact đã tải; development report chỉ được
+chấp nhận khi liên kết đúng canary gate, đủ 80 ca theo đúng thứ tự và không có
+generation error.

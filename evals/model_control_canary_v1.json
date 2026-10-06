@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "split": "control_canary",
+  "version": "v1",
+  "purpose": "Integration canary for the stronger-model control; labels are copied verbatim from development v1.",
+  "derived_from": {
+    "path": "evals/model_proposal_development_v1.json",
+    "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27"
+  },
+  "cases": [
+    {
+      "id": "create_literal",
+      "prompt": "Lưu việc: kiểm tra hóa đơn.",
+      "family": "create_delimited",
+      "rationale": "Sau dấu hai chấm, dấu chấm thuộc dữ liệu task; phải giữ nguyên.",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra hóa đơn."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "list_direct",
+      "prompt": "Xem danh sách việc đã lưu.",
+      "family": "list_command",
+      "rationale": "Yêu cầu đọc toàn bộ danh sách, không thay đổi dữ liệu.",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "deadline_absolute",
+      "prompt": "Đặt deadline task #5 là 27/09/2026 08:00.",
+      "family": "deadline_absolute",
+      "rationale": "when là cụm thời gian nguyên văn, không phải timestamp; dấu kết câu không thuộc cụm thời gian.",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 5,
+              "when": "27/09/2026 08:00"
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "edit_literal",
+      "prompt": "Sửa việc 4 thành Nộp bản cuối.",
+      "family": "edit_content_boundary",
+      "rationale": "Nội dung sau thành được giữ nguyên, gồm chữ hoa và dấu chấm.",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 4,
+              "content": "Nộp bản cuối."
+            }
+          }
+        ],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "bare_statement",
+      "prompt": "Mua bánh.",
+      "family": "bare_statement",
+      "rationale": "Chỉ nêu nội dung, chưa yêu cầu thêm task theo contract hiện hành.",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "ambiguous_today",
+      "prompt": "Hôm nay tôi có gì?",
+      "family": "ambiguous_scope",
+      "rationale": "Chưa nói về task hoặc deadline; không tự chọn truy vấn today.",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "ý định: danh sách task hay việc đến hạn"
+        ]
+      },
+      "dimensions": [
+        "pilot_regression"
+      ],
+      "origin": "pilot_v1"
+    },
+    {
+      "id": "dev_026",
+      "prompt": "Note giúp tui: kiểm tra API & viết README!",
+      "family": "create_colloquial_note",
+      "rationale": "Lời yêu cầu note với đại từ đời thường.",
+      "dimensions": [
+        "colloquial",
+        "code_switch",
+        "punctuation"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra API & viết README!"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_028",
+      "prompt": "Thêm các việc:\nđọc RFC\n\nđừng quên gọi bố",
+      "family": "create_multiline",
+      "rationale": "Một yêu cầu CREATE chứa các dòng; không tách thành nhiều call.",
+      "dimensions": [
+        "multiline",
+        "blank_line",
+        "negation_in_content"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đọc RFC\n\nđừng quên gọi bố"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_053",
+      "prompt": "Xóaa việc 63.",
+      "family": "delete_typo_command",
+      "rationale": "Lỗi gõ ở động từ xóa không làm mơ hồ ID.",
+      "dimensions": [
+        "typo"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 63
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev_075",
+      "prompt": "Đừng đặt hạn việc 90 lúc 08:00 mai.",
+      "family": "negation_deadline",
+      "rationale": "Phủ định đặt hạn, không gọi tool.",
+      "dimensions": [
+        "control"
+      ],
+      "origin": "new_authored",
+      "expected": {
+        "behavior": "no_action",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": []
+      },
+      "known_fields": {
+        "id": 90
+      }
+    }
+  ]
+}
