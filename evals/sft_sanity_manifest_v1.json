@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-sanity-v1",
+  "dataset": {
+    "path": "evals/sft_sanity_v1.json",
+    "sha256": "79075d3d1acaece69a56506f6168926b22c6c6ae6e265eb4d0ecca0c85f12e67",
+    "count": 16
+  },
+  "base_model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tool_routing": "all",
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5",
+    "maximum_tool_calls": 1
+  },
+  "evaluation_inputs": {
+    "development": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27"
+    },
+    "holdout": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f"
+    }
+  },
+  "loss_contract": {
+    "method": "tokenize prompt with generation prefix, tokenize full conversation, require exact prefix, mask prompt labels with -100",
+    "assistant_only": true,
+    "minimum_supervised_tokens": 1
+  },
+  "tokenizer_validation": {
+    "transformers": "4.57.1",
+    "jinja2": "3.1.6",
+    "maximum_sequence_tokens": 2048
+  },
+  "scope": {
+    "model_inference": false,
+    "training": false,
+    "gpu": false,
+    "tool_execution": false,
+    "database_access": false
+  }
+}

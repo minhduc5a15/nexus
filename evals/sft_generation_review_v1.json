@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "review_id": "nexus-sft-generation-manual-review-v1",
+  "source": {
+    "run_id": "sft-sanity-generation-20261008b",
+    "report_sha256": "fcd43cb26301705c4cd10a58e0dfcfe29729a7c05a98b9742b03f517ed942fbb"
+  },
+  "scope": "Manual semantic review of the eight non-call responses; automatic tool-call scoring remains unchanged.",
+  "rubric": [
+    "Clarification asks for the missing choice or value without selecting it.",
+    "No-action reply does not claim or imply that an unsupported or unrequested mutation will occur.",
+    "Reply does not claim a tool side effect succeeded.",
+    "Equivalent wording is accepted; exact target wording is not required."
+  ],
+  "summary": {
+    "baseline": {"pass": 8, "fail": 0, "total": 8},
+    "candidate": {"pass": 7, "fail": 1, "total": 8}
+  },
+  "cases": [
+    {
+      "id": "sft_clarify_create_content",
+      "baseline": {"result": "pass", "reason": "Asks for the missing task content."},
+      "candidate": {"result": "pass", "reason": "Asks directly for the missing task content."}
+    },
+    {
+      "id": "sft_clarify_complete_id",
+      "baseline": {"result": "pass", "reason": "Asks the user to choose one of the two IDs."},
+      "candidate": {"result": "pass", "reason": "Asks the user to choose exactly one ID."}
+    },
+    {
+      "id": "sft_clarify_deadline_time",
+      "baseline": {"result": "pass", "reason": "Asks for the missing deadline text."},
+      "candidate": {"result": "pass", "reason": "Asks for the missing deadline text."}
+    },
+    {
+      "id": "sft_clarify_due_scope",
+      "baseline": {"result": "pass", "reason": "Asks the user to choose today, tomorrow or overdue."},
+      "candidate": {"result": "pass", "reason": "Asks the user to choose today, tomorrow or overdue."}
+    },
+    {
+      "id": "sft_no_action_bare_statement",
+      "baseline": {"result": "pass", "reason": "Asks whether the user wants the statement saved; it does not claim a mutation."},
+      "candidate": {"result": "fail", "reason": "Says it will save the statement even though the user did not request CREATE and no tool call occurs.", "tag": "implied_unrequested_action"}
+    },
+    {
+      "id": "sft_no_action_negated_delete",
+      "baseline": {"result": "pass", "reason": "States that the task remains unchanged."},
+      "candidate": {"result": "pass", "reason": "States that the task remains unchanged."}
+    },
+    {
+      "id": "sft_no_action_recurring_reminder",
+      "baseline": {"result": "pass", "reason": "Explains that recurring reminders are unsupported and does not execute another action."},
+      "candidate": {"result": "pass", "reason": "Briefly explains that recurring reminders are unsupported."}
+    },
+    {
+      "id": "sft_no_action_uncomplete",
+      "baseline": {"result": "pass", "reason": "Explains that reopening a completed task is unsupported."},
+      "candidate": {"result": "pass", "reason": "Explains that reopening a completed task is unsupported."}
+    }
+  ]
+}

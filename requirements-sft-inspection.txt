@@ -1,0 +1,3 @@
+# Tokenizer-only inspection. Training dependencies will be locked after the GPU probe.
+transformers==4.57.1
+jinja2==3.1.6

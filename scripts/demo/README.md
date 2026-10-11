@@ -32,6 +32,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `24_proposal_data_review.sh` | Kiểm tra khóa dataset và tạo review riêng từ fixture pilot | Không |
 | `25_model_error_audit.sh` | Xác minh 19 ca lỗi Q4/Q8, attribution và quyết định SFT/routing | Không |
 | `26_model_control_preflight.sh` | Kiểm tra protocol đối chứng Qwen3-30B, model lock, canary và giới hạn chi phí | Không |
+| `27_sft_sanity_data.sh` | Audit 16 mẫu SFT; thêm `--tokenize` để xem assistant-only loss mask bằng tokenizer Qwen | Không |
+| `28_sft_qlora_modal.sh` | Preflight QLoRA; `probe`/`overfit` train adapter, `generation` so base với adapter trên Modal T4 | Tải model HF khi chạy GPU |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -49,6 +51,8 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/21_tool_routing_eval.sh
 ./scripts/demo/25_model_error_audit.sh
 ./scripts/demo/26_model_control_preflight.sh
+./scripts/demo/27_sft_sanity_data.sh
+./scripts/demo/28_sft_qlora_modal.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -233,3 +237,27 @@ development cần canary hoàn tất và image Modal không chứa final holdout
 `--development-report` để xác minh artifact đã tải; development report chỉ được
 chấp nhận khi liên kết đúng canary gate, đủ 80 ca theo đúng thứ tự và không có
 generation error.
+
+`27_sft_sanity_data.sh` kiểm tra dataset đầu tiên dành cho SFT mà không train.
+Mặc định script chỉ audit contract, balance và leakage. Với `--tokenize`, nó dùng
+revision tokenizer Qwen đã khóa để xác minh system/user token đều mang label
+`-100`, còn assistant reply hoặc tool call là phần duy nhất chịu loss. Xem
+[ghi chú SFT sanity](../../evals/README.sft-sanity.md).
+
+`28_sft_qlora_modal.sh` mặc định chỉ audit protocol offline. Stage `probe` chạy
+một optimizer step và ghi bằng chứng base frozen/LoRA gradient; stage `overfit`
+đòi run ID của probe đã đạt, train 64 step rồi save/reload adapter để so hash.
+Stage `generation` sinh bằng base rồi adapter trên 16 mẫu training và không thực
+thi proposal. Development và final holdout không được đóng gói vào image. Lệnh
+và kết quả thực tế nằm trong [ghi chú SFT sanity](../../evals/README.sft-sanity.md).
+
+`29_sft_pilot_data.sh` kiểm tra bộ 100 mẫu pilot mà chưa train. Chế độ mặc định
+đối chiếu JSON với builder, kiểm tra schema, phân bố, grounding, câu trả lời
+không tự nhận đã thao tác và leakage với development/final holdout. Chế độ
+`tokens` dùng tokenizer Qwen đã khóa revision để xác minh assistant-only mask và
+giới hạn 2.048 token cho cả 100 record:
+
+```sh
+./scripts/demo/29_sft_pilot_data.sh
+./scripts/demo/29_sft_pilot_data.sh tokens
+```

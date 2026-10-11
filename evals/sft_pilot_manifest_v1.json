@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-pilot-v1",
+  "purpose": "Lock the reviewed 100-case pilot inputs before tokenizer inspection or GPU training.",
+  "dataset": {
+    "path": "evals/sft_pilot_v1.json",
+    "count": 100,
+    "sha256": "2148db1cb5e5257f2c76356eaa4651e5c8fb31fe52315f5615714ffa6566d28a"
+  },
+  "source_sanity": {
+    "path": "evals/sft_sanity_v1.json",
+    "count": 16,
+    "sha256": "79075d3d1acaece69a56506f6168926b22c6c6ae6e265eb4d0ecca0c85f12e67"
+  },
+  "builder": {
+    "path": "scripts/build_sft_pilot_v1.py",
+    "sha256": "63e3153c288c40feaeb7a30caa4add6f54251679f50c9c47793a86c67674b2ff",
+    "deterministic_check": ".venv/bin/python scripts/build_sft_pilot_v1.py --check"
+  },
+  "base_model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5"
+  },
+  "balance": {
+    "behavior": {
+      "call": 56,
+      "clarify": 22,
+      "no_action": 22
+    },
+    "calls_per_action": {
+      "create": 8,
+      "list": 8,
+      "complete": 8,
+      "edit": 8,
+      "delete": 8,
+      "deadline": 8,
+      "due_query": 8
+    }
+  },
+  "evaluation_inputs": {
+    "development": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27"
+    },
+    "holdout": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f"
+    }
+  },
+  "leakage_screen": {
+    "method": "NFKC/casefold; mask gold content/when and digits; SequenceMatcher screening only",
+    "near_duplicate_threshold": 0.92,
+    "required_exact_matches": 0,
+    "required_masked_matches": 0,
+    "required_near_matches": 0
+  },
+  "training_authorized": false,
+  "tokenizer_validation": {
+    "transformers": "4.57.1",
+    "jinja2": "3.1.6",
+    "maximum_sequence_tokens": 2048,
+    "observed_maximum_tokens": 1362,
+    "assistant_only_mask": "verified_by_exact_token_prefix"
+  }
+}

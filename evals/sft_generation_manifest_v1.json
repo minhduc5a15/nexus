@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-generation-sanity-v1",
+  "purpose": "Compare deterministic free generation from the locked base model and the reloaded sanity adapter on the 16 training records.",
+  "dataset": {
+    "path": "evals/sft_sanity_v1.json",
+    "sha256": "79075d3d1acaece69a56506f6168926b22c6c6ae6e265eb4d0ecca0c85f12e67",
+    "count": 16
+  },
+  "training_manifest": {
+    "path": "evals/sft_sanity_training_manifest_v1.json",
+    "sha256": "92180c5644e80d2674e29b39d5d520705c9dbe3967a2f5a5e938b0b4bf706e1c"
+  },
+  "source_overfit": {
+    "run_id": "sft-sanity-overfit-20261006c",
+    "probe_run_id": "sft-sanity-probe-20261006d",
+    "report_path": "sft-sanity-overfit-20261006c/sft-sanity/overfit.json",
+    "report_sha256": "945dd133acbca562da89615d7273b1c19f8085b13055a92110d7f5e410a01d14",
+    "adapter_path": "sft-sanity-overfit-20261006c/sft-sanity/adapter",
+    "adapter_directory_sha256": "0436ffb352c6e1f5542fc715dcacfb4fadba02fca23819c8e8019689b7248c6f",
+    "adapter_state_sha256": "a58ff5b6e2a0240a10aeeed61c4d70d63783a5aa1a2115b16b1cf14a3e1ec4a9"
+  },
+  "generation": {
+    "gpu": "T4",
+    "seed": 42,
+    "do_sample": false,
+    "maximum_new_tokens": 128,
+    "batch_size": 1,
+    "automatic_retry": false,
+    "timeout_seconds": 1200
+  },
+  "scoring": {
+    "exact_tokens": "Compare generated assistant tokens through the first EOS token with the locked target suffix.",
+    "call_cases": "Require one strict tool-call JSON object with exact name and arguments and no extra text.",
+    "non_call_cases": "Require no tool-call tag; exact target text is reported separately.",
+    "semantic_reply_review": "manual"
+  },
+  "scope": {
+    "training_records_only": true,
+    "final_holdout_inference": false,
+    "development_inference": false,
+    "application_tool_execution": false,
+    "database_access": false,
+    "deployment_rollout": false
+  }
+}

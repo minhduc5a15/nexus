@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-sanity-v1",
+  "purpose": "Verify SFT rendering, assistant-only labels, gradients and adapter save/load before a pilot run.",
+  "base_model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1
+  },
+  "cases": [
+    {
+      "id": "sft_create_delimited",
+      "family": "train_create_delimited_block",
+      "behavior": "call",
+      "action": "create",
+      "rationale": "Giữ dấu chấm là một phần của dữ liệu nằm sau lời dẫn rõ.",
+      "messages": [
+        {"role": "user", "content": "Hãy lập một mục việc mới với nguyên văn sau:\nđối chiếu số dư cuối quý."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "create_task", "arguments": {"content": "đối chiếu số dư cuối quý."}}}]}
+      ]
+    },
+    {
+      "id": "sft_create_blank_line",
+      "family": "train_create_preserve_blank_line",
+      "behavior": "call",
+      "action": "create",
+      "rationale": "Giữ nguyên hai dòng task và dòng trống ở giữa trong một tool call.",
+      "messages": [
+        {"role": "user", "content": "Tạo các mục trong sổ việc từ khối văn bản này, giữ cả dòng trống:\nsoát bản dịch\n\nđóng gói tài liệu"},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "create_task", "arguments": {"content": "soát bản dịch\n\nđóng gói tài liệu"}}}]}
+      ]
+    },
+    {
+      "id": "sft_list_all",
+      "family": "train_list_review_ledger",
+      "behavior": "call",
+      "action": "list",
+      "rationale": "Một yêu cầu xem toàn bộ danh sách phải gọi LIST không arguments.",
+      "messages": [
+        {"role": "user", "content": "Tôi muốn rà soát sổ công việc; hãy mở toàn bộ nội dung đang lưu."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "list_tasks", "arguments": {}}}]}
+      ]
+    },
+    {
+      "id": "sft_complete_one_id",
+      "family": "train_complete_state_transition",
+      "behavior": "call",
+      "action": "complete",
+      "rationale": "Chỉ chuyển đúng ID được nêu sang trạng thái hoàn thành.",
+      "messages": [
+        {"role": "user", "content": "Chuyển task mang mã 314 sang trạng thái đã làm xong."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "complete_task", "arguments": {"id": 314}}}]}
+      ]
+    },
+    {
+      "id": "sft_edit_literal",
+      "family": "train_edit_literal_payload",
+      "behavior": "call",
+      "action": "edit",
+      "rationale": "ID và toàn bộ nội dung mới, gồm dấu phẩy và dấu chấm, phải giữ nguyên.",
+      "messages": [
+        {"role": "user", "content": "Việc mang mã 271 cần đổi thành Gửi biên bản họp, kèm phụ lục."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "update_task", "arguments": {"id": 271, "content": "Gửi biên bản họp, kèm phụ lục."}}}]}
+      ]
+    },
+    {
+      "id": "sft_delete_one_id",
+      "family": "train_delete_permanent_record",
+      "behavior": "call",
+      "action": "delete",
+      "rationale": "DELETE chỉ đề xuất đúng một ID; ứng dụng vẫn chịu trách nhiệm xác nhận.",
+      "messages": [
+        {"role": "user", "content": "Loại vĩnh viễn mục mang mã 415 ra khỏi sổ công việc."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "delete_task", "arguments": {"id": 415}}}]}
+      ]
+    },
+    {
+      "id": "sft_deadline_literal",
+      "family": "train_deadline_relative_phrase",
+      "behavior": "call",
+      "action": "deadline",
+      "rationale": "Model chép nguyên cụm thời gian, không đổi thành timestamp.",
+      "messages": [
+        {"role": "user", "content": "Hãy gán cho task 629 mốc hạn 8 giờ 30 phút tối ngày mai."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "set_task_deadline", "arguments": {"id": 629, "when": "8 giờ 30 phút tối ngày mai"}}}]}
+      ]
+    },
+    {
+      "id": "sft_due_overdue",
+      "family": "train_due_overdue_filter",
+      "behavior": "call",
+      "action": "due_query",
+      "rationale": "Cụm đã trễ hạn ánh xạ chính xác sang scope overdue.",
+      "messages": [
+        {"role": "user", "content": "Lọc những mục chưa xong nhưng đã trễ hạn cho mình."},
+        {"role": "assistant", "content": "", "tool_calls": [{"type": "function", "function": {"name": "list_tasks_by_deadline", "arguments": {"scope": "overdue"}}}]}
+      ]
+    },
+    {
+      "id": "sft_clarify_create_content",
+      "family": "train_clarify_explicit_missing_content",
+      "behavior": "clarify",
+      "action": "create",
+      "rationale": "Ý định CREATE rõ nhưng chưa có dữ liệu task nên phải hỏi nội dung.",
+      "messages": [
+        {"role": "user", "content": "Tôi muốn ghi thêm vào sổ việc, nhưng chưa nghĩ ra nội dung."},
+        {"role": "assistant", "content": "Bạn muốn lưu nội dung việc gì?"}
+      ]
+    },
+    {
+      "id": "sft_clarify_complete_id",
+      "family": "train_clarify_choose_complete_id",
+      "behavior": "clarify",
+      "action": "complete",
+      "rationale": "Hai ID không được biến thành hai call; yêu cầu người dùng chọn một.",
+      "messages": [
+        {"role": "user", "content": "Trong hai task 731 và 732, hãy hoàn tất một task."},
+        {"role": "assistant", "content": "Bạn muốn hoàn thành task 731 hay 732? Hãy chọn đúng một ID."}
+      ]
+    },
+    {
+      "id": "sft_clarify_deadline_time",
+      "family": "train_clarify_missing_deadline_time",
+      "behavior": "clarify",
+      "action": "deadline",
+      "rationale": "Có ID nhưng thiếu thời gian nên chỉ hỏi phần thời gian.",
+      "messages": [
+        {"role": "user", "content": "Task 845 cần một mốc hạn mới; hỏi tôi thời gian."},
+        {"role": "assistant", "content": "Bạn muốn đặt hạn cho task 845 vào thời gian nào?"}
+      ]
+    },
+    {
+      "id": "sft_clarify_due_scope",
+      "family": "train_clarify_choose_due_scope",
+      "behavior": "clarify",
+      "action": "due_query",
+      "rationale": "Người dùng chưa chọn một trong ba scope nên không được tự suy diễn.",
+      "messages": [
+        {"role": "user", "content": "Lọc giúp các task theo mốc hạn; tôi chưa chọn hôm nay, ngày mai hay quá hạn."},
+        {"role": "assistant", "content": "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?"}
+      ]
+    },
+    {
+      "id": "sft_no_action_bare_statement",
+      "family": "train_no_action_future_statement",
+      "behavior": "no_action",
+      "action": null,
+      "rationale": "Một câu kể về dự định không tự cấp quyền CREATE.",
+      "messages": [
+        {"role": "user", "content": "Chiều nay ghé hiệu thuốc."},
+        {"role": "assistant", "content": "Bạn có muốn tôi lưu “Chiều nay ghé hiệu thuốc.” thành một task không?"}
+      ]
+    },
+    {
+      "id": "sft_no_action_negated_delete",
+      "family": "train_no_action_keep_task",
+      "behavior": "no_action",
+      "action": null,
+      "rationale": "Phủ định DELETE phải tạo câu trả lời không hành động.",
+      "messages": [
+        {"role": "user", "content": "Giữ nguyên task 957, tuyệt đối không loại nó khỏi danh sách."},
+        {"role": "assistant", "content": "Tôi sẽ giữ nguyên task 957."}
+      ]
+    },
+    {
+      "id": "sft_no_action_recurring_reminder",
+      "family": "train_no_action_recurring_reminder",
+      "behavior": "no_action",
+      "action": null,
+      "rationale": "Reminder lặp lại nằm ngoài bảy action và không được chuyển thành CREATE.",
+      "messages": [
+        {"role": "user", "content": "Cứ mỗi 90 phút hãy báo tôi đứng dậy đi lại."},
+        {"role": "assistant", "content": "NEXUS chưa hỗ trợ nhắc lặp lại."}
+      ]
+    },
+    {
+      "id": "sft_no_action_uncomplete",
+      "family": "train_no_action_reverse_completion",
+      "behavior": "no_action",
+      "action": null,
+      "rationale": "Hoàn tác completion chưa được hỗ trợ và không được đảo thành COMPLETE.",
+      "messages": [
+        {"role": "user", "content": "Chuyển việc 608 từ đã xong về trạng thái chưa hoàn thành."},
+        {"role": "assistant", "content": "NEXUS chưa hỗ trợ đưa task đã hoàn thành về trạng thái chưa hoàn thành."}
+      ]
+    }
+  ]
+}
