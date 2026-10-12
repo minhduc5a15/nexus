@@ -72,6 +72,28 @@ Hash phát hiện file đổi; không phải cơ chế cấm đọc hoặc cấm
 holdout cho đến khi candidate và cấu hình được chốt. Nếu phải sửa nhãn trước đó,
 tạo phiên bản mới và ghi rõ lý do; không âm thầm thay đáp án sau khi thấy response.
 
+## Human review trước final holdout
+
+Candidate QLoRA step 200 đã được chọn trên development nhưng final holdout vẫn
+đóng. Trước inference, project owner phải đọc đủ 120 prompt cùng behavior,
+action, arguments, missing slots và rationale:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh labels
+```
+
+Mỗi ca nhận `approved` hoặc `needs_correction`. Có thể gõ `q` để lưu và tiếp tục
+sau; lần chạy kế tiếp bắt đầu ở ca đầu tiên chưa được duyệt. Kiểm tra tiến độ:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh label-check
+```
+
+`label-gate` chỉ thành công khi cả 120 ca là `approved`. Sidecar khóa hash dataset,
+snapshot và thứ tự từng ca; chỉ decision và notes được thay đổi. Nếu có một ca
+`needs_correction`, không sửa holdout v1 tại chỗ: tạo version mới, audit và review
+lại trước khi gửi bất kỳ prompt holdout nào tới model.
+
 Script demo chỉ audit hai tập, sau đó tạo report bằng **fixture pilot giả lập**
 (18 pass, 6 fail cố ý). Nó không gửi bất kỳ ca development/holdout nào tới model.
 Report và review mới nằm trong thư mục được in dưới `evals/results/demos/`.

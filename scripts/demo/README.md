@@ -306,3 +306,16 @@ Modal, model, GPU hay final holdout:
 ```sh
 ./scripts/demo/32_sft_candidate_modal.sh audit
 ```
+
+`33_sft_final_holdout.sh` hiện chỉ mở workflow human review cho 120 nhãn final
+holdout. Nó không gọi model, Modal, GPU, policy, tool hoặc SQLite. Review có thể
+tạm dừng bằng `q` và tiếp tục sau:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh labels
+./scripts/demo/33_sft_final_holdout.sh label-check
+./scripts/demo/33_sft_final_holdout.sh label-gate
+```
+
+`label-gate` bị chặn cho tới khi project owner chấp thuận đủ 120 ca. Các stage
+preflight/run/audit của final holdout chỉ được thêm sau gate này.
