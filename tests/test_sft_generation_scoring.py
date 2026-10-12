@@ -1,6 +1,12 @@
 import unittest
 
-from scripts.score_sft_generation import parse_assistant_text, score_case, summarize
+from scripts.score_sft_generation import (
+    parse_assistant_text,
+    score_case,
+    score_proposal_text,
+    summarize,
+    summarize_proposal_texts,
+)
 
 
 def call_case():
@@ -68,6 +74,51 @@ class SftGenerationScoringTests(unittest.TestCase):
         summary = summarize([result])
         self.assertEqual(summary["proposal_correct"], 1)
         self.assertEqual(summary["exact_token_sequences"], 0)
+
+    def test_proposal_dataset_text_is_scored_without_policy(self):
+        case = {
+            "id": "dev_create",
+            "prompt": "Lưu việc: đọc sách.",
+            "family": "create_literal",
+            "rationale": "Literal create.",
+            "expected": {
+                "behavior": "call",
+                "action": "create",
+                "accepted_calls": [
+                    {"name": "create_task", "arguments": {"content": "đọc sách."}}
+                ],
+                "missing_slots": [],
+            },
+        }
+        passed = score_proposal_text(
+            case,
+            '<tool_call>{"name":"create_task","arguments":{"content":"đọc sách."}}</tool_call><|im_end|>',
+        )
+        failed = score_proposal_text(
+            case,
+            '<tool_call>{"name":"create_task","arguments":{"content":"đọc sách"}}</tool_call>',
+        )
+        self.assertTrue(passed["proposal_correct"])
+        self.assertFalse(failed["proposal_correct"])
+        self.assertIn("arguments_mismatch", failed["error_tags"])
+        self.assertEqual(summarize_proposal_texts([passed, failed])["pass"], 1)
+
+    def test_non_call_proposal_text_requires_later_reply_review(self):
+        case = {
+            "id": "dev_clarify",
+            "prompt": "Thêm việc",
+            "family": "missing_content",
+            "rationale": "Missing content.",
+            "expected": {
+                "behavior": "clarify",
+                "action": "create",
+                "accepted_calls": [],
+                "missing_slots": ["content"],
+            },
+        }
+        result = score_proposal_text(case, "Bạn muốn thêm việc gì?<|im_end|>")
+        self.assertTrue(result["proposal_correct"])
+        self.assertEqual(result["reply_review"]["status"], "pending")
 
 
 if __name__ == "__main__":

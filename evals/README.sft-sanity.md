@@ -201,3 +201,200 @@ Policy grammar hiện tại cố ý không được dùng làm đáp án chuẩn
 Vì vậy một proposal có thể đúng theo ý nghĩa/contract nhưng vẫn bị policy hữu
 hạn từ chối; khi đánh giá ứng dụng, trường hợp đó phải được ghi là policy
 coverage thay vì sửa gold label để model học né policy.
+
+## Protocol training pilot
+
+`sft_pilot_training_manifest_v1.json` khóa thí nghiệm đầu tiên trên 100 mẫu:
+
+- QLoRA NF4, LoRA rank 16/alpha 32, chỉ adapter FP32 được học.
+- 200 optimizer step, batch 1, learning rate `1e-4`, warmup 10 step, seed 42.
+- Stage `train` không chứa development hoặc final holdout trong image.
+- Stage `development` chỉ chạy sau một train report hoàn tất, dùng 80 ca
+  diagnostic đã lộ và sinh greedy bằng base/candidate trong cùng runtime.
+- Không proposal nào được thực thi; policy, tool và SQLite không tham gia.
+- Hai timeout GPU cộng lại tối đa 4.800 giây, tương đương trần 0,7872 USD theo
+  đơn giá T4 0,000164 USD/giây trong manifest.
+
+Preflight offline:
+
+```sh
+./scripts/demo/30_sft_pilot_modal.sh
+```
+
+Chạy train rồi development bằng hai run ID riêng:
+
+```sh
+./scripts/demo/30_sft_pilot_modal.sh train my-pilot-train
+./scripts/demo/30_sft_pilot_modal.sh development my-pilot-dev my-pilot-train
+```
+
+Automatic scoring của development chỉ kết luận model có gọi đúng tool và truyền
+đúng arguments hay không. 24 phản hồi clarification/no-action vẫn phải được đọc
+thủ công trước khi chọn candidate, vì “không gọi tool” chưa đủ chứng minh câu trả
+lời phù hợp. Final holdout tiếp tục đóng cho tới khi candidate và cấu hình được
+chốt từ development.
+
+## Kết quả pilot 100 mẫu ngày 2026-10-11
+
+Train run `sft-pilot-train-20261011a` hoàn tất 200/200 optimizer step trên T4:
+
+| Teacher-forced trên 100 mẫu train | Trước | Sau |
+| --- | ---: | ---: |
+| Mean loss | 1,20650 | 0,05107 |
+| Token accuracy | 85,38% | 98,36% |
+| Exact sequence | 46/100 | 77/100 |
+
+Training loss là 0,33787; 2.251 assistant token chịu loss. Run mất 1.170,09
+giây, peak CUDA allocated 6.578.489.856 byte và reserved 9.869.197.312 byte.
+Adapter save/reload có cùng state hash; bảy gate hạ tầng đều đạt. Đây vẫn chỉ
+là số đo teacher forcing trên chính dữ liệu train.
+
+Development run hợp lệ `sft-pilot-development-20261011b` sinh greedy trên 80 ca
+diagnostic đã lộ, không thực thi proposal:
+
+| Proposal exact | Base | Adapter |
+| --- | ---: | ---: |
+| Toàn bộ | 66/80 | 72/80 |
+| Tool-call | 48/56 | 53/56 |
+| Clarification | 10/13 | 12/13 |
+| No-action | 8/11 | 7/11 |
+
+CREATE tăng 3/8 → 6/8 và EDIT tăng 5/8 → 7/8; năm action còn lại giữ 8/8.
+Số lỗi arguments giảm từ 7 xuống 2. Tuy nhiên adapter tạo bốn call khi chưa được
+ủy quyền, gồm các regression đáng kể: biến “bỏ hoàn thành” thành COMPLETE, biến
+“xóa deadline” thành đặt deadline `none`, và biến “tuần sau” thành `tomorrow`.
+Nó còn tự CREATE từ câu trần thuật, tự chọn truy vấn hạn `today`, làm mất dòng
+trống trong content nhiều dòng và bỏ dấu chấm ở EDIT.
+
+Review thủ công đủ 24 phản hồi non-call cho kết quả base 15/24 và adapter 18/24.
+Adapter trả lời mơ hồ ở yêu cầu xóa theo content, khiến người dùng có thể hiểu
+nhầm rằng xóa theo content được hỗ trợ. Vì các lỗi mới có thể dẫn đến sai action,
+candidate **không đủ điều kiện rollout** và final holdout vẫn đóng. Không dùng
+72/80 như bằng chứng generalization: đây là development đã dùng để chẩn đoán.
+
+Development run `sft-pilot-development-20261011a` đã sinh xong nhưng không ghi
+report do một lỗi biểu diễn gate: trường `final_holdout_inference=false` bị đặt
+vào tập yêu cầu mọi giá trị đều `true`. Bản sửa đổi gate thành
+`final_holdout_not_used=true`; model, adapter và dữ liệu không đổi trước lần chạy
+lại. Regression test khóa cực tính này.
+
+Sau khi tải artifact về đúng các đường dẫn trong demo, xác minh độc lập toàn bộ
+hash, summary tự động và quyết định review bằng:
+
+```sh
+./scripts/demo/30_sft_pilot_modal.sh audit
+```
+
+Report GPU nằm trong `evals/results/` và được Git ignore. File review có track
+hash report, adapter, runner, raw output và quyết định của từng ca non-call.
+
+## Candidate data v2 sau pilot
+
+Pilot cho thấy pipeline học được nhưng tạo regression ở ranh giới authorization.
+`sft_candidate_v2.json` giữ nguyên 100 mẫu pilot và thêm 300 mẫu, tổng cộng:
+
+| Behavior | Số ca |
+| --- | ---: |
+| Tool call | 280, đúng 40 ca cho mỗi action |
+| Clarification | 60 |
+| No action | 60 |
+
+Phần bổ sung tập trung vào thao tác đảo chưa hỗ trợ (`uncomplete`, gỡ deadline),
+ngữ pháp thời gian ngoài phạm vi, câu trần thuật/mơ hồ, thiếu hoặc nhiều ID và
+ranh giới nguyên văn của content/when. Bộ dữ liệu có 256 family; mỗi family có
+tối đa bốn biến thể. Audit kiểm tra schema, grounding, cân bằng, reply không tự
+nhận side effect và similarity với development/final holdout ở ngưỡng 0,92.
+
+Chạy checkpoint dữ liệu bằng:
+
+```sh
+./scripts/demo/31_sft_candidate_data.sh
+```
+
+Manifest và review vẫn đặt `training_authorized=false`; final holdout chưa được
+gửi tới model. Gate tiếp theo là kiểm tra tokenizer/assistant-only mask của đủ
+400 mẫu, sau đó mới khóa protocol, ngân sách và cấu hình train riêng.
+
+Tokenizer Qwen đúng revision đã render đủ 400 mẫu bằng Transformers 4.57.1:
+
+| Token | Min | Median | Max |
+| --- | ---: | ---: | ---: |
+| Tổng mỗi record | 1.296 | 1.316 | 1.362 |
+| Prompt đã mask | 1.286 | 1.294 | 1.315 |
+| Assistant chịu loss | 9 | 23 | 47 |
+
+Một epoch có tổng 9.834 assistant token chịu loss. Exact-prefix mask đạt ở tất
+cả record và không record nào vượt giới hạn 2.048 token.
+
+Protocol candidate v2 giữ nguyên rank 16/alpha 32 và learning rate `1e-4`, dùng
+batch vật lý 1, gradient accumulation 4 và hai lượt qua 400 mẫu. Như vậy có 800
+microbatch nhưng chỉ 200 optimizer step. Adapter được giữ ở step 100 (cuối epoch
+1) và step 200 (cuối epoch 2); cả hai sẽ được so với base trên development.
+
+Hai function T4 có timeout tối đa 6.600 + 1.800 = 8.400 giây. Với đơn giá T4
+`0,000164 USD/giây` kiểm tra ngày 12/10/2026, trần GPU là `1,3776 USD`; phí thực
+tế tính theo thời gian dùng. Ngân sách xin duyệt là tối đa `1,50 USD` để chừa
+`0,1224 USD` cho CPU và memory được tính riêng; protocol không tự retry. Manifest
+đã được người dùng duyệt ngày 12/10/2026. Manifest ghi
+`training_authorized=true`; local entrypoint và remote function vẫn kiểm tra cờ
+này trước khi gọi GPU. Preflight offline:
+
+```sh
+./scripts/demo/32_sft_candidate_modal.sh
+```
+
+## Kết quả candidate v2 ngày 2026-10-12–13
+
+Train run `sft-candidate-v2-train-20261012a` hoàn tất 200/200 optimizer step
+trên T4 trong 4.651,59 giây. Training loss cuối run là 0,16495. Probe cố định
+40 mẫu đo trên chính dữ liệu train cho thấy:
+
+| Teacher-forced probe | Base trước train | Adapter step 200 |
+| --- | ---: | ---: |
+| Mean loss | 0,86249 | 0,03112 |
+| Token accuracy | 89,99% | 99,07% |
+| Exact sequence | 21/40 | 34/40 |
+
+Run chỉ cập nhật 33.030.144 tham số LoRA FP32, tương đương 1,475% tổng số tham
+số được report; base quantized bị đóng băng. Peak CUDA allocated là
+6.644.648.448 byte và reserved là 10.750.001.152 byte. Adapter step 200 giữ
+cùng state hash sau save/reload; toàn bộ chín gate train đạt.
+
+Development run `sft-candidate-v2-development-20261013a` sinh greedy trên 80 ca
+diagnostic đã lộ, không gọi policy, tool hoặc SQLite:
+
+| Proposal exact | Base | Step 100 | Step 200 |
+| --- | ---: | ---: | ---: |
+| Toàn bộ | 66/80 | 70/80 | **74/80** |
+| Tool-call | 48/56 | 53/56 | 51/56 |
+| Clarification | 10/13 | 8/13 | **12/13** |
+| No-action | 8/11 | 9/11 | **11/11** |
+| Tool call ngoài yêu cầu | 6 | 7 | **1** |
+
+Review thủ công đủ 24 phản hồi non-call cho kết quả base 15/24, step 100 17/24
+và step 200 19/24. Step 100 bị loại vì tăng tool call ngoài yêu cầu từ sáu lên
+bảy. Step 200 được chọn làm candidate cho phép đánh giá tiếp vì có điểm exact
+cao nhất, phản hồi non-call tốt nhất và giảm tool call ngoài yêu cầu xuống một.
+Quyết định này **không cho phép rollout** và vẫn giữ final holdout đóng.
+
+Sáu lỗi automatic còn lại của step 200 gồm ba CREATE bị bỏ sót, một EDIT làm
+mất dấu câu, một DEADLINE trích sai ranh giới thời gian và một câu mơ hồ vẫn tự
+gọi truy vấn `today`. Review ngữ nghĩa còn phát hiện bốn câu trả lời dù không gọi
+tool nhưng hỏi sai phần thiếu hoặc mô tả khả năng không chính xác. Vì vậy 74/80
+chỉ là kết quả chọn checkpoint trên development, chưa phải bằng chứng
+generalization hay điều kiện đưa model vào ứng dụng.
+
+Thời gian train cộng với thời gian wall-clock development xấp xỉ 5.672,35 giây.
+Theo đơn giá T4 đã khóa `0,000164 USD/giây`, phần GPU ước tính khoảng 0,930 USD;
+CPU và memory do Modal tính riêng. Con số này thấp hơn trần tổng 1,50 USD đã được
+duyệt, nhưng không thay thế hóa đơn thực tế của Modal.
+
+Sau khi artifact đã được tải về đúng đường dẫn mặc định, xác minh độc lập bằng:
+
+```sh
+./scripts/demo/32_sft_candidate_modal.sh audit
+```
+
+Validator buộc report và review khớp hash, raw output, automatic summary,
+adapter state và quyết định của từng ca non-call. Nó cũng buộc review giữ
+`rollout_eligible=false` và `open_final_holdout=false`.

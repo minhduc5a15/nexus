@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-qlora-candidate-v2",
+  "purpose": "Train the reviewed 400-example dataset once, retain epoch-1 and epoch-2 adapters, then compare both on exposed development without opening final holdout.",
+  "dataset": {
+    "path": "evals/sft_candidate_v2.json",
+    "sha256": "e135124b19e332054b3b8e4e95d87858ff9f771bba3754c1926c6b75af5f022e",
+    "count": 400,
+    "review_path": "evals/sft_candidate_review_v2.json",
+    "review_sha256": "686c7fa17f2b779717578085be681e118c5a79a4242ede5ce9915e734f0408e4",
+    "data_manifest_path": "evals/sft_candidate_manifest_v2.json",
+    "data_manifest_sha256": "55a8d89bdbf10d4ac82c0b21f59e0e2431c81729e65c720ae210a2e7400449c4"
+  },
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "assistant_only_loss": true,
+    "maximum_sequence_tokens": 2048
+  },
+  "runtime": {
+    "python": "3.12",
+    "gpu": "T4",
+    "packages": {
+      "torch": "2.8.0",
+      "transformers": "4.57.1",
+      "trl": "0.27.0",
+      "peft": "0.18.0",
+      "bitsandbytes": "0.48.2",
+      "accelerate": "1.12.0",
+      "datasets": "4.4.1",
+      "jinja2": "3.1.6"
+    }
+  },
+  "quantization": {
+    "load_in_4bit": true,
+    "quant_type": "nf4",
+    "double_quantization": true,
+    "compute_dtype": "float16"
+  },
+  "adapter": {
+    "rank": 16,
+    "alpha": 32,
+    "dropout": 0.0,
+    "bias": "none",
+    "target_modules": "all-linear",
+    "trainable_dtype": "float32"
+  },
+  "training": {
+    "seed": 42,
+    "maximum_steps": 200,
+    "per_device_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "effective_batch_size": 4,
+    "dataset_passes": 2,
+    "examples_per_epoch": 400,
+    "microbatches_per_epoch": 400,
+    "optimizer_steps_per_epoch": 100,
+    "learning_rate": 0.0001,
+    "optimizer": "paged_adamw_8bit",
+    "scheduler": "constant_with_warmup",
+    "warmup_steps": 10,
+    "weight_decay": 0.01,
+    "gradient_checkpointing": true,
+    "shuffle": true,
+    "automatic_retry": false,
+    "save_steps": [
+      100,
+      200
+    ],
+    "teacher_forced_probe_ids": [
+      "sft_create_delimited",
+      "sft_create_blank_line",
+      "pilot_create_roast",
+      "pilot_create_colloquial",
+      "sft_list_all",
+      "pilot_list_open_notebook",
+      "pilot_list_colloquial",
+      "pilot_list_inventory",
+      "sft_complete_one_id",
+      "pilot_complete_plain",
+      "pilot_complete_hash",
+      "pilot_complete_colloquial",
+      "sft_edit_literal",
+      "pilot_edit_plain",
+      "pilot_edit_hash",
+      "pilot_edit_colloquial",
+      "sft_delete_one_id",
+      "pilot_delete_plain",
+      "pilot_delete_hash",
+      "pilot_delete_remove",
+      "sft_deadline_literal",
+      "pilot_deadline_tomorrow",
+      "pilot_deadline_absolute",
+      "pilot_deadline_day_order",
+      "sft_due_overdue",
+      "pilot_due_today_plain",
+      "pilot_due_today_question",
+      "pilot_due_tomorrow_plain",
+      "sft_clarify_create_content",
+      "candidate_clarify_list_or_due",
+      "sft_clarify_complete_id",
+      "pilot_clarify_edit_missing_id",
+      "pilot_clarify_delete_missing_id",
+      "sft_clarify_deadline_time",
+      "sft_clarify_due_scope",
+      "sft_no_action_bare_statement",
+      "sft_no_action_negated_delete",
+      "sft_no_action_recurring_reminder",
+      "sft_no_action_uncomplete",
+      "pilot_no_action_bare_weather"
+    ]
+  },
+  "development": {
+    "path": "evals/model_proposal_development_v1.json",
+    "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+    "count": 80,
+    "generation": {
+      "seed": 42,
+      "do_sample": false,
+      "maximum_new_tokens": 128,
+      "batch_size": 1
+    },
+    "candidates": [
+      "step-100",
+      "step-200"
+    ],
+    "selection_rule": [
+      "Reject any checkpoint with a new unsafe or unauthorized tool call relative to the base model.",
+      "Manually review every clarification and no-action reply before selection.",
+      "Among checkpoints that pass safety review, select the highest exact proposal score; ties select step-100.",
+      "Do not change data, prompt, adapter or training settings after seeing development and before final holdout."
+    ]
+  },
+  "execution": {
+    "stages": [
+      "preflight",
+      "train",
+      "development"
+    ],
+    "train_timeout_seconds": 6600,
+    "development_timeout_seconds": 1800,
+    "maximum_planned_gpu_seconds": 8400,
+    "t4_price_usd_per_second": 0.000164,
+    "maximum_planned_gpu_cost_usd": 1.3776,
+    "pricing_source": "https://modal.com/pricing",
+    "pricing_checked_on": "2026-10-12",
+    "development_requires_completed_train": true,
+    "overwrite_existing_run": false,
+    "requested_total_cost_cap_usd": 1.5,
+    "cost_note": "GPU timeout ceiling is 1.3776 USD; the requested 1.50 USD cap leaves 0.1224 USD for separately billed CPU and memory. Stop rather than automatically retry."
+  },
+  "scope": {
+    "tools_or_database_executed": false,
+    "policy_used_for_gold": false,
+    "final_holdout_packaged": false,
+    "final_holdout_inference": false,
+    "gguf_export": false,
+    "deployment_rollout": false
+  },
+  "training_authorized": true,
+  "authorization_basis": "User explicitly approved the requested total Modal cost cap of 1.50 USD on 2026-10-12."
+}

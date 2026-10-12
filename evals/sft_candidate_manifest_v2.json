@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-candidate-v2",
+  "purpose": "Lock the reviewed 400-case data candidate before tokenizer inspection or any paid training run.",
+  "dataset": {
+    "path": "evals/sft_candidate_v2.json",
+    "count": 400,
+    "sha256": "e135124b19e332054b3b8e4e95d87858ff9f771bba3754c1926c6b75af5f022e"
+  },
+  "source_pilot": {
+    "path": "evals/sft_pilot_v1.json",
+    "count": 100,
+    "sha256": "2148db1cb5e5257f2c76356eaa4651e5c8fb31fe52315f5615714ffa6566d28a"
+  },
+  "builder": {
+    "path": "scripts/build_sft_candidate_v2.py",
+    "sha256": "5fd2af5005325991fb5e74de148a814af321fab95e881cff0c4395cb742a4d1b"
+  },
+  "base_model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "assistant_only_loss": true,
+    "maximum_sequence_tokens": 2048,
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5"
+  },
+  "evaluation_inputs": {
+    "development": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+      "status": "diagnostic; results already seen"
+    },
+    "holdout": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+      "status": "locked; no candidate inference"
+    }
+  },
+  "balance": {
+    "call": 280,
+    "clarify": 60,
+    "no_action": 60,
+    "calls_per_action": 40
+  },
+  "focus": [
+    "unsupported inverse actions",
+    "unsupported temporal grammar",
+    "bare and ambiguous statements",
+    "literal punctuation, case, blank-line and multiline boundaries",
+    "missing and multiple IDs or arguments",
+    "clarifications that do not imply unsupported capabilities"
+  ],
+  "training_authorized": false,
+  "final_holdout_inference": false,
+  "tokenizer_validation": {
+    "tokenizer": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "transformers": "4.57.1",
+    "jinja2": "3.1.6",
+    "method": "exact token prefix; prompt labels are -100 and only the final assistant suffix is supervised",
+    "maximum_sequence_tokens": 2048,
+    "records": 400,
+    "minimum_total_tokens": 1296,
+    "median_total_tokens": 1316.0,
+    "maximum_total_tokens": 1362,
+    "maximum_total_case_ids": [
+      "pilot_deadline_day_order",
+      "candidate_deadline_07_03"
+    ],
+    "prompt_tokens": {
+      "minimum": 1286,
+      "median": 1294.0,
+      "maximum": 1315
+    },
+    "supervised_tokens": {
+      "minimum": 9,
+      "median": 23.0,
+      "maximum": 47,
+      "sum": 9834
+    },
+    "assistant_only_mask": "verified_by_exact_token_prefix"
+  }
+}

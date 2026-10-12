@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from scripts.eval_proposals import exact_equal, schema_errors, strict_json
+from scripts.eval_proposals import exact_equal, schema_errors, strict_json, validate_case
 
 
 TOOL_CALL = re.compile(r"<tool_call>\s*(.*?)\s*</tool_call>", re.DOTALL)
@@ -117,4 +117,98 @@ def summarize(cases: list[dict[str, Any]]) -> dict[str, Any]:
         "error_tags": dict(sorted(Counter(
             error for case in cases for error in case["error_tags"]
         ).items())),
+    }
+
+
+def score_proposal_text(case: dict[str, Any], generated_text: str) -> dict[str, Any]:
+    """Score HF free-generation text against one proposal-evaluator case."""
+
+    validate_case(case)
+    parsed = parse_assistant_text(generated_text)
+    expected = case["expected"]
+    calls = parsed["calls"]
+    errors = list(parsed["errors"])
+    accepted = expected["accepted_calls"]
+    if expected["behavior"] == "call":
+        exact = len(calls) == 1 and any(
+            exact_equal(calls[0], candidate) for candidate in accepted
+        )
+        if not calls:
+            errors.append("missing_call")
+        elif len(calls) == 1 and not exact:
+            expected_names = {candidate["name"] for candidate in accepted}
+            if calls[0].get("name") not in expected_names:
+                errors.append("wrong_tool")
+            expected_arguments = [candidate["arguments"] for candidate in accepted]
+            if not any(
+                exact_equal(calls[0].get("arguments"), arguments)
+                for arguments in expected_arguments
+            ):
+                errors.append("arguments_mismatch")
+    else:
+        exact = not calls
+        if calls:
+            errors.extend(
+                [
+                    "unexpected_call",
+                    "call_during_clarification"
+                    if expected["behavior"] == "clarify"
+                    else "call_without_authorization",
+                ]
+            )
+    passed = exact and not errors
+    return {
+        "id": case["id"],
+        "family": case["family"],
+        "behavior": expected["behavior"],
+        "action": expected["action"],
+        "prompt": case["prompt"],
+        "generated_text": generated_text,
+        "parsed": parsed,
+        "accepted_calls": accepted,
+        "automatic_status": "pass" if passed else "fail",
+        "proposal_correct": passed,
+        "error_tags": sorted(set(errors)),
+        "reply_review": {
+            "required": expected["behavior"] != "call",
+            "status": "pending"
+            if expected["behavior"] != "call"
+            else "not_required",
+        },
+    }
+
+
+def summarize_proposal_texts(cases: list[dict[str, Any]]) -> dict[str, Any]:
+    """Summarize model-only proposal results without policy or side effects."""
+
+    by_behavior: dict[str, dict[str, int]] = {}
+    by_action: dict[str, dict[str, int]] = {}
+    for case in cases:
+        status = case["automatic_status"]
+        behavior = by_behavior.setdefault(
+            case["behavior"], {"pass": 0, "fail": 0}
+        )
+        behavior[status] += 1
+        if case["behavior"] == "call":
+            action = by_action.setdefault(case["action"], {"pass": 0, "fail": 0})
+            action[status] += 1
+    return {
+        "cases": len(cases),
+        "pass": sum(case["automatic_status"] == "pass" for case in cases),
+        "fail": sum(case["automatic_status"] == "fail" for case in cases),
+        "by_behavior": by_behavior,
+        "by_action": by_action,
+        "unexpected_calls": sum(
+            "unexpected_call" in case["error_tags"] for case in cases
+        ),
+        "reply_review_pending": sum(
+            case["reply_review"]["status"] == "pending" for case in cases
+        ),
+        "error_tags": dict(
+            sorted(
+                Counter(
+                    tag for case in cases for tag in case["error_tags"]
+                ).items()
+            )
+        ),
     }

@@ -34,6 +34,10 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 | `26_model_control_preflight.sh` | Kiểm tra protocol đối chứng Qwen3-30B, model lock, canary và giới hạn chi phí | Không |
 | `27_sft_sanity_data.sh` | Audit 16 mẫu SFT; thêm `--tokenize` để xem assistant-only loss mask bằng tokenizer Qwen | Không |
 | `28_sft_qlora_modal.sh` | Preflight QLoRA; `probe`/`overfit` train adapter, `generation` so base với adapter trên Modal T4 | Tải model HF khi chạy GPU |
+| `29_sft_pilot_data.sh` | Audit và tokenize bộ 100 mẫu SFT pilot trước training | Chỉ tải tokenizer khi dùng `tokens` |
+| `30_sft_pilot_modal.sh` | Preflight, train 200 step và so base/adapter trên 80 ca development | Tải model HF và dùng Modal T4 ở stage GPU |
+| `31_sft_candidate_data.sh` | Audit bộ 400 mẫu candidate, cân bằng action, review và leakage | Không |
+| `32_sft_candidate_modal.sh` | Preflight protocol train 400 mẫu và hai checkpoint; GPU bị khóa đến khi duyệt ngân sách | Chỉ ở stage train/development |
 
 ## Bắt đầu bằng ba demo offline
 
@@ -53,6 +57,10 @@ hiện tại. Có thể đặt `NEXUS_DEMO_PYTHON=/đường/dẫn/python` để
 ./scripts/demo/26_model_control_preflight.sh
 ./scripts/demo/27_sft_sanity_data.sh
 ./scripts/demo/28_sft_qlora_modal.sh
+./scripts/demo/29_sft_pilot_data.sh
+./scripts/demo/30_sft_pilot_modal.sh
+./scripts/demo/31_sft_candidate_data.sh
+./scripts/demo/32_sft_candidate_modal.sh
 ```
 
 `01_cli.sh` kết thúc với 4 task. `02_policy.sh` kiểm tra policy trực tiếp, không
@@ -260,4 +268,41 @@ giới hạn 2.048 token cho cả 100 record:
 ```sh
 ./scripts/demo/29_sft_pilot_data.sh
 ./scripts/demo/29_sft_pilot_data.sh tokens
+```
+
+`30_sft_pilot_modal.sh` mặc định chỉ xác minh protocol và ngân sách offline.
+Stage `train` chỉ đóng gói 100 mẫu pilot, không có development/final holdout.
+Stage `development` cần đúng run train đã hoàn tất và so free generation của
+base với adapter trên 80 ca diagnostic. Cả hai stage chỉ đánh giá proposal;
+không policy, tool hoặc SQLite nào được gọi:
+
+```sh
+./scripts/demo/30_sft_pilot_modal.sh train my-pilot-train
+./scripts/demo/30_sft_pilot_modal.sh development my-pilot-dev my-pilot-train
+```
+
+Stage `audit` không gọi Modal/GPU; nó xác minh lại report train, development,
+failed-run evidence và review thủ công của run ngày 2026-10-11 bằng hash và raw
+output đã tải về:
+
+```sh
+./scripts/demo/30_sft_pilot_modal.sh audit
+```
+
+`31_sft_candidate_data.sh` audit bộ candidate v2 gồm 400 mẫu và tùy chọn chạy
+tokenizer để kiểm tra giới hạn 2.048 token cùng assistant-only mask:
+
+```sh
+./scripts/demo/31_sft_candidate_data.sh
+./scripts/demo/31_sft_candidate_data.sh tokens
+```
+
+`32_sft_candidate_modal.sh` quản lý protocol candidate v2. Stage `train` lưu
+adapter tại step 100 và 200; stage `development` so base và hai checkpoint trên
+80 ca development. Stage `audit` chỉ đọc artifact đã tải về, đối chiếu hash,
+raw output, automatic scoring và đủ 24 quyết định review non-call; nó không gọi
+Modal, model, GPU hay final holdout:
+
+```sh
+./scripts/demo/32_sft_candidate_modal.sh audit
 ```

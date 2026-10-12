@@ -87,6 +87,10 @@ def audit_selected_dataset(path: Path) -> dict[str, Any]:
         from scripts.audit_sft_pilot import audit_dataset as audit_pilot_dataset
 
         return audit_pilot_dataset(path)
+    if dataset_id == "nexus-sft-candidate-v2":
+        from scripts.audit_sft_candidate_v2 import audit_dataset as audit_candidate_dataset
+
+        return audit_candidate_dataset(path)
     raise ValueError(f"Unsupported SFT dataset: {dataset_id}")
 
 
@@ -139,12 +143,27 @@ def main() -> int:
                 "total_tokens": total,
             })
         totals = [row["total_tokens"] for row in rows]
+        prompt_totals = [row["prompt_tokens"] for row in rows]
+        supervised_totals = [row["supervised_tokens"] for row in rows]
+        maximum_total = max(totals)
         output = {
             "model": document["base_model"],
             "count": len(rows),
             "minimum_total_tokens": min(totals),
             "median_total_tokens": median(totals),
-            "maximum_total_tokens": max(totals),
+            "maximum_total_tokens": maximum_total,
+            "maximum_total_case_ids": [row["id"] for row in rows if row["total_tokens"] == maximum_total],
+            "prompt_tokens": {
+                "minimum": min(prompt_totals),
+                "median": median(prompt_totals),
+                "maximum": max(prompt_totals),
+            },
+            "supervised_tokens": {
+                "minimum": min(supervised_totals),
+                "median": median(supervised_totals),
+                "maximum": max(supervised_totals),
+                "sum": sum(supervised_totals),
+            },
             "assistant_only_mask": "verified_by_exact_token_prefix",
         }
         if not args.summary_only:
