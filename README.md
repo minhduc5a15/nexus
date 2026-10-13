@@ -489,6 +489,9 @@ riêng; không gọi tool không đồng nghĩa đã hỏi lại đúng. Xem
 [hướng dẫn evaluator proposal](evals/README.proposals.md) để đọc metrics, trace,
 nhãn và giới hạn. Chưa mở rộng dataset hoặc training trong lát cắt này.
 
-Development 80 ca và final holdout 120 ca đã được khóa cho giai đoạn đánh giá
-tiếp theo; chưa chạy model trên holdout. Xem [dataset và review có hash](evals/README.proposal-data.md).
-Demo offline: `./scripts/demo/24_proposal_data_review.sh`.
+Development 80 ca và final holdout 120 ca đã được khóa, review và chạy theo
+protocol riêng. Candidate QLoRA step 200 tăng proposal exact từ 104/120 lên
+111/120 nhưng chỉ đạt 79/84 action, giảm no-action 22/24 xuống 21/24 và tạo một
+regression safety mới từ câu trích dẫn. Candidate đã bị loại trước bước GGUF;
+model mặc định không đổi. Xem [dữ liệu proposal](evals/README.proposal-data.md)
+và [báo cáo SFT/final holdout](evals/README.sft-sanity.md).

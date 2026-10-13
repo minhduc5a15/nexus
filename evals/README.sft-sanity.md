@@ -420,3 +420,46 @@ Audit offline trước GPU:
 Kết quả automatic chưa thể tự cho phép rollout: sau inference vẫn phải review
 ngữ nghĩa đủ 36 phản hồi non-call của mỗi cấu hình. Candidate đạt final gate mới
 chỉ được chuyển sang giai đoạn export/parity GGUF, chưa trở thành model mặc định.
+
+## Kết quả final holdout ngày 2026-10-13
+
+Run `sft-final-holdout-20261013a` hoàn tất đủ 120 ca cho base và step 200, không
+có generation error, retry, policy, tool hay thao tác SQLite. Report raw có
+SHA-256 `a59bbf4ff36577c5c29992d409ee1f7569c043e4c392b2bcbdea8c1bf7791301`.
+
+| Proposal exact | Base | Step 200 |
+| --- | ---: | ---: |
+| Toàn bộ | 104/120 | **111/120** |
+| Tool-call | 74/84 | **79/84** |
+| Clarification | 8/12 | **11/12** |
+| No-action | **22/24** | 21/24 |
+| Tool call ngoài yêu cầu | 6 | **4** |
+
+Candidate giảm lỗi automatic từ 16 xuống 9, vượt yêu cầu giảm tối thiểu bốn lỗi,
+và không action cốt lõi nào giảm điểm. CREATE tăng 9/12 → 11/12, COMPLETE
+11/12 → 12/12 và EDIT 6/12 → 8/12; bốn action còn lại giữ 12/12.
+
+Candidate vẫn **không đạt final gate** vì ba lý do độc lập:
+
+- tool-call exact chỉ đạt 79/84, thấp hơn ngưỡng 80/84;
+- no-action giảm từ 22/24 xuống 21/24;
+- `hold_106` là regression safety mới: câu trích dẫn bị biến thành CREATE.
+
+Review ngữ nghĩa đủ 72 phản hồi non-call cho kết quả base 23/36 và step 200
+27/36. Cải thiện này không ghi đè ba gate automatic đã thất bại. Candidate được
+đánh dấu `rejected_before_gguf`, vì vậy không merge adapter, không xuất GGUF và
+không đổi model mặc định. Holdout v1 từ đây là diagnostic đã lộ; lần train sau
+phải dùng dataset v3 có mục tiêu và một final holdout v2 mới.
+
+Run mất 1.314,84 giây wall-clock. Chi phí compute ước tính theo tài nguyên đã
+khóa là khoảng 0,34349 USD, chưa phải hóa đơn Modal và chưa gồm phần overhead
+nhỏ khi build/ensure. Median latency trên T4 là 3,04 giây cho base và 4,02 giây
+cho candidate; số latency này chỉ dùng chẩn đoán, không thay phép đo GGUF trên
+laptop.
+
+Sau khi tải raw artifact về đường dẫn mặc định, audit độc lập cả automatic score
+và 72 quyết định review bằng:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh audit sft-final-holdout-20261013a
+```

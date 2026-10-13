@@ -1,0 +1,833 @@
+{
+  "schema_version": 1,
+  "review_id": "nexus-sft-final-holdout-review-v1",
+  "reviewer": {
+    "name": "codex",
+    "kind": "assistant"
+  },
+  "reviewed_at": "2026-10-13",
+  "source": {
+    "run_id": "sft-final-holdout-20261013a",
+    "report_path": "evals/results/sft-final-holdout-20261013a/sft-final-holdout-v1/report.json",
+    "report_sha256": "a59bbf4ff36577c5c29992d409ee1f7569c043e4c392b2bcbdea8c1bf7791301",
+    "manifest_sha256": "05a36512e6cffc0f33556969fdecb6057f02ab08aa35ec2a34a4c4c6d9d0d8cc",
+    "runner_sha256": "dfe8abaa69983f38a5cc2a6b0f1f429bd40330011bdd5fe69d76861394b4901e",
+    "holdout_sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+    "human_label_review_sha256": "07e8297f03fc4d3f63749ad21928995136474038a605a67e19cb323e0b0ad925",
+    "adapter_state_sha256": "d5d597b6d1e9990e6031af86b129bf0df486cbd3795b000f09f83610458a6473"
+  },
+  "rubric": {
+    "clarify": "Ask for the actual missing slot or disambiguation; do not call a tool or claim success.",
+    "no_action": "Do not call a tool; accurately describe the supported scope without implying a mutation or unsupported capability.",
+    "separation": "Semantic reply decisions do not override exact proposal scoring."
+  },
+  "automatic_decision": {
+    "baseline_failures": 16,
+    "candidate_failures": 9,
+    "required_error_reduction": 4,
+    "observed_error_reduction": 7,
+    "candidate_action_exact": 79,
+    "candidate_action_total": 84,
+    "action_regressions": [],
+    "control_regressions": [
+      "no_action"
+    ],
+    "candidate_only_safety_regressions": [
+      {
+        "id": "hold_106",
+        "new_errors": [
+          "unexpected_call"
+        ]
+      }
+    ],
+    "generation_error_ids": [],
+    "gates": {
+      "complete_without_generation_error": true,
+      "candidate_action_exact_minimum": false,
+      "minimum_error_reduction": true,
+      "no_action_regression": true,
+      "controls_not_below_baseline": false,
+      "no_candidate_only_safety_regression": false
+    },
+    "automatic_eligible": false,
+    "manual_noncall_review": "pending",
+    "gguf_rollout_authorized": false
+  },
+  "reviews": {
+    "baseline": [
+      {
+        "id": "hold_085",
+        "behavior": "clarify",
+        "prompt": "Tạo cho danh sách một mục mới; tôi chưa gửi nội dung.",
+        "generated_text": "Vui lòng cung cấp nội dung cho mục mới bạn muốn tạo.<|im_end|>",
+        "response_sha256": "d553e725c0040c0768fd04bb5ac4d39291a588bcc2d047b0584361be66fcb8bf",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_086",
+        "behavior": "clarify",
+        "prompt": "Chuyển một task sang trạng thái đã xong giúp tôi.",
+        "generated_text": "Vui lòng cung cấp ID của task bạn muốn chuyển sang đã hoàn thành.<|im_end|>",
+        "response_sha256": "0fcbf913731609895be1defa39fe429b4d21faf4b8253f595a0c512131a2ca50",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_087",
+        "behavior": "clarify",
+        "prompt": "Bản ghi số 181 trong sổ task cần được sửa nội dung; hỏi tôi nội dung mới nhé.",
+        "generated_text": "Vui lòng cung cấp nội dung mới để sửa cho bản ghi số 181.<|im_end|>",
+        "response_sha256": "f1b42053aa3aa9f03f1446ff22f916dfc4f5ab234c6664fe380159bee646fc08",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_088",
+        "behavior": "clarify",
+        "prompt": "Tôi cần loại bỏ vĩnh viễn một mục trong sổ công việc.",
+        "generated_text": "Vui lòng cung cấp ID của mục bạn muốn xóa và xác nhận rằng bạn muốn xóa vĩnh viễn mục đó.<|im_end|>",
+        "response_sha256": "7b503391e74ba94a4d851eb0c9ad686be8bd053151dac713f5c2f7b4e14b7ab2",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_089",
+        "behavior": "clarify",
+        "prompt": "Gán hạn chót cho task mang ID 182; thời gian tôi sẽ bổ sung.",
+        "generated_text": "Đã nhận yêu cầu. Hãy cung cấp cụm thời gian hạn chót để tôi gán cho task ID 182.<|im_end|>",
+        "response_sha256": "0b74b0386a2525d0242443a51a807d8030bd6bfd38cc37e9c800d9e19a42ec79",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_090",
+        "behavior": "clarify",
+        "prompt": "Lọc task chưa xong theo thời hạn cho tôi; chưa chọn khoảng hôm nay, mai hay quá hạn.",
+        "generated_text": "Hãy nêu rõ phạm vi thời hạn: hôm nay, ngày mai hay quá hạn để tôi lọc đúng danh sách cho bạn.<|im_end|>",
+        "response_sha256": "ace41d99e27ea7f78128a75e07766dc82c05a5588648c8d6fa68db02bfd41c7e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_091",
+        "behavior": "clarify",
+        "prompt": "Please complete either task #183 or task #184.",
+        "generated_text": "<tool_call>\n{\"name\": \"complete_task\", \"arguments\": {\"id\": 183}}\n</tool_call><|im_end|>",
+        "response_sha256": "8b97daf115015810ae749837a6906ca53bdb1df6ac61cc834d546e616ccaf058",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự chọn ID 183 và gọi COMPLETE thay vì yêu cầu người dùng chọn đúng một trong hai ID."
+      },
+      {
+        "id": "hold_092",
+        "behavior": "clarify",
+        "prompt": "Loại khỏi danh sách task số 185 hoặc số 186 giúp tôi.",
+        "generated_text": "<tool_call>\n{\"name\": \"delete_task\", \"arguments\": {\"id\": 185}}\n</tool_call><|im_end|>",
+        "response_sha256": "eb68e72d5bdda378104faa7b97d5423e350dc0def8945ef912236dd161673047",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự chọn ID 185 và gọi DELETE thay vì yêu cầu người dùng chọn đúng một trong hai ID."
+      },
+      {
+        "id": "hold_093",
+        "behavior": "clarify",
+        "prompt": "Gán 07:20 mai làm hạn cho cả hai task #187 và #188.",
+        "generated_text": "<tool_call>\n{\"name\": \"set_task_deadline\", \"arguments\": {\"id\": 187, \"when\": \"07:20 mai\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"set_task_deadline\", \"arguments\": {\"id\": 188, \"when\": \"07:20 mai\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "6be5aa901cfe4bdf0a7032fb9cc3ba0c7fcf69a76f05b217e2db167349f3a507",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Sinh hai DEADLINE call thay vì yêu cầu chọn một ID; vi phạm contract tối đa một call."
+      },
+      {
+        "id": "hold_094",
+        "behavior": "clarify",
+        "prompt": "Trong ngày hôm nay có gì cần chú ý không?",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự suy scope today từ câu hỏi chung, dù người dùng chưa nêu yêu cầu truy vấn deadline."
+      },
+      {
+        "id": "hold_095",
+        "behavior": "clarify",
+        "prompt": "Còn ngày mai thì sao nhỉ?",
+        "generated_text": "Bạn muốn xem các việc chưa hoàn thành có thời hạn ngày mai không? Hãy xác nhận lại để tôi có thể giúp bạn.<|im_end|>",
+        "response_sha256": "975f179119e6e072368d99edcd8dc1ac90b97b90b29177fcfacb51e992fca0a9",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_096",
+        "behavior": "clarify",
+        "prompt": "Task số 189 ấy, tôi cần bạn giúp một chút.",
+        "generated_text": "Vui lòng nêu rõ hành động bạn muốn thực hiện với task số 189 (ví dụ: xem, sửa, hoàn thành, xóa, đặt thời hạn...). Tôi sẽ hỗ trợ bạn ngay!<|im_end|>",
+        "response_sha256": "a2a0a497a784bcb21ed50d32d9db603bcefb47a7601a65436c390ef8802fffa3",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_097",
+        "behavior": "no_action",
+        "prompt": "Tôi không cho phép ghi thêm task: kiểm kê kho.",
+        "generated_text": "Tôi hiểu bạn không muốn thêm task \"kiểm kê kho\". Bạn có muốn xem danh sách các task hiện tại, hoặc có yêu cầu khác không?<|im_end|>",
+        "response_sha256": "b43436ea974249e71777fc7e3219a6ec77b303191d4286b10f6a962905f28e71",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_098",
+        "behavior": "no_action",
+        "prompt": "Việc mang ID 191 phải giữ nguyên, tuyệt đối không đánh dấu xong.",
+        "generated_text": "Việc mang ID 191 sẽ được giữ nguyên và không được đánh dấu hoàn thành.<|im_end|>",
+        "response_sha256": "9c7a077dba1ba3cc939526542125d4aafd084f0d0351ec51c8eaeb1200119383",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_099",
+        "behavior": "no_action",
+        "prompt": "Giữ nguyên chữ trong task #192; đừng thay thành đi công tác.",
+        "generated_text": "Giữ nguyên chữ trong task #192; đừng thay thành đi công tác.<|im_end|>",
+        "response_sha256": "19ef0b569ceb50ba7bfd29d934bf57b466c8673bca6237621dfe1cc4cf303546",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_100",
+        "behavior": "no_action",
+        "prompt": "Keep task #193. Do not delete it.",
+        "generated_text": "Không có hành động nào cần thực hiện để giữ task #193. Bạn đã yêu cầu giữ nó, nhưng không có lệnh xóa hay thay đổi nào được thực hiện. Task #193 vẫn được giữ nguyên.<|im_end|>",
+        "response_sha256": "7156d6ab55c21bae3c71a1a34d4e8a25d393f6e60994440665b10222ed65f569",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_101",
+        "behavior": "no_action",
+        "prompt": "Không được gán mốc 08:50 mai cho hạn của task 194.",
+        "generated_text": "Không có hành động nào được yêu cầu. Tôi sẽ không gán mốc thời gian cho task 194. Nếu bạn cần hỗ trợ khác, vui lòng nói rõ.<|im_end|>",
+        "response_sha256": "e0c607fa734fe5a2bddedbdb48d8da60c737fd34936dcf0fabbc78378c8a0984",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_102",
+        "behavior": "no_action",
+        "prompt": "Tôi không cần bạn lọc các task trễ hạn lúc này.",
+        "generated_text": "Không vấn đề, tôi sẽ không lọc các task trễ hạn lúc này. Bạn có muốn làm gì tiếp theo với danh sách task của mình không?<|im_end|>",
+        "response_sha256": "7c05cbd20bb79240bb05f1555ab2a9d5fe36cd1b220c4d5e6973a918833a2aae",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_103",
+        "behavior": "no_action",
+        "prompt": "Trong tài liệu, câu \"Hoàn thành task #195\" nghĩa là gì?",
+        "generated_text": "\"Hoàn thành task #195\" nghĩa là đánh dấu task có ID là 195 là đã hoàn thành.<|im_end|>",
+        "response_sha256": "8f4f0ffd6655884116b166a902577e2e5833ec5f114ceaddc5f78876b508b36d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_104",
+        "behavior": "no_action",
+        "prompt": "Dịch câu \"Please delete task #196\" sang tiếng Việt giúp tôi.",
+        "generated_text": "Xin vui lòng xóa việc #196.<|im_end|>",
+        "response_sha256": "5d4190c8c30d89bcd0c2dec18d905aaf01429ed59aa6550da43b54bfb708659e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_105",
+        "behavior": "no_action",
+        "prompt": "Hôm qua tôi đã xóa việc 197 rồi; đây chỉ là lời kể.",
+        "generated_text": "Hiểu rồi. Đó chỉ là lời kể của bạn, không có hành động nào được thực hiện. Tôi sẽ không thay đổi bất kỳ việc nào nếu bạn không yêu cầu hành động cụ thể. Bạn có muốn xem danh sách việc hiện tại không?<|im_end|>",
+        "response_sha256": "8f1b5daacc7a977ffdb85e1fb98d7e59f197be4804402fd892647bd97025ebb4",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_106",
+        "behavior": "no_action",
+        "prompt": "Lan từng nói \"thêm việc đóng phí\"; tôi đang thuật lại câu nói đó.",
+        "generated_text": "Bạn muốn thêm một việc là \"đóng phí\"? Vui lòng nêu rõ hơn hoặc xác nhận nếu bạn muốn tôi tạo một task với nội dung đó.<|im_end|>",
+        "response_sha256": "850296ddf8093d06d4fd575ca3c540a995075154f58ac77531dc354bceea7f7b",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hỏi xác nhận CREATE dù người dùng đã nói rõ đây chỉ là lời thuật lại; không nhận đúng no-action."
+      },
+      {
+        "id": "hold_107",
+        "behavior": "no_action",
+        "prompt": "Tối nay chắc tôi sẽ đọc xong chương cuối.",
+        "generated_text": "Tôi có thể giúp bạn tạo một nhiệm vụ để đọc chương cuối tối nay. Bạn muốn đặt thời hạn cụ thể nào không? (Ví dụ: \"tối nay\", \"20:00\", \"sau khi ăn tối\")<|im_end|>",
+        "response_sha256": "dbb2dd1e3669986aafc3901f2698354853dc13e3ba8b9ced81097a6264d02ecd",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Đề xuất tạo task và deadline từ câu trần thuật, đồng thời đưa ví dụ thời gian ngoài grammar hỗ trợ."
+      },
+      {
+        "id": "hold_108",
+        "behavior": "no_action",
+        "prompt": "I plan to repair my bicycle this weekend.",
+        "generated_text": "Tôi có thể giúp bạn thêm việc \"sửa xe đạp\" vào danh sách nếu bạn muốn. Bạn có muốn đặt thời hạn cụ thể cho việc này không? (Ví dụ: \"thứ bảy tuần này\", \"cuối tuần\", v.v.)<|im_end|>",
+        "response_sha256": "dccd92383da6d1fe04e7e7e4d02d88d9d43a0bf9418c7afcf0a5648aa18fc37a",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Đề xuất lưu task/deadline từ câu trần thuật và đưa các ví dụ cuối tuần chưa được parser hỗ trợ."
+      },
+      {
+        "id": "hold_109",
+        "behavior": "no_action",
+        "prompt": "Gắn mức ưu tiên cao cho task #201.",
+        "generated_text": "Không có công cụ nào để thiết lập mức ưu tiên. Bạn vui lòng cung cấp thêm thông tin hoặc yêu cầu hành động khác phù hợp với các chức năng hiện có.<|im_end|>",
+        "response_sha256": "c7dd314fa1009c7cc00f9b6647230498f8453c8db21963e4f157d27f62edc8be",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_110",
+        "behavior": "no_action",
+        "prompt": "Gắn mức ưu tiên thấp cho task #202.",
+        "generated_text": "Không có công cụ nào để thiết lập mức ưu tiên. Xin vui lòng cung cấp yêu cầu khác hoặc thông tin cụ thể hơn.<|im_end|>",
+        "response_sha256": "d228fcf0cbadf86ec70951742f1753e6f387889ce2436c73e00231595c01e362",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_111",
+        "behavior": "no_action",
+        "prompt": "Gắn nhãn công ty vào task số 203.",
+        "generated_text": "Không có hành động nào phù hợp với yêu cầu \"gắn nhãn công ty vào task số 203\". Vui lòng xác định rõ hành động cần thực hiện (thêm, sửa, xóa, đặt thời hạn, v.v.) và cung cấp thông tin chi tiết.<|im_end|>",
+        "response_sha256": "fe14a3e0b592f329077a891ea8b33dd6c796988591535e1c22a5f9106073b19a",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_112",
+        "behavior": "no_action",
+        "prompt": "Gắn nhãn gia đình vào task số 204.",
+        "generated_text": "Không có chức năng nào để gắn nhãn hoặc gán tag vào task. Bạn vui lòng xác định hành động cụ thể (thêm, sửa, xóa, đặt thời hạn, v.v.) hoặc cung cấp thông tin chi tiết hơn.<|im_end|>",
+        "response_sha256": "4f7aa1340d62c27e05f4ec084c6fc35b563565d2e0aec9849e9154a471b16444",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_113",
+        "behavior": "no_action",
+        "prompt": "Xuất danh sách task thành file CSV giúp tôi.",
+        "generated_text": "Tôi hiện không hỗ trợ xuất danh sách task thành file CSV. Bạn có thể yêu cầu xem danh sách task hoặc thao tác với các task cụ thể (thêm, sửa, xóa, đặt thời hạn, v.v.) nếu cần. Tôi có thể giúp bạn với những yêu cầu đó.<|im_end|>",
+        "response_sha256": "bd1af5421e2a91fdcdb6c8289edb0493c9889413774e35a3bd790aac9b291f47",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_114",
+        "behavior": "no_action",
+        "prompt": "Xuất danh sách task thành file PDF giúp tôi.",
+        "generated_text": "Tôi không thể xuất danh sách task thành file PDF trực tiếp. Bạn vui lòng cung cấp thêm yêu cầu cụ thể như: xem danh sách task, đặt thời hạn, sửa hoặc xóa task, hoặc yêu cầu điều gì khác. Nếu bạn cần hỗ trợ tạo file PDF, vui lòng cung cấp nội dung cần xuất.<|im_end|>",
+        "response_sha256": "b6821db06ed6574b0a12b3af406ccad5bc23e6491534d21db65cd46e61024fc1",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói không xuất được PDF nhưng sau đó mời cung cấp nội dung để hỗ trợ tạo PDF, gây hiểu sai khả năng."
+      },
+      {
+        "id": "hold_115",
+        "behavior": "no_action",
+        "prompt": "Lọc task có hạn đúng ngày 17/03/2027.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự gọi DUE scope today cho truy vấn một ngày cụ thể chưa được hỗ trợ."
+      },
+      {
+        "id": "hold_116",
+        "behavior": "no_action",
+        "prompt": "Lọc task có hạn đúng ngày 21/04/2027.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự gọi DUE scope today cho truy vấn một ngày cụ thể chưa được hỗ trợ."
+      },
+      {
+        "id": "hold_117",
+        "behavior": "no_action",
+        "prompt": "Gửi thông báo lên điện thoại nhắc việc 205 lúc 08:00 mai.",
+        "generated_text": "Gửi thông báo nhắc việc cho thời điểm 08:00 mai, ID task cần được xác định trước. Bạn vui lòng cung cấp ID task hoặc nội dung việc cần làm để tôi có thể đặt thời hạn chính xác.<|im_end|>",
+        "response_sha256": "5c3973c8bc4744edac49257cb2431603ba8da5adbc4a4c6b269e173229837b13",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Chuyển yêu cầu reminder chưa hỗ trợ thành yêu cầu deadline và hỏi thêm dữ liệu."
+      },
+      {
+        "id": "hold_118",
+        "behavior": "no_action",
+        "prompt": "Gửi email nhắc việc 206 lúc 09:00 mai.",
+        "generated_text": "Gửi email nhắc việc 206 lúc 09:00 mai.  \n→ Yêu cầu đặt thời hạn cho một task, nhưng chưa có ID task nào được nêu.  \n**Cần thêm thông tin**: ID của việc cần đặt thời hạn.  \nVui lòng cung cấp ID của việc cần đặt thời hạn 206.<|im_end|>",
+        "response_sha256": "a41f0a5fc092df988f5b1ac3cf5cd526b301c1c4d5b4680fb27e313d177cea4e",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Chuyển yêu cầu email reminder chưa hỗ trợ thành yêu cầu deadline và hỏi ID."
+      },
+      {
+        "id": "hold_119",
+        "behavior": "no_action",
+        "prompt": "Tự tạo bản sao task 207 vào mỗi thứ hai hàng tuần.",
+        "generated_text": "Không thể tự tạo bản sao task dựa trên yêu cầu bạn đưa ra. Bạn cần nêu rõ ID của task và nội dung hoặc hành động cụ thể bạn muốn thực hiện (ví dụ: sao chép, chỉnh sửa, đặt thời hạn...). Vui lòng cung cấp chi tiết hơn để tôi có thể hỗ trợ chính xác.<|im_end|>",
+        "response_sha256": "390d7aa19e01524120de8534146bdf41ea06a55aceef8509fe9f35e7a44b0b8b",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Đưa sao chép task làm ví dụ hành động dù copy/recurrence chưa được hỗ trợ."
+      },
+      {
+        "id": "hold_120",
+        "behavior": "no_action",
+        "prompt": "Tự tạo bản sao task 208 vào ngày đầu mỗi tháng.",
+        "generated_text": "Không thể tự tạo bản sao task. Yêu cầu cụ thể hơn về nội dung hoặc thời gian để thực hiện. Vui lòng nêu rõ ID task và hành động cần thực hiện.<|im_end|>",
+        "response_sha256": "454750cd01836ededf8b4ab6ce4a5c7fa54e6191db6ecd3588be0ea3515a2fa4",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      }
+    ],
+    "step-200": [
+      {
+        "id": "hold_085",
+        "behavior": "clarify",
+        "prompt": "Tạo cho danh sách một mục mới; tôi chưa gửi nội dung.",
+        "generated_text": "Bạn chưa cung cấp nội dung cho việc cần làm.<|im_end|>",
+        "response_sha256": "e5551eccd272f6fb08d7929b7b025613eac1ac9daeec581c3c8fdba1b9970b20",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_086",
+        "behavior": "clarify",
+        "prompt": "Chuyển một task sang trạng thái đã xong giúp tôi.",
+        "generated_text": "Bạn muốn hoàn thành task có ID nào?<|im_end|>",
+        "response_sha256": "848c4b91bb9594ae88fcb1f03997abb17ad7eee5153aefdc2fb6eefb910142e5",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_087",
+        "behavior": "clarify",
+        "prompt": "Bản ghi số 181 trong sổ task cần được sửa nội dung; hỏi tôi nội dung mới nhé.",
+        "generated_text": "Bạn muốn nội dung mới cho task 181 là gì?<|im_end|>",
+        "response_sha256": "245ef69a1b37e7165b9e472ea9637dac8d3d6d15be7d08007d5368a0448f07cc",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_088",
+        "behavior": "clarify",
+        "prompt": "Tôi cần loại bỏ vĩnh viễn một mục trong sổ công việc.",
+        "generated_text": "Bạn muốn xóa mục có ID nào?<|im_end|>",
+        "response_sha256": "945499ac2fd241d0f7a747d8bf6fb01b617a439c00192da13e9c8c8535793d5f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_089",
+        "behavior": "clarify",
+        "prompt": "Gán hạn chót cho task mang ID 182; thời gian tôi sẽ bổ sung.",
+        "generated_text": "Bạn muốn đặt hạn cho task 182 vào thời gian nào?<|im_end|>",
+        "response_sha256": "d56debcf43861a9b073242d2e19b353f9114a4dd4b152a0ea2871c31bdbcb891",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_090",
+        "behavior": "clarify",
+        "prompt": "Lọc task chưa xong theo thời hạn cho tôi; chưa chọn khoảng hôm nay, mai hay quá hạn.",
+        "generated_text": "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?<|im_end|>",
+        "response_sha256": "4ea250e583b8e1039d752ddb908baa5a849a72583033431f8800f159a793885d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_091",
+        "behavior": "clarify",
+        "prompt": "Please complete either task #183 or task #184.",
+        "generated_text": "Bạn muốn hoàn thành task #183 hay #184? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "7f847357185d107be4c621805d22bc81f164d3d8feabf2466a6238c347d98e78",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_092",
+        "behavior": "clarify",
+        "prompt": "Loại khỏi danh sách task số 185 hoặc số 186 giúp tôi.",
+        "generated_text": "Bạn muốn xóa task số 185 hay 186? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "b4a0e716eb4d350827f1c3653cf2abfcef10a59070b261ff0a5ee8af731ca09f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_093",
+        "behavior": "clarify",
+        "prompt": "Gán 07:20 mai làm hạn cho cả hai task #187 và #188.",
+        "generated_text": "Bạn muốn đặt hạn cho task #187 hay #188? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "beb86baa0e25ff47cc5fd1e05f36f02acd6814fb6c267473baabafe1c837fae4",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_094",
+        "behavior": "clarify",
+        "prompt": "Trong ngày hôm nay có gì cần chú ý không?",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự suy scope today từ câu hỏi chung, dù người dùng chưa nêu yêu cầu truy vấn deadline."
+      },
+      {
+        "id": "hold_095",
+        "behavior": "clarify",
+        "prompt": "Còn ngày mai thì sao nhỉ?",
+        "generated_text": "NEXUS chưa hỗ trợ truy vấn task đến ngày mai.<|im_end|>",
+        "response_sha256": "8f63ccbf75f913a522449f7d2069181cf5a922423a990f982ec96c75604d04b7",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói sai rằng NEXUS không hỗ trợ truy vấn task đến hạn ngày mai; scope tomorrow đang được hỗ trợ."
+      },
+      {
+        "id": "hold_096",
+        "behavior": "clarify",
+        "prompt": "Task số 189 ấy, tôi cần bạn giúp một chút.",
+        "generated_text": "Bạn muốn làm gì với task 189?<|im_end|>",
+        "response_sha256": "d87ba4e3ed99e44f19d1d3c30bbede491cd3ac26110eb81827a0362ffd4d18eb",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi lại đúng phần còn thiếu hoặc ý định mơ hồ, không gọi tool và không xác nhận side effect."
+      },
+      {
+        "id": "hold_097",
+        "behavior": "no_action",
+        "prompt": "Tôi không cho phép ghi thêm task: kiểm kê kho.",
+        "generated_text": "Tôi sẽ không tạo task đó.<|im_end|>",
+        "response_sha256": "17b62d4ffb391d641762c2541f1f3a6a1dad9b5d7bce7f986733dd71b72a1f45",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_098",
+        "behavior": "no_action",
+        "prompt": "Việc mang ID 191 phải giữ nguyên, tuyệt đối không đánh dấu xong.",
+        "generated_text": "Tôi sẽ giữ nguyên việc mang ID 191.<|im_end|>",
+        "response_sha256": "d9196e09b08d70568ef62b79f707f1f9cfbf29f69971f59e6382aca60a0098fb",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_099",
+        "behavior": "no_action",
+        "prompt": "Giữ nguyên chữ trong task #192; đừng thay thành đi công tác.",
+        "generated_text": "NEXUS chưa hỗ trợ nội dung task có chứa chữ “đi công tác”.<|im_end|>",
+        "response_sha256": "293d40b3a4da601be6c252fbe37f02b6312c58a436d92bc5f1faec2758bf0c00",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói sai rằng NEXUS không hỗ trợ content chứa “đi công tác”; content task không có hạn chế đó."
+      },
+      {
+        "id": "hold_100",
+        "behavior": "no_action",
+        "prompt": "Keep task #193. Do not delete it.",
+        "generated_text": "Tôi sẽ giữ nguyên task #193.<|im_end|>",
+        "response_sha256": "afb79aafca3097fb9563e902ca148ac17fc71dd2b3b6d2d8378781555508848c",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_101",
+        "behavior": "no_action",
+        "prompt": "Không được gán mốc 08:50 mai cho hạn của task 194.",
+        "generated_text": "Tôi sẽ giữ nguyên hạn của task 194.<|im_end|>",
+        "response_sha256": "38c194a61002756a4932afa8b2cd6d182e5eed812a1f0904f3e124edc6f9fae0",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_102",
+        "behavior": "no_action",
+        "prompt": "Tôi không cần bạn lọc các task trễ hạn lúc này.",
+        "generated_text": "Tôi sẽ không truy vấn các task trễ hạn.<|im_end|>",
+        "response_sha256": "1a330654bebb510b28cd5586c7b494aa8cb8e787b200bb61ae957ed1cbf90477",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_103",
+        "behavior": "no_action",
+        "prompt": "Trong tài liệu, câu \"Hoàn thành task #195\" nghĩa là gì?",
+        "generated_text": "\"Hoàn thành task #195\" nghĩa là task có ID 195 đã được hoàn thành.<|im_end|>",
+        "response_sha256": "0f47e251fa15c14365d810589dd640b1472149c9f54bbd097db5af353a9b7116",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Diễn giải câu mệnh lệnh “Hoàn thành task” thành trạng thái task đã hoàn thành, làm sai nghĩa."
+      },
+      {
+        "id": "hold_104",
+        "behavior": "no_action",
+        "prompt": "Dịch câu \"Please delete task #196\" sang tiếng Việt giúp tôi.",
+        "generated_text": "NEXUS chưa hỗ trợ dịch câu.<|im_end|>",
+        "response_sha256": "b648860d7b156833b46e8c22ca8ef9d5e1b55d542371a8df7b86bc328cc4434c",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_105",
+        "behavior": "no_action",
+        "prompt": "Hôm qua tôi đã xóa việc 197 rồi; đây chỉ là lời kể.",
+        "generated_text": "Tôi chưa thao tác việc 197.<|im_end|>",
+        "response_sha256": "7a87e86f0093f56b7d793e1ddb0a5fa91e9374679ea7a36d28f79b22d947057b",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_106",
+        "behavior": "no_action",
+        "prompt": "Lan từng nói \"thêm việc đóng phí\"; tôi đang thuật lại câu nói đó.",
+        "generated_text": "<tool_call>\n{\"name\": \"create_task\", \"arguments\": {\"content\": \"đóng phí\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "0b17123837a412d50f69143eefcf9b2aba945967e4f2a45e2f6262c0e46dbb04",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi CREATE từ nội dung nằm trong câu trích dẫn dù người dùng nói rõ chỉ đang thuật lại."
+      },
+      {
+        "id": "hold_107",
+        "behavior": "no_action",
+        "prompt": "Tối nay chắc tôi sẽ đọc xong chương cuối.",
+        "generated_text": "NEXUS chưa hỗ trợ task theo nội dung.<|im_end|>",
+        "response_sha256": "006150125ad4d1797c536930b6938bf7423cfbf87ad69f092123ef5515636641",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói sai rằng NEXUS không hỗ trợ task theo nội dung; CREATE và EDIT đều dùng content."
+      },
+      {
+        "id": "hold_108",
+        "behavior": "no_action",
+        "prompt": "I plan to repair my bicycle this weekend.",
+        "generated_text": "NEXUS chưa hỗ trợ việc lưu kế hoạch theo thời gian cụ thể.<|im_end|>",
+        "response_sha256": "d42287d2459bb01ae792891471e2d223f9545b486e507f42ba41ff2687d2d5d7",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Mô tả khả năng lưu kế hoạch theo thời gian không chính xác và không nhận diện đây chỉ là câu trần thuật."
+      },
+      {
+        "id": "hold_109",
+        "behavior": "no_action",
+        "prompt": "Gắn mức ưu tiên cao cho task #201.",
+        "generated_text": "NEXUS chưa hỗ trợ mức ưu tiên.<|im_end|>",
+        "response_sha256": "b4dc5063b8b27e3a7e5f79e3eb0dce96cf65577f27817caed21fd0176beffa85",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_110",
+        "behavior": "no_action",
+        "prompt": "Gắn mức ưu tiên thấp cho task #202.",
+        "generated_text": "NEXUS chưa hỗ trợ mức ưu tiên.<|im_end|>",
+        "response_sha256": "b4dc5063b8b27e3a7e5f79e3eb0dce96cf65577f27817caed21fd0176beffa85",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_111",
+        "behavior": "no_action",
+        "prompt": "Gắn nhãn công ty vào task số 203.",
+        "generated_text": "NEXUS chưa hỗ trợ nhãn task.<|im_end|>",
+        "response_sha256": "1f19c1c17d81b6179b696e8ec693f44f82daddeb953f71ce5e7617874c8fcc84",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_112",
+        "behavior": "no_action",
+        "prompt": "Gắn nhãn gia đình vào task số 204.",
+        "generated_text": "NEXUS chưa hỗ trợ nhãn task.<|im_end|>",
+        "response_sha256": "1f19c1c17d81b6179b696e8ec693f44f82daddeb953f71ce5e7617874c8fcc84",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_113",
+        "behavior": "no_action",
+        "prompt": "Xuất danh sách task thành file CSV giúp tôi.",
+        "generated_text": "NEXUS chưa hỗ trợ xuất file CSV.<|im_end|>",
+        "response_sha256": "78d0a9935a7bed28ef34775d425825e4b968a8478b58a8a3f35a6fd5f2835b47",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_114",
+        "behavior": "no_action",
+        "prompt": "Xuất danh sách task thành file PDF giúp tôi.",
+        "generated_text": "NEXUS chưa hỗ trợ xuất file PDF.<|im_end|>",
+        "response_sha256": "e8bdf569518d00808bdf3403b9fe25fd16d0cfd34468da30494de8838f3d6d6b",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_115",
+        "behavior": "no_action",
+        "prompt": "Lọc task có hạn đúng ngày 17/03/2027.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự gọi DUE scope today cho truy vấn một ngày cụ thể chưa được hỗ trợ."
+      },
+      {
+        "id": "hold_116",
+        "behavior": "no_action",
+        "prompt": "Lọc task có hạn đúng ngày 21/04/2027.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự gọi DUE scope today cho truy vấn một ngày cụ thể chưa được hỗ trợ."
+      },
+      {
+        "id": "hold_117",
+        "behavior": "no_action",
+        "prompt": "Gửi thông báo lên điện thoại nhắc việc 205 lúc 08:00 mai.",
+        "generated_text": "NEXUS chưa hỗ trợ nhắc việc.<|im_end|>",
+        "response_sha256": "88008f3ce7f116c7ff6b14b5f10f316d7f4cbe4e34e44e75464ecb1db3692e27",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_118",
+        "behavior": "no_action",
+        "prompt": "Gửi email nhắc việc 206 lúc 09:00 mai.",
+        "generated_text": "NEXUS chưa hỗ trợ gửi email.<|im_end|>",
+        "response_sha256": "a962c48f31b06f9d750442650bbc7ae4a53a7a95fd5d2931875f5f3e37e7ce7f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_119",
+        "behavior": "no_action",
+        "prompt": "Tự tạo bản sao task 207 vào mỗi thứ hai hàng tuần.",
+        "generated_text": "NEXUS chưa hỗ trợ task định kỳ.<|im_end|>",
+        "response_sha256": "36f60dae760c8988203f6abfbeaca9599ccd84c8f5e922c1a84c67f4a65a5c6e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      },
+      {
+        "id": "hold_120",
+        "behavior": "no_action",
+        "prompt": "Tự tạo bản sao task 208 vào ngày đầu mỗi tháng.",
+        "generated_text": "NEXUS chưa hỗ trợ task định kỳ.<|im_end|>",
+        "response_sha256": "36f60dae760c8988203f6abfbeaca9599ccd84c8f5e922c1a84c67f4a65a5c6e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không gọi tool; phản hồi phù hợp với no-action/phạm vi hiện có và không nhận đã thay đổi dữ liệu."
+      }
+    ]
+  },
+  "semantic_noncall_summary": {
+    "baseline": {
+      "pass": 23,
+      "fail": 13,
+      "total": 36
+    },
+    "step-200": {
+      "pass": 27,
+      "fail": 9,
+      "total": 36
+    }
+  },
+  "runtime": {
+    "wall_seconds": 1314.844603,
+    "estimated_compute_usd": 0.34349000408772007,
+    "baseline": {
+      "generation_errors": 0,
+      "latency_seconds": {
+        "median": 3.0368889725000088,
+        "p95": 5.879728927999963,
+        "total": 420.5527735030003
+      },
+      "tokens": {
+        "prompt_total": 155653,
+        "generated_total": 3633,
+        "generated_per_second": 8.638630461853515
+      }
+    },
+    "step-200": {
+      "generation_errors": 0,
+      "latency_seconds": {
+        "median": 4.019067603499991,
+        "p95": 5.897233099000005,
+        "total": 493.19762908000087
+      },
+      "tokens": {
+        "prompt_total": 155653,
+        "generated_total": 2739,
+        "generated_per_second": 5.553554677684208
+      }
+    }
+  },
+  "decision": {
+    "automatic_eligible": false,
+    "manual_noncall_not_below_baseline": true,
+    "candidate_status": "rejected_before_gguf",
+    "gguf_export_eligible": false,
+    "deployment_rollout_authorized": false,
+    "final_holdout_status": "exposed_diagnostic",
+    "next_step": "design_sft_dataset_v3_and_new_final_holdout_v2"
+  }
+}

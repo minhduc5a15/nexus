@@ -37,7 +37,8 @@ case "${stage}" in
     report="evals/results/${run_id}/sft-final-holdout-v1/report.json"
     heading 'Tính lại scoring và acceptance từ raw final-holdout report đã tải về'
     "${demo_python}" -m scripts.sft_final_holdout_protocol \
-      --report "${report}" --run-id "${run_id}"
+      --report "${report}" --run-id "${run_id}" \
+      --review evals/sft_final_holdout_review_v1.json
     ;;
   *)
     printf 'Stage hiện có: labels, label-check, label-gate, preflight, modal-preflight, run hoặc audit.\n' >&2

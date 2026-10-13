@@ -35,6 +35,17 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def digest_json(value: object) -> str:
+    encoded = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def load_json(path: Path) -> dict[str, Any]:
     value = strict_json(path.read_bytes())
     _require(isinstance(value, dict), f"Expected JSON object: {path}")
@@ -386,11 +397,90 @@ def validate_report(
     }
 
 
+def validate_manual_review(
+    review: dict[str, Any],
+    report: dict[str, Any],
+    *,
+    report_sha256: str,
+) -> dict[str, Any]:
+    """Bind all 72 semantic decisions to the immutable raw final report."""
+
+    _require(review.get("schema_version") == 1, "Unsupported manual review schema")
+    _require(review.get("review_id") == "nexus-sft-final-holdout-review-v1", "Unexpected manual review ID")
+    source = review.get("source", {})
+    reviewer = review.get("reviewer", {})
+    _require(reviewer == {"name": "codex", "kind": "assistant"}, "Unexpected semantic reviewer")
+    _require(source.get("run_id") == report.get("run_id"), "Manual review run mismatch")
+    _require(source.get("report_sha256") == report_sha256, "Manual review report hash mismatch")
+    _require(source.get("manifest_sha256") == EXPECTED_MANIFEST_SHA256, "Manual review manifest mismatch")
+    _require(source.get("runner_sha256") == report.get("provenance", {}).get("runner_sha256"), "Manual review runner mismatch")
+    _require(source.get("holdout_sha256") == report.get("dataset", {}).get("sha256"), "Manual review holdout mismatch")
+    _require(source.get("human_label_review_sha256") == report.get("dataset", {}).get("human_review_sha256"), "Manual review label-review mismatch")
+    _require(source.get("adapter_state_sha256") == report.get("candidate", {}).get("adapter_state_sha256"), "Manual review adapter mismatch")
+    _require(review.get("automatic_decision") == report.get("automatic_decision"), "Manual review automatic decision mismatch")
+
+    expected_ids = [
+        row["id"]
+        for row in report["results"]["baseline"]["cases"]
+        if row["behavior"] != "call"
+    ]
+    _require(len(expected_ids) == 36, "Manual review must cover 36 non-call cases per model")
+    semantic = {}
+    for label in ("baseline", "step-200"):
+        raw_by_id = {
+            row["id"]: row
+            for row in report["results"][label]["cases"]
+        }
+        rows = review.get("reviews", {}).get(label)
+        _require(isinstance(rows, list), f"Missing {label} semantic review")
+        _require([row.get("id") for row in rows] == expected_ids, f"{label} semantic review coverage changed")
+        for row in rows:
+            raw = raw_by_id[row["id"]]
+            _require(row.get("behavior") == raw["behavior"], f"{label} behavior mismatch: {row['id']}")
+            _require(row.get("prompt") == raw["prompt"], f"{label} prompt mismatch: {row['id']}")
+            _require(row.get("generated_text") == raw["generated_text"], f"{label} raw response mismatch: {row['id']}")
+            _require(row.get("response_sha256") == digest_json(raw["generated_text"]), f"{label} response hash mismatch: {row['id']}")
+            _require(row.get("automatic_status") == raw["automatic_status"], f"{label} automatic status mismatch: {row['id']}")
+            _require(row.get("decision") in {"pass", "fail"}, f"Invalid semantic decision: {label} {row['id']}")
+            _require(isinstance(row.get("reason"), str) and row["reason"].strip(), f"Missing semantic evidence: {label} {row['id']}")
+        semantic[label] = {
+            "pass": sum(row["decision"] == "pass" for row in rows),
+            "fail": sum(row["decision"] == "fail" for row in rows),
+            "total": len(rows),
+        }
+    _require(review.get("semantic_noncall_summary") == semantic, "Semantic summary mismatch")
+
+    manual_gate = semantic["step-200"]["pass"] >= semantic["baseline"]["pass"]
+    automatic_gate = report["automatic_decision"]["automatic_eligible"] is True
+    eligible = automatic_gate and manual_gate
+    expected_decision = {
+        "automatic_eligible": automatic_gate,
+        "manual_noncall_not_below_baseline": manual_gate,
+        "candidate_status": "eligible_for_gguf" if eligible else "rejected_before_gguf",
+        "gguf_export_eligible": eligible,
+        "deployment_rollout_authorized": False,
+        "final_holdout_status": "passed_candidate_selection" if eligible else "exposed_diagnostic",
+        "next_step": (
+            "prepare_gguf_export_and_deployment_parity_plan"
+            if eligible
+            else "design_sft_dataset_v3_and_new_final_holdout_v2"
+        ),
+    }
+    _require(review.get("decision") == expected_decision, "Final candidate decision mismatch")
+    return {
+        "review_id": review["review_id"],
+        "reviewer": reviewer,
+        "semantic_noncall_summary": semantic,
+        "decision": expected_decision,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--report", type=Path)
     parser.add_argument("--run-id")
+    parser.add_argument("--review", type=Path)
     args = parser.parse_args()
     try:
         summary = validate_protocol(manifest_path=args.manifest.resolve())
@@ -400,6 +490,14 @@ def main() -> int:
                 load_json(args.report.resolve()),
                 load_json(args.manifest.resolve()),
                 expected_run_id=args.run_id,
+            )
+        if args.review:
+            _require(args.report is not None, "--review requires --report")
+            report_path = args.report.resolve()
+            summary["manual_review"] = validate_manual_review(
+                load_json(args.review.resolve()),
+                load_json(report_path),
+                report_sha256=sha256(report_path),
             )
     except (OSError, KeyError, TypeError, ValueError) as error:
         parser.error(str(error))

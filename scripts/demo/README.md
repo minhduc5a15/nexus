@@ -318,7 +318,7 @@ có thể tạm dừng bằng `q` và tiếp tục sau:
 
 Sau khi `label-gate` đạt, `preflight` kiểm tra toàn bộ hash, candidate, budget và
 runner mà không gọi Modal. Stage `run` mới gọi T4; `audit` dùng report đã tải về
-để tính lại score và acceptance từ raw output:
+để tính lại score, acceptance và xác minh đủ 72 quyết định review non-call:
 
 ```sh
 ./scripts/demo/33_sft_final_holdout.sh preflight
@@ -328,4 +328,5 @@ runner mà không gọi Modal. Stage `run` mới gọi T4; `audit` dùng report 
 
 Runner không thực thi proposal. Nó lưu từng case vào Modal Volume và cùng run ID
 chỉ tiếp tục phần còn thiếu nếu hạ tầng bị ngắt; một run đã hoàn tất không thể bị
-ghi đè.
+ghi đè. Final run hiện tại là `sft-final-holdout-20261013a`; candidate step 200
+không đạt gate và đã bị loại trước bước xuất GGUF.

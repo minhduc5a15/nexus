@@ -231,6 +231,85 @@ class SftFinalHoldoutProtocolTests(unittest.TestCase):
         with self.assertRaisesRegex(protocol.FinalHoldoutProtocolError, "score mismatch"):
             protocol.validate_report(report, self.manifest, expected_run_id="final-run")
 
+    def test_manual_review_binds_all_72_responses_and_cannot_authorize_rollout(self):
+        rows = self.passing_rows()
+        automatic = protocol.evaluate_automatic_acceptance(
+            rows, deepcopy(rows), self.manifest["acceptance"]
+        )
+        report = {
+            "run_id": "final-run",
+            "dataset": self.manifest["holdout"],
+            "candidate": self.manifest["candidate"],
+            "automatic_decision": automatic,
+            "provenance": {
+                "runner_sha256": "runner-hash",
+            },
+            "results": {
+                "baseline": {"cases": rows},
+                "step-200": {"cases": deepcopy(rows)},
+            },
+        }
+        reviews = {}
+        summary = {}
+        for label in ("baseline", "step-200"):
+            semantic_rows = []
+            for raw in report["results"][label]["cases"]:
+                if raw["behavior"] == "call":
+                    continue
+                semantic_rows.append({
+                    "id": raw["id"],
+                    "behavior": raw["behavior"],
+                    "prompt": raw["prompt"],
+                    "generated_text": raw["generated_text"],
+                    "response_sha256": protocol.digest_json(raw["generated_text"]),
+                    "automatic_status": raw["automatic_status"],
+                    "decision": "pass",
+                    "reason": "Response is semantically appropriate.",
+                })
+            reviews[label] = semantic_rows
+            summary[label] = {"pass": 36, "fail": 0, "total": 36}
+        review = {
+            "schema_version": 1,
+            "review_id": "nexus-sft-final-holdout-review-v1",
+            "reviewer": {"name": "codex", "kind": "assistant"},
+            "source": {
+                "run_id": "final-run",
+                "report_sha256": "report-hash",
+                "manifest_sha256": protocol.EXPECTED_MANIFEST_SHA256,
+                "runner_sha256": "runner-hash",
+                "holdout_sha256": self.manifest["holdout"]["sha256"],
+                "human_label_review_sha256": self.manifest["holdout"]["human_review_sha256"],
+                "adapter_state_sha256": self.manifest["candidate"]["adapter_state_sha256"],
+            },
+            "automatic_decision": automatic,
+            "reviews": reviews,
+            "semantic_noncall_summary": summary,
+            "decision": {
+                "automatic_eligible": True,
+                "manual_noncall_not_below_baseline": True,
+                "candidate_status": "eligible_for_gguf",
+                "gguf_export_eligible": True,
+                "deployment_rollout_authorized": False,
+                "final_holdout_status": "passed_candidate_selection",
+                "next_step": "prepare_gguf_export_and_deployment_parity_plan",
+            },
+        }
+        result = protocol.validate_manual_review(
+            review, report, report_sha256="report-hash"
+        )
+        self.assertEqual(result["semantic_noncall_summary"]["step-200"]["pass"], 36)
+        self.assertFalse(result["decision"]["deployment_rollout_authorized"])
+
+        broken = deepcopy(review)
+        broken["reviews"]["step-200"][0]["generated_text"] = "changed"
+        with self.assertRaisesRegex(protocol.FinalHoldoutProtocolError, "raw response mismatch"):
+            protocol.validate_manual_review(broken, report, report_sha256="report-hash")
+
+        broken = deepcopy(review)
+        broken["decision"]["deployment_rollout_authorized"] = True
+        with self.assertRaisesRegex(protocol.FinalHoldoutProtocolError, "Final candidate decision"):
+            protocol.validate_manual_review(broken, report, report_sha256="report-hash")
+
 
 if __name__ == "__main__":
     unittest.main()
