@@ -8,3 +8,6 @@ heading 'Audit tokenizer và dữ liệu candidate v3 — offline'
 
 heading 'Audit protocol và ngân sách QLoRA v3 được đề xuất — chưa gọi Modal'
 "${demo_python}" -m scripts.audit_sft_candidate_training_plan_v3
+
+heading 'Audit runner Modal v3 bị khóa ở local và remote — chưa gọi Modal'
+"${demo_python}" -m scripts.sft_candidate_training_protocol_v3

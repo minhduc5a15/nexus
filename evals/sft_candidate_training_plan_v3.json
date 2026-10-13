@@ -166,7 +166,8 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "not_authored_until_budget_approval"
+    "runner_status": "authored_but_blocked",
+    "runner_path": "modal_sft_candidate_v3.py"
   },
   "budget": {
     "pricing_source": "https://modal.com/pricing",

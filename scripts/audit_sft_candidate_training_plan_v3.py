@@ -106,7 +106,8 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "not_authored_until_budget_approval", "Runner must remain unactionable")
+    _require(execution.get("runner_status") == "authored_but_blocked", "Runner status changed")
+    _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
 
     runtime = plan["runtime"]
     budget = plan["budget"]
@@ -142,7 +143,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
         "training_authorized": False,
         "final_holdout_v2_inference_authorized": False,
-        "runner_authored": False,
+        "runner_authored": True,
     }
 
 

@@ -29,7 +29,7 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
         self.assertFalse(summary["training_authorized"])
         self.assertFalse(summary["final_holdout_v2_inference_authorized"])
-        self.assertFalse(summary["runner_authored"])
+        self.assertTrue(summary["runner_authored"])
 
     def test_draft_cannot_self_authorize_training_or_holdout(self):
         original = audit.load_json(audit.PLAN)

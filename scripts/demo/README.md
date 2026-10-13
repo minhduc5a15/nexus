@@ -362,7 +362,7 @@ project owner review từng nhãn. Stage `audit`, `check` và `gate` không gọ
 `35_sft_candidate_v3.sh tokens` chạy tokenizer từ cache local trên đủ 600 mẫu và
 kiểm tra assistant-only loss mask. `37_sft_candidate_v3_training_plan.sh` audit
 cấu hình 300 optimizer step cùng phép tính trần Modal 2,60 USD. Cả hai đều
-offline; protocol chưa được duyệt và chưa có runner GPU có thể thực thi:
+offline; protocol chưa được duyệt và runner GPU vẫn bị khóa:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens
