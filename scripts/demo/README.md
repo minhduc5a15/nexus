@@ -307,9 +307,8 @@ Modal, model, GPU hay final holdout:
 ./scripts/demo/32_sft_candidate_modal.sh audit
 ```
 
-`33_sft_final_holdout.sh` hiện chỉ mở workflow human review cho 120 nhãn final
-holdout. Nó không gọi model, Modal, GPU, policy, tool hoặc SQLite. Review có thể
-tạm dừng bằng `q` và tiếp tục sau:
+`33_sft_final_holdout.sh` quản lý human review và protocol final holdout. Review
+có thể tạm dừng bằng `q` và tiếp tục sau:
 
 ```sh
 ./scripts/demo/33_sft_final_holdout.sh labels
@@ -317,5 +316,16 @@ tạm dừng bằng `q` và tiếp tục sau:
 ./scripts/demo/33_sft_final_holdout.sh label-gate
 ```
 
-`label-gate` bị chặn cho tới khi project owner chấp thuận đủ 120 ca. Các stage
-preflight/run/audit của final holdout chỉ được thêm sau gate này.
+Sau khi `label-gate` đạt, `preflight` kiểm tra toàn bộ hash, candidate, budget và
+runner mà không gọi Modal. Stage `run` mới gọi T4; `audit` dùng report đã tải về
+để tính lại score và acceptance từ raw output:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh preflight
+./scripts/demo/33_sft_final_holdout.sh run my-final-run
+./scripts/demo/33_sft_final_holdout.sh audit my-final-run
+```
+
+Runner không thực thi proposal. Nó lưu từng case vào Modal Volume và cùng run ID
+chỉ tiếp tục phần còn thiếu nếu hạ tầng bị ngắt; một run đã hoàn tất không thể bị
+ghi đè.

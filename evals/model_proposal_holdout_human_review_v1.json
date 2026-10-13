@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "review_id": "nexus-model-proposal-holdout-human-review-v1",
-  "created_at": "2026-10-12T19:37:55.086469+00:00",
+  "created_at": "2026-10-13T11:55:48.428869+00:00",
   "dataset": {
     "path": "evals/model_proposal_holdout_v1.json",
     "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
@@ -40,7 +40,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -72,7 +72,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -103,7 +103,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -133,7 +133,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -165,7 +165,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -198,7 +198,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -228,7 +228,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -260,7 +260,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -290,7 +290,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -323,7 +323,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -354,7 +354,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -385,7 +385,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -412,7 +412,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -439,7 +439,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -466,7 +466,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -493,7 +493,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -521,7 +521,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -549,7 +549,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -576,7 +576,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -603,7 +603,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -630,7 +630,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -658,7 +658,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -685,7 +685,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -712,7 +712,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -742,7 +742,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -772,7 +772,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -802,7 +802,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -832,7 +832,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -862,7 +862,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -892,7 +892,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -923,7 +923,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -954,7 +954,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -984,7 +984,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1015,7 +1015,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1045,7 +1045,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1075,7 +1075,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1108,7 +1108,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1140,7 +1140,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1172,7 +1172,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1204,7 +1204,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1237,7 +1237,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1268,7 +1268,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1300,7 +1300,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1332,7 +1332,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1364,7 +1364,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1397,7 +1397,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1430,7 +1430,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1462,7 +1462,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1492,7 +1492,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1522,7 +1522,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1552,7 +1552,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1582,7 +1582,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1612,7 +1612,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1642,7 +1642,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1673,7 +1673,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1704,7 +1704,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1734,7 +1734,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1765,7 +1765,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1795,7 +1795,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1825,7 +1825,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1857,7 +1857,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1889,7 +1889,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1921,7 +1921,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1953,7 +1953,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -1985,7 +1985,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2017,7 +2017,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2050,7 +2050,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2083,7 +2083,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2115,7 +2115,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2147,7 +2147,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2179,7 +2179,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2211,7 +2211,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2240,7 +2240,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2269,7 +2269,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2298,7 +2298,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2327,7 +2327,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2356,7 +2356,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2385,7 +2385,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2415,7 +2415,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2445,7 +2445,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2474,7 +2474,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2503,7 +2503,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2532,7 +2532,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2561,7 +2561,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2586,7 +2586,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2611,7 +2611,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2636,7 +2636,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2661,7 +2661,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2686,7 +2686,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2711,7 +2711,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2736,7 +2736,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2761,7 +2761,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2786,7 +2786,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2811,7 +2811,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2836,7 +2836,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2861,7 +2861,7 @@
           ]
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2884,7 +2884,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2907,7 +2907,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2930,7 +2930,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2953,7 +2953,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2976,7 +2976,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -2999,7 +2999,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3022,7 +3022,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3045,7 +3045,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3068,7 +3068,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3091,7 +3091,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3114,7 +3114,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3137,7 +3137,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3160,7 +3160,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3183,7 +3183,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3206,7 +3206,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3229,7 +3229,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3252,7 +3252,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3275,7 +3275,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3298,7 +3298,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3321,7 +3321,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3344,7 +3344,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3367,7 +3367,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3390,7 +3390,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     },
     {
@@ -3413,7 +3413,7 @@
           "missing_slots": []
         }
       },
-      "decision": "pending",
+      "decision": "approved",
       "notes": ""
     }
   ]

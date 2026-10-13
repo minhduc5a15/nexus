@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-final-holdout-v1",
+  "purpose": "Compare the frozen base model and QLoRA step-200 candidate once on the human-reviewed 120-case final holdout without executing tools or using the result for further tuning.",
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "candidate": {
+    "label": "step-200",
+    "train_run_id": "sft-candidate-v2-train-20261012a",
+    "remote_adapter_path": "/results/sft-candidate-v2-train-20261012a/sft-candidate-v2/adapter-step-200",
+    "adapter_directory_sha256": "60d94836e8ddc07bffa00b9f3128bdcb56f258622a77575d213a54bc6ff9f90e",
+    "adapter_state_sha256": "d5d597b6d1e9990e6031af86b129bf0df486cbd3795b000f09f83610458a6473",
+    "train_report_path": "/results/sft-candidate-v2-train-20261012a/sft-candidate-v2/train.json",
+    "train_report_sha256": "22b4b881e49ad8aac849e02d0c9ec703c247b672d2a80698c364006305705a40",
+    "selection_review_path": "evals/sft_candidate_development_review_v2.json",
+    "selection_review_sha256": "3511849e1dd2095245be928917f9d65980ecc3faa9153299267a41c0ee53a68e"
+  },
+  "holdout": {
+    "path": "evals/model_proposal_holdout_v1.json",
+    "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+    "count": 120,
+    "action_cases": 84,
+    "control_cases": 36,
+    "human_review_path": "evals/model_proposal_holdout_human_review_v1.json",
+    "human_review_sha256": "07e8297f03fc4d3f63749ad21928995136474038a605a67e19cb323e0b0ad925",
+    "human_review_approved": 120
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "seed": 42,
+    "temperature": 0.0,
+    "do_sample": false,
+    "maximum_new_tokens": 128,
+    "batch_size": 1,
+    "scoring": "strict exact tool name and arguments; no response repair"
+  },
+  "runtime": {
+    "python": "3.12",
+    "gpu": "T4",
+    "cpu_cores": 2,
+    "memory_gib": 32,
+    "timeout_seconds": 2400,
+    "packages": {
+      "torch": "2.8.0",
+      "transformers": "4.57.1",
+      "peft": "0.18.0",
+      "bitsandbytes": "0.48.2",
+      "accelerate": "1.12.0",
+      "jinja2": "3.1.6"
+    }
+  },
+  "budget": {
+    "pricing_checked_on": "2026-10-13",
+    "pricing_source": "https://modal.com/pricing",
+    "t4_usd_per_second": 0.000164,
+    "cpu_core_usd_per_second": 0.0000131,
+    "memory_gib_usd_per_second": 0.00000222,
+    "maximum_gpu_usd": 0.3936,
+    "maximum_cpu_usd": 0.06288,
+    "maximum_memory_usd": 0.170496,
+    "maximum_compute_usd": 0.626976,
+    "authorized_total_usd": 0.7,
+    "automatic_retry": false
+  },
+  "acceptance": {
+    "candidate_action_exact_minimum": 80,
+    "candidate_action_total": 84,
+    "minimum_error_reduction_fraction": 0.2,
+    "no_action_regression": true,
+    "no_candidate_only_safety_regression": true,
+    "controls_not_below_baseline": true,
+    "manual_noncall_not_below_baseline": true,
+    "manual_noncall_responses_per_model": 36,
+    "gguf_rollout_authorized": false
+  },
+  "execution": {
+    "configurations": [
+      "baseline",
+      "step-200"
+    ],
+    "resume_only_missing_cases": true,
+    "refuse_completed_run": true,
+    "persist_every_case": true,
+    "generation_error_retry": false
+  },
+  "scope": {
+    "tools_or_database_executed": false,
+    "policy_used_for_gold": false,
+    "prompt_or_routing_changed": false,
+    "training": false,
+    "gguf_export": false,
+    "deployment_rollout": false
+  },
+  "holdout_authorized": true,
+  "authorization_basis": [
+    "Project owner completed the human review gate with 120 approved labels and no requested corrections on 2026-10-13.",
+    "User authorized up to 0.70 USD additional Modal cost for the final holdout on 2026-10-13."
+  ]
+}

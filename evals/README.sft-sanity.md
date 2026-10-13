@@ -398,3 +398,25 @@ Sau khi artifact đã được tải về đúng đường dẫn mặc định, 
 Validator buộc report và review khớp hash, raw output, automatic summary,
 adapter state và quyết định của từng ca non-call. Nó cũng buộc review giữ
 `rollout_eligible=false` và `open_final_holdout=false`.
+
+## Protocol final holdout v1
+
+Project owner đã duyệt đủ 120/120 nhãn ngày 13/10/2026; không có nhãn yêu cầu
+sửa. Protocol khóa base revision, adapter step 200, prompt v13, routing `all`,
+greedy decoding và scorer exact trước inference. Runner riêng không đóng gói
+development hoặc training dataset và không gọi policy, tool hay SQLite.
+
+Final run dùng một T4, 2 CPU core, 32 GiB RAM và timeout 2.400 giây. Theo đơn giá
+Modal đã kiểm tra ngày 13/10/2026, trần compute là 0,626976 USD trong ngân sách
+tổng 0,70 USD đã được duyệt. Không có automatic retry; progress của mỗi case được
+ghi nguyên tử để cùng run ID chỉ resume phần còn thiếu.
+
+Audit offline trước GPU:
+
+```sh
+./scripts/demo/33_sft_final_holdout.sh preflight
+```
+
+Kết quả automatic chưa thể tự cho phép rollout: sau inference vẫn phải review
+ngữ nghĩa đủ 36 phản hồi non-call của mỗi cấu hình. Candidate đạt final gate mới
+chỉ được chuyển sang giai đoạn export/parity GGUF, chưa trở thành model mặc định.
