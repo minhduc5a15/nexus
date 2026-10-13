@@ -338,3 +338,12 @@ report local nếu có; nó không tạo dữ liệu, gọi model, GPU, tool hay
 ```sh
 ./scripts/demo/34_sft_dataset_v3_design.sh
 ```
+
+`35_sft_candidate_v3.sh` tái tạo 600 record từ builder, xác minh 400 record v2
+được giữ nguyên, kiểm tra cân bằng 60 mẫu cho mỗi action, quota taxonomy và
+leakage với hai tập evaluation đã lộ. Script không tokenize, train hoặc gọi
+model:
+
+```sh
+./scripts/demo/35_sft_candidate_v3.sh
+```

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-candidate-v3",
+  "dataset": {
+    "path": "evals/sft_candidate_v3.json",
+    "sha256": "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7",
+    "count": 600
+  },
+  "source_candidate_v2": {
+    "path": "evals/sft_candidate_v2.json",
+    "sha256": "e135124b19e332054b3b8e4e95d87858ff9f771bba3754c1926c6b75af5f022e",
+    "count": 400,
+    "preserved_as_prefix": true
+  },
+  "design": {
+    "path": "evals/sft_dataset_v3_design.json",
+    "sha256": "258282de500caeb6ac165c3a841aa62e014afae76bd58e2a4d56e1593b1b24ec",
+    "taxonomy_categories": 12,
+    "new_case_allocation": 200
+  },
+  "builder": {
+    "path": "scripts/build_sft_candidate_v3.py",
+    "sha256": "d27b9545f0b1d0ba31dfebfa7eb796eb39041edf793f288e7ffba284aee9e29b"
+  },
+  "base_model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5"
+  },
+  "evaluation_inputs": {
+    "development_v1": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+      "role": "development"
+    },
+    "final_holdout_v1": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+      "role": "exposed_diagnostic"
+    },
+    "final_holdout_v2": {
+      "status": "not_authored",
+      "required_before_training": true,
+      "model_inference_authorized": false
+    }
+  },
+  "training_authorized": false,
+  "next_gate": "author_and_review_final_holdout_v2_before_training"
+}

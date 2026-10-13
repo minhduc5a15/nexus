@@ -329,6 +329,7 @@ cả record và không record nào vượt giới hạn 2.048 token.
 Protocol candidate v2 giữ nguyên rank 16/alpha 32 và learning rate `1e-4`, dùng
 batch vật lý 1, gradient accumulation 4 và hai lượt qua 400 mẫu. Như vậy có 800
 microbatch nhưng chỉ 200 optimizer step. Adapter được giữ ở step 100 (cuối epoch
+
 1) và step 200 (cuối epoch 2); cả hai sẽ được so với base trên development.
 
 Hai function T4 có timeout tối đa 6.600 + 1.800 = 8.400 giây. Với đơn giá T4
@@ -487,4 +488,22 @@ Audit thiết kế mà không gọi model hoặc GPU:
 
 ```sh
 ./scripts/demo/34_sft_dataset_v3_design.sh
+```
+
+Dataset v3 đã được materialize thành 600 mẫu. Nó giữ nguyên byte-for-byte 400
+record v2 và thêm đúng 200 record: 140 tool-call, 30 clarification và 30
+no-action. Sau khi cộng phần cũ, mỗi action có 60 mẫu. Mỗi record mới mang
+`target_primary` để audit được allocation theo taxonomy thay vì chỉ dựa vào mô
+tả trong tài liệu.
+
+Leakage screen cho 200 mẫu mới không tìm thấy exact, masked hoặc near match với
+development v1 và final holdout v1 ở ngưỡng 0,92; similarity lớn nhất là
+0,860759. Đây là bộ lọc phát hiện trùng lặp, không phải bằng chứng ngữ nghĩa rằng
+hai tập độc lập tuyệt đối. Review artifact ghi rõ 400 nhãn kế thừa và 200 nhãn
+mới do Codex review; training và inference holdout v2 vẫn bị khóa.
+
+Tái tạo và audit dataset:
+
+```sh
+./scripts/demo/35_sft_candidate_v3.sh
 ```

@@ -500,3 +500,7 @@ Giai đoạn kế tiếp đã khóa taxonomy từ 24 ca lỗi và quota dataset 
 mẫu đã review, thêm 200 mẫu mới để đạt 600. Final holdout v2 gồm 120 ca mới là
 bắt buộc và vẫn đóng với model cho tới khi dữ liệu, nhãn và candidate được khóa.
 Audit offline: `./scripts/demo/34_sft_dataset_v3_design.sh`.
+
+Dataset v3 hiện đã có 600 mẫu cân bằng và tái tạo được; 200 mẫu mới không có
+exact/masked/near match với development hoặc final holdout v1 ở ngưỡng 0,92.
+Chạy `./scripts/demo/35_sft_candidate_v3.sh` để xem quota và kết quả audit.

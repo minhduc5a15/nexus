@@ -291,7 +291,7 @@
       "kind": "argument",
       "priority": "critical",
       "evidence_cases": 1,
-      "v3_new_examples": 12,
+      "v3_new_examples": 8,
       "goal": "Giữ nguyên từng ký tự, dòng và chữ hoa trong content."
     },
     {
@@ -299,7 +299,7 @@
       "kind": "argument",
       "priority": "critical",
       "evidence_cases": 5,
-      "v3_new_examples": 24,
+      "v3_new_examples": 20,
       "goal": "Phân biệt dấu câu thuộc payload với dấu kết thúc lời yêu cầu."
     },
     {
@@ -307,7 +307,7 @@
       "kind": "argument",
       "priority": "critical",
       "evidence_cases": 1,
-      "v3_new_examples": 12,
+      "v3_new_examples": 16,
       "goal": "Chép đúng ID và toàn bộ cụm when, không kéo từ lời dẫn vào arguments."
     },
     {
@@ -323,7 +323,7 @@
       "kind": "authorization",
       "priority": "critical",
       "evidence_cases": 2,
-      "v3_new_examples": 20,
+      "v3_new_examples": 8,
       "goal": "Không tự biến câu hỏi chung về hôm nay thành DUE today."
     },
     {
@@ -331,7 +331,7 @@
       "kind": "authorization",
       "priority": "critical",
       "evidence_cases": 1,
-      "v3_new_examples": 20,
+      "v3_new_examples": 8,
       "goal": "Không thực thi câu lệnh chỉ được trích dẫn, thuật lại hoặc thảo luận."
     },
     {
@@ -339,7 +339,7 @@
       "kind": "authorization",
       "priority": "critical",
       "evidence_cases": 2,
-      "v3_new_examples": 20,
+      "v3_new_examples": 8,
       "goal": "Không đổi truy vấn ngày tùy ý thành today hoặc tomorrow."
     },
     {
@@ -347,7 +347,7 @@
       "kind": "reply",
       "priority": "high",
       "evidence_cases": 6,
-      "v3_new_examples": 24,
+      "v3_new_examples": 12,
       "goal": "Mô tả đúng giới hạn hiện có và không bịa hạn chế theo content."
     },
     {
@@ -355,7 +355,7 @@
       "kind": "reply",
       "priority": "high",
       "evidence_cases": 1,
-      "v3_new_examples": 12,
+      "v3_new_examples": 8,
       "goal": "Hỏi đúng slot còn thiếu thay vì phủ nhận input hợp lệ."
     },
     {
@@ -363,7 +363,7 @@
       "kind": "reply",
       "priority": "high",
       "evidence_cases": 1,
-      "v3_new_examples": 12,
+      "v3_new_examples": 8,
       "goal": "Nói không thay đổi trạng thái, không ngụ ý trạng thái đã tồn tại."
     },
     {
@@ -379,7 +379,7 @@
       "kind": "coverage",
       "priority": "high",
       "evidence_cases": 0,
-      "v3_new_examples": 20,
+      "v3_new_examples": 80,
       "goal": "Giữ coverage cho các action đang đạt tốt, tránh catastrophic regression."
     }
   ],
