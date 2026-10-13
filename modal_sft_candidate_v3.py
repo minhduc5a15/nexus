@@ -18,8 +18,8 @@ from typing import Any
 import modal
 
 APP_NAME = "nexus-sft-candidate-v3"
-PROTOCOL_ID = "nexus-sft-qlora-candidate-v3-draft"
-MANIFEST_SHA256 = "1f4849d97116c6805d71ea1f080bbd2b7de4bbb11e1d7fb1a2295b274dc6c40c"
+PROTOCOL_ID = "nexus-sft-qlora-candidate-v3"
+MANIFEST_SHA256 = "d48709b19d6cae099b3fd11ece64af2e8f1bb03bec6bc6045dc5869120f40860"
 MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 MODEL_REVISION = "cdbee75f17c01a7cc42f958dc650907174af0554"
 CANDIDATE_SHA256 = "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7"

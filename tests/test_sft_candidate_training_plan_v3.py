@@ -27,19 +27,19 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
         self.assertAlmostEqual(summary["maximum_compute_usd"], 2.428632)
         self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertTrue(summary["training_authorized"])
         self.assertFalse(summary["final_holdout_v2_inference_authorized"])
         self.assertTrue(summary["runner_authored"])
 
-    def test_draft_cannot_self_authorize_training_or_holdout(self):
+    def test_authorization_and_holdout_state_are_locked(self):
         original = audit.load_json(audit.PLAN)
         for field, message in (
-            ("training_authorized", "cannot authorize"),
+            ("training_authorized", "must authorize"),
             ("holdout", "must remain closed"),
         ):
             broken = deepcopy(original)
             if field == "training_authorized":
-                broken[field] = True
+                broken[field] = False
             else:
                 broken["final_holdout"]["model_inference_authorized"] = True
             with self.subTest(field=field):

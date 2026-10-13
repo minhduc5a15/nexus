@@ -19,7 +19,7 @@ from scripts.score_sft_generation import summarize_proposal_texts
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "evals/sft_candidate_training_plan_v3.json"
 RUNNER = ROOT / "modal_sft_candidate_v3.py"
-EXPECTED_MANIFEST_SHA256 = "1f4849d97116c6805d71ea1f080bbd2b7de4bbb11e1d7fb1a2295b274dc6c40c"
+EXPECTED_MANIFEST_SHA256 = "d48709b19d6cae099b3fd11ece64af2e8f1bb03bec6bc6045dc5869120f40860"
 EXPECTED_MODEL = {
     "id": "Qwen/Qwen3-4B-Instruct-2507",
     "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
@@ -138,7 +138,7 @@ def validate_protocol(
     _require(sha256(manifest_path) == EXPECTED_MANIFEST_SHA256, "Candidate training manifest hash changed")
     manifest = load_json(manifest_path)
     _require(manifest.get("schema_version") == 1, "Unsupported candidate protocol schema")
-    _require(manifest.get("protocol_id") == "nexus-sft-qlora-candidate-v3-draft", "Unexpected candidate protocol ID")
+    _require(manifest.get("protocol_id") == "nexus-sft-qlora-candidate-v3", "Unexpected candidate protocol ID")
     _require(manifest.get("model") == EXPECTED_MODEL, "Candidate base model lock changed")
 
     dataset_spec = manifest.get("dataset", {})
@@ -202,7 +202,12 @@ def validate_protocol(
     _require(budget["requested_total_cost_cap_usd"] > budget["maximum_compute_usd"], "Total cost cap must exceed the compute ceiling")
     _require(budget.get("pricing_checked_on") == "2026-10-14", "Pricing verification date changed")
 
-    _require(manifest.get("training_authorized") is False, "Candidate training must remain blocked")
+    _require(manifest.get("training_authorized") is True, "Candidate training budget is not authorized")
+    _require(
+        manifest.get("authorization_basis")
+        == "Project owner explicitly approved the 2.60 USD Modal cap on 2026-10-14.",
+        "Candidate training authorization basis changed",
+    )
     scope = manifest.get("scope", {})
     _require(scope and not any(scope.values()), "Candidate protocol scope must exclude side effects, holdout and rollout")
 
@@ -270,7 +275,7 @@ def validate_protocol(
         "maximum_planned_gpu_seconds": maximum_seconds,
         "maximum_planned_gpu_cost_usd": budget["maximum_gpu_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
         "final_holdout_inference": False,
     }
 
@@ -481,7 +486,7 @@ def main() -> int:
     except (OSError, KeyError, TypeError, ValueError) as error:
         parser.error(str(error))
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    print("Offline preflight only: training remains blocked; no Modal function, GPU, model, tool, database or final holdout was used.")
+    print("Offline preflight only: no Modal function, GPU, model, tool, database or final holdout was used.")
     return 0
 
 

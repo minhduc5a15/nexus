@@ -517,6 +517,6 @@ Tokenization của 600 mẫu v3 đã được kiểm tra bằng đúng revision 
 mọi sequence đều dưới trần 2.048 token (dài nhất 1.368), và loss mask chỉ mở cho
 suffix assistant. Protocol QLoRA v3 hiện là bản đề xuất offline: 300 optimizer
 step, checkpoint 150/300, Modal T4 và trần xin phép 2,60 USD. Manifest vẫn đặt
-`training_authorized=false`; runner GPU đã được tạo để review nhưng bị khóa ở cả
-local và remote cho đến khi project owner duyệt protocol và ngân sách. Xem bằng
-`./scripts/demo/37_sft_candidate_v3_training_plan.sh`.
+Project owner đã duyệt trần 2,60 USD ngày 14/10/2026; runner được phép chạy đúng
+một lượt train và development, không retry. Xem protocol bằng
+`./scripts/demo/37_sft_candidate_v3_training_plan.sh preflight`.

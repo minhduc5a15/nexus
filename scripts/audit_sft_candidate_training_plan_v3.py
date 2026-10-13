@@ -54,7 +54,7 @@ def _probe_balance(plan: dict[str, Any], dataset: dict[str, Any]) -> dict[str, A
 def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     plan = load_json(path)
     _require(plan.get("schema_version") == 1, "Unsupported plan schema")
-    _require(plan.get("protocol_id") == "nexus-sft-qlora-candidate-v3-draft", "Unexpected protocol ID")
+    _require(plan.get("protocol_id") == "nexus-sft-qlora-candidate-v3", "Unexpected protocol ID")
 
     dataset_spec = plan.get("dataset", {})
     dataset_path = ROOT / dataset_spec.get("path", "")
@@ -106,7 +106,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "authored_but_blocked", "Runner status changed")
+    _require(execution.get("runner_status") == "authorized_for_one_train_and_development_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
 
     runtime = plan["runtime"]
@@ -128,8 +128,13 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is False, "Draft plan cannot authorize paid training")
-    _require(plan.get("next_gate") == "project_owner_reviews_protocol_and_approves_or_rejects_budget", "Unexpected next gate")
+    _require(plan.get("training_authorized") is True, "Approved protocol must authorize training")
+    _require(
+        plan.get("authorization_basis")
+        == "Project owner explicitly approved the 2.60 USD Modal cap on 2026-10-14.",
+        "Training authorization basis changed",
+    )
+    _require(plan.get("next_gate") == "run_train_then_development_once_without_automatic_retry", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
     return {
         "protocol_id": plan["protocol_id"],
@@ -141,7 +146,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
     }

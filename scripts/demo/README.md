@@ -362,9 +362,12 @@ project owner review từng nhãn. Stage `audit`, `check` và `gate` không gọ
 `35_sft_candidate_v3.sh tokens` chạy tokenizer từ cache local trên đủ 600 mẫu và
 kiểm tra assistant-only loss mask. `37_sft_candidate_v3_training_plan.sh` audit
 cấu hình 300 optimizer step cùng phép tính trần Modal 2,60 USD. Cả hai đều
-offline; protocol chưa được duyệt và runner GPU vẫn bị khóa:
+offline. Project owner đã duyệt trần 2,60 USD ngày 14/10/2026; các stage `train`
+và `development` mới gọi Modal, mỗi stage từ chối ghi đè run ID:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens
-./scripts/demo/37_sft_candidate_v3_training_plan.sh
+./scripts/demo/37_sft_candidate_v3_training_plan.sh preflight
+./scripts/demo/37_sft_candidate_v3_training_plan.sh train RUN_ID
+./scripts/demo/37_sft_candidate_v3_training_plan.sh development RUN_ID TRAIN_RUN_ID
 ```

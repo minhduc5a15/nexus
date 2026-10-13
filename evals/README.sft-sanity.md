@@ -559,11 +559,10 @@ tiếp tục đóng.
 
 Theo giá Modal kiểm tra ngày 14/10/2026, trần timeout gồm 10.200 giây T4 cùng
 CPU/RAM và model-download CPU-only là 2,428632 USD. Protocol xin trần 2,60 USD,
-không automatic retry. `training_authorized=false`; runner đã được tạo để audit
-nhưng cả local entrypoint và remote function đều từ chối training, nên demo sau
-hoàn toàn offline:
+không automatic retry. Project owner đã duyệt ngân sách này ngày 14/10/2026.
+Final holdout v2 vẫn đóng; preflight sau hoàn toàn offline:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens
-./scripts/demo/37_sft_candidate_v3_training_plan.sh
+./scripts/demo/37_sft_candidate_v3_training_plan.sh preflight
 ```
