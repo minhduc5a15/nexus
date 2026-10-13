@@ -358,3 +358,13 @@ project owner review từng nhãn. Stage `audit`, `check` và `gate` không gọ
 ./scripts/demo/36_final_holdout_v2.sh check
 ./scripts/demo/36_final_holdout_v2.sh gate
 ```
+
+`35_sft_candidate_v3.sh tokens` chạy tokenizer từ cache local trên đủ 600 mẫu và
+kiểm tra assistant-only loss mask. `37_sft_candidate_v3_training_plan.sh` audit
+cấu hình 300 optimizer step cùng phép tính trần Modal 2,60 USD. Cả hai đều
+offline; protocol chưa được duyệt và chưa có runner GPU có thể thực thi:
+
+```sh
+./scripts/demo/35_sft_candidate_v3.sh tokens
+./scripts/demo/37_sft_candidate_v3_training_plan.sh
+```

@@ -541,3 +541,28 @@ SHA-256, nên mọi sửa đổi tiếp theo sẽ làm gate thất bại. `gate`
 chất lượng nhãn và cho phép chuẩn bị protocol tiếp theo; manifest vẫn đặt
 `final_holdout_inference_authorized_by_protocol=false`, chưa tự gọi GPU hay cho
 model nhìn thấy final holdout v2.
+
+## Token audit và protocol training v3
+
+Tokenizer `Qwen/Qwen3-4B-Instruct-2507` tại revision đã khóa render đủ 600 mẫu
+thành 1.296–1.368 token mỗi sequence, median 1.318. Phần target assistant dài
+9–48 token, tổng 15.067 supervised token. Kiểm tra prefix xác nhận toàn bộ token
+system/user mang label `-100`; chỉ suffix assistant tham gia tính loss.
+
+Protocol training v3 đang là đề xuất chưa được phép chạy. Nó giữ QLoRA v2 làm
+đối chứng: NF4, rank 16, alpha 32, batch vật lý 1, gradient accumulation 4,
+learning rate `1e-4` và hai lượt qua dataset. Dataset tăng từ 400 lên 600 mẫu nên
+số optimizer step tăng từ 200 lên 300; checkpoint nằm ở cuối mỗi lượt, step 150
+và 300. Development v1 đã lộ được dùng để chọn checkpoint; holdout v1 chỉ dành
+cho diagnostic sau lựa chọn và chưa nằm trong ngân sách này; final holdout v2
+tiếp tục đóng.
+
+Theo giá Modal kiểm tra ngày 14/10/2026, trần timeout gồm 10.200 giây T4 cùng
+CPU/RAM và model-download CPU-only là 2,428632 USD. Protocol xin trần 2,60 USD,
+không automatic retry. `training_authorized=false` và runner có trạng thái
+`not_authored_until_budget_approval`, nên demo sau hoàn toàn offline:
+
+```sh
+./scripts/demo/35_sft_candidate_v3.sh tokens
+./scripts/demo/37_sft_candidate_v3_training_plan.sh
+```

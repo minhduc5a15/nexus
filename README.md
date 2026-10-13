@@ -512,3 +512,10 @@ Dataset cùng sidecar review đã được khóa bằng hash. Chạy
 `./scripts/demo/36_final_holdout_v2.sh audit` để xem separation và `gate` để kiểm
 tra review. Protocol vẫn chưa cho model inference tập này; bước kế tiếp là kiểm
 tra tokenization rồi khóa cấu hình training v3.
+
+Tokenization của 600 mẫu v3 đã được kiểm tra bằng đúng revision tokenizer Qwen:
+mọi sequence đều dưới trần 2.048 token (dài nhất 1.368), và loss mask chỉ mở cho
+suffix assistant. Protocol QLoRA v3 hiện là bản đề xuất offline: 300 optimizer
+step, checkpoint 150/300, Modal T4 và trần xin phép 2,60 USD. Manifest vẫn đặt
+`training_authorized=false`; runner GPU chỉ được khóa sau khi project owner duyệt
+protocol và ngân sách. Xem bằng `./scripts/demo/37_sft_candidate_v3_training_plan.sh`.

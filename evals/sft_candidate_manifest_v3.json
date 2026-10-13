@@ -30,6 +30,8 @@
     "prompt_version": "v13",
     "tool_routing": "all",
     "maximum_tool_calls": 1,
+    "assistant_only_loss": true,
+    "maximum_sequence_tokens": 2048,
     "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
     "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5"
   },
@@ -54,6 +56,33 @@
       "model_inference_authorized_by_protocol": false
     }
   },
+  "tokenizer_validation": {
+    "tokenizer": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "transformers": "4.57.1",
+    "jinja2": "3.1.6",
+    "method": "exact token prefix; prompt labels are -100 and only the final assistant suffix is supervised",
+    "maximum_sequence_tokens": 2048,
+    "records": 600,
+    "minimum_total_tokens": 1296,
+    "median_total_tokens": 1318.0,
+    "maximum_total_tokens": 1368,
+    "maximum_total_case_ids": [
+      "v3_deadline_exact_01_03"
+    ],
+    "prompt_tokens": {
+      "minimum": 1284,
+      "median": 1295.0,
+      "maximum": 1320
+    },
+    "supervised_tokens": {
+      "minimum": 9,
+      "median": 24.0,
+      "maximum": 48,
+      "sum": 15067
+    },
+    "assistant_only_mask": "verified_by_exact_token_prefix"
+  },
   "training_authorized": false,
-  "next_gate": "validate_tokenization_and_lock_sft_v3_training_protocol"
+  "next_gate": "lock_sft_v3_training_protocol"
 }

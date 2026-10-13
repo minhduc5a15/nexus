@@ -8,3 +8,13 @@ heading 'Tái tạo dataset v3 và kiểm tra artifact đã track'
 
 heading 'Audit 600 nhãn, quota taxonomy và leakage — không gọi model'
 "${demo_python}" -m scripts.audit_sft_candidate_v3
+
+if [[ "${1:-audit}" == "tokens" ]]; then
+  heading 'Kiểm tra 600 sequence và assistant-only loss mask bằng tokenizer đã khóa'
+  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 "${demo_python}" -m scripts.inspect_sft_tokens \
+    --dataset evals/sft_candidate_v3.json \
+    --case v3_create_colloquial_01_01 \
+    --all-cases \
+    --summary-only \
+    --tokenizer Qwen/Qwen3-4B-Instruct-2507
+fi

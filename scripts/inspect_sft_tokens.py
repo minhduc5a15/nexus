@@ -91,6 +91,10 @@ def audit_selected_dataset(path: Path) -> dict[str, Any]:
         from scripts.audit_sft_candidate_v2 import audit_dataset as audit_candidate_dataset
 
         return audit_candidate_dataset(path)
+    if dataset_id == "nexus-sft-candidate-v3":
+        from scripts.audit_sft_candidate_v3 import audit_dataset as audit_candidate_dataset
+
+        return audit_candidate_dataset(path)
     raise ValueError(f"Unsupported SFT dataset: {dataset_id}")
 
 

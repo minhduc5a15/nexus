@@ -136,6 +136,28 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     _require(contract.get("prompt_sha256") == hashlib.sha256(SYSTEM_PROMPTS["v13"].encode()).hexdigest(), "Prompt hash changed")
     _require(contract.get("tools_sha256") == canonical_sha256(TOOL_DEFINITIONS), "Tool schema hash changed")
     _require(contract.get("tool_routing") == "all" and contract.get("maximum_tool_calls") == 1, "Tool contract changed")
+    _require(contract.get("assistant_only_loss") is True, "Assistant-only loss contract changed")
+    _require(contract.get("maximum_sequence_tokens") == 2048, "Maximum sequence length changed")
+    _require(
+        manifest.get("tokenizer_validation")
+        == {
+            "tokenizer": EXPECTED_MODEL,
+            "revision": EXPECTED_REVISION,
+            "transformers": "4.57.1",
+            "jinja2": "3.1.6",
+            "method": "exact token prefix; prompt labels are -100 and only the final assistant suffix is supervised",
+            "maximum_sequence_tokens": 2048,
+            "records": 600,
+            "minimum_total_tokens": 1296,
+            "median_total_tokens": 1318.0,
+            "maximum_total_tokens": 1368,
+            "maximum_total_case_ids": ["v3_deadline_exact_01_03"],
+            "prompt_tokens": {"minimum": 1284, "median": 1295.0, "maximum": 1320},
+            "supervised_tokens": {"minimum": 9, "median": 24.0, "maximum": 48, "sum": 15067},
+            "assistant_only_mask": "verified_by_exact_token_prefix",
+        },
+        "Tokenizer validation lock changed",
+    )
     final_v2 = manifest.get("evaluation_inputs", {}).get("final_holdout_v2", {})
     _require(final_v2.get("path") == "evals/model_proposal_holdout_v2.json", "Final holdout v2 path changed")
     _require(final_v2.get("sha256") == sha256(ROOT / final_v2["path"]) and final_v2.get("count") == 120, "Final holdout v2 lock changed")
@@ -144,6 +166,7 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     _require(final_v2.get("human_review_complete") is True, "Final holdout label review is incomplete")
     _require(final_v2.get("model_inference_authorized_by_protocol") is False, "Final holdout inference must remain closed")
     _require(manifest.get("training_authorized") is False, "Manifest must not authorize training")
+    _require(manifest.get("next_gate") == "lock_sft_v3_training_protocol", "Unexpected next gate")
     return manifest
 
 

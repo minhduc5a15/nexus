@@ -8,6 +8,7 @@ import unittest
 
 from scripts import audit_sft_candidate_v3 as audit
 from scripts.build_sft_candidate_v3 import build_document, render_document
+from scripts.inspect_sft_tokens import audit_selected_dataset
 
 
 class SftCandidateV3Tests(unittest.TestCase):
@@ -53,11 +54,23 @@ class SftCandidateV3Tests(unittest.TestCase):
         self.assertFalse(review["training_authorized"])
         self.assertFalse(review["final_holdout_v2_inference_authorized"])
 
+    def test_manifest_locks_tokenizer_measurements(self):
+        manifest = json.loads(audit.DEFAULT_MANIFEST.read_text(encoding="utf-8"))
+        manifest["tokenizer_validation"]["maximum_total_tokens"] += 1
+        path = self.write_dataset(manifest)
+        with self.assertRaisesRegex(audit.CandidateV3Error, "Tokenizer validation"):
+            audit.verify_manifest(path)
+
     def test_builder_returns_fresh_data(self):
         first = build_document()
         second = build_document()
         first["cases"][400]["messages"][0]["content"] = "changed"
         self.assertNotEqual(first, second)
+
+    def test_shared_token_inspector_accepts_candidate_v3(self):
+        summary = audit_selected_dataset(audit.DEFAULT_DATASET)
+        self.assertEqual(summary["dataset_id"], "nexus-sft-candidate-v3")
+        self.assertEqual(summary["cases"], 600)
 
 
 if __name__ == "__main__":
