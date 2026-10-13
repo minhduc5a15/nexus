@@ -52,7 +52,7 @@ protocol_image = (
         "evals/sft_candidate_training_plan_v3.json",
         "/repo/evals/sft_candidate_training_plan_v3.json",
     )
-    .add_local_file("modal_sft_candidate.py", "/repo/modal_sft_candidate.py")
+    .add_local_file("modal_sft_candidate_v3.py", "/repo/modal_sft_candidate_v3.py")
 )
 
 training_image = (
@@ -72,7 +72,7 @@ training_image = (
         "evals/sft_candidate_training_plan_v3.json",
         "/repo/evals/sft_candidate_training_plan_v3.json",
     )
-    .add_local_file("modal_sft_candidate.py", "/repo/modal_sft_candidate.py")
+    .add_local_file("modal_sft_candidate_v3.py", "/repo/modal_sft_candidate_v3.py")
 )
 
 development_image = (
@@ -95,7 +95,7 @@ development_image = (
         "evals/sft_candidate_training_plan_v3.json",
         "/repo/evals/sft_candidate_training_plan_v3.json",
     )
-    .add_local_file("modal_sft_candidate.py", "/repo/modal_sft_candidate.py")
+    .add_local_file("modal_sft_candidate_v3.py", "/repo/modal_sft_candidate_v3.py")
 )
 
 
@@ -373,7 +373,7 @@ def _provenance(manifest: dict[str, Any]) -> dict[str, Any]:
             "total_bytes": torch.cuda.get_device_properties(0).total_memory,
         },
         "cuda": torch.version.cuda,
-        "runner_sha256": _file_sha256(Path("/repo/modal_sft_candidate.py")),
+        "runner_sha256": _file_sha256(Path("/repo/modal_sft_candidate_v3.py")),
         "manifest_sha256": MANIFEST_SHA256,
         "candidate_sha256": manifest["dataset"]["sha256"],
         "development_sha256": manifest["development"]["sha256"],

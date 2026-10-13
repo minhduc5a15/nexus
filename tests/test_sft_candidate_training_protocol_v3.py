@@ -34,6 +34,8 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertIn('if not protocol["training_authorized"]', runner)
         self.assertIn('adapter-step-150', runner)
         self.assertIn('adapter-step-300', runner)
+        self.assertNotIn('add_local_file("modal_sft_candidate.py"', runner)
+        self.assertIn('Path("/repo/modal_sft_candidate_v3.py")', runner)
 
     def test_images_exclude_holdouts_and_training_excludes_development(self):
         tree = ast.parse(protocol.RUNNER.read_text(encoding="utf-8"))
