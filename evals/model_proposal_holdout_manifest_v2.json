@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "manifest_id": "nexus-model-proposal-final-holdout-v2",
+  "created_at": "2026-10-13",
+  "holdout": {
+    "path": "evals/model_proposal_holdout_v2.json",
+    "sha256": "a1b9aead11ca80eeab34a827c2f1047b34a7c1c1f491de4123b42930ec2100ed",
+    "cases": 120,
+    "action_cases": 84,
+    "control_cases": 36
+  },
+  "builder": {
+    "path": "scripts/build_model_proposal_holdout_v2.py",
+    "sha256": "3f77535955d1dd7f8cdb7948f49d80d99bcfc913283db492bb10f7840ae9d1e3"
+  },
+  "auditor": {
+    "path": "scripts/audit_model_proposal_holdout_v2.py",
+    "sha256": "4fa124f98577cc2e1f8ec76c25a250997752cc4cd2dfbc87ea624b22b2da47d8"
+  },
+  "human_review": {
+    "path": "evals/model_proposal_holdout_human_review_v2.json",
+    "sha256": "72db4c29ff3e0f3e4bccfa254b53ef2fdf85df9c78ef8867a9d574ad5898c0ec",
+    "review_id": "nexus-model-proposal-holdout-human-review-v2",
+    "approved": 120,
+    "complete": true
+  },
+  "draft1_feedback": {
+    "path": "evals/model_proposal_holdout_v2_draft1_feedback.json",
+    "sha256": "3317ea3d7123a6674778ef15359955d536d4dc0f5efb1224d1204d35ce0a82f1",
+    "reviewed": 47,
+    "needs_correction": 23
+  },
+  "separation_inputs": {
+    "training_v3": {
+      "path": "evals/sft_candidate_v3.json",
+      "sha256": "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7",
+      "cases": 600
+    },
+    "development_v1": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+      "cases": 80
+    },
+    "exposed_holdout_v1": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+      "cases": 120
+    }
+  },
+  "gates": {
+    "human_label_review_complete": true,
+    "dataset_locked": true,
+    "training_authorized": false,
+    "final_holdout_inference_authorized_by_protocol": false,
+    "reason": "Training configuration and one candidate must be selected before final holdout inference."
+  },
+  "next_gate": "validate_tokenization_and_lock_sft_v3_training_protocol"
+}

@@ -137,7 +137,12 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     _require(contract.get("tools_sha256") == canonical_sha256(TOOL_DEFINITIONS), "Tool schema hash changed")
     _require(contract.get("tool_routing") == "all" and contract.get("maximum_tool_calls") == 1, "Tool contract changed")
     final_v2 = manifest.get("evaluation_inputs", {}).get("final_holdout_v2", {})
-    _require(final_v2 == {"status": "not_authored", "required_before_training": True, "model_inference_authorized": False}, "Final holdout v2 gate changed")
+    _require(final_v2.get("path") == "evals/model_proposal_holdout_v2.json", "Final holdout v2 path changed")
+    _require(final_v2.get("sha256") == sha256(ROOT / final_v2["path"]) and final_v2.get("count") == 120, "Final holdout v2 lock changed")
+    _require(final_v2.get("human_review_path") == "evals/model_proposal_holdout_human_review_v2.json", "Final holdout review path changed")
+    _require(final_v2.get("human_review_sha256") == sha256(ROOT / final_v2["human_review_path"]), "Final holdout review lock changed")
+    _require(final_v2.get("human_review_complete") is True, "Final holdout label review is incomplete")
+    _require(final_v2.get("model_inference_authorized_by_protocol") is False, "Final holdout inference must remain closed")
     _require(manifest.get("training_authorized") is False, "Manifest must not authorize training")
     return manifest
 

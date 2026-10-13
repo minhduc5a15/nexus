@@ -45,11 +45,15 @@
       "role": "exposed_diagnostic"
     },
     "final_holdout_v2": {
-      "status": "not_authored",
-      "required_before_training": true,
-      "model_inference_authorized": false
+      "path": "evals/model_proposal_holdout_v2.json",
+      "sha256": "a1b9aead11ca80eeab34a827c2f1047b34a7c1c1f491de4123b42930ec2100ed",
+      "count": 120,
+      "human_review_path": "evals/model_proposal_holdout_human_review_v2.json",
+      "human_review_sha256": "72db4c29ff3e0f3e4bccfa254b53ef2fdf85df9c78ef8867a9d574ad5898c0ec",
+      "human_review_complete": true,
+      "model_inference_authorized_by_protocol": false
     }
   },
   "training_authorized": false,
-  "next_gate": "author_and_review_final_holdout_v2_before_training"
+  "next_gate": "validate_tokenization_and_lock_sft_v3_training_protocol"
 }

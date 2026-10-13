@@ -59,11 +59,20 @@ def _snapshot(case: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def review_id_for_dataset(dataset_path: Path) -> str:
+    name = dataset_path.name
+    if name == "model_proposal_holdout_v1.json":
+        return "nexus-model-proposal-holdout-human-review-v1"
+    if name == "model_proposal_holdout_v2.json":
+        return "nexus-model-proposal-holdout-human-review-v2"
+    raise HoldoutReviewError(f"Unsupported holdout dataset: {name}")
+
+
 def create_review(dataset_path: Path = DEFAULT_DATASET) -> dict[str, Any]:
     source, cases = load_cases(dataset_path)
     return {
         "schema_version": 1,
-        "review_id": "nexus-model-proposal-holdout-human-review-v1",
+        "review_id": review_id_for_dataset(dataset_path),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "dataset": {
             "path": str(dataset_path.resolve().relative_to(ROOT)),

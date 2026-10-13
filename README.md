@@ -504,3 +504,11 @@ Audit offline: `./scripts/demo/34_sft_dataset_v3_design.sh`.
 Dataset v3 hiện đã có 600 mẫu cân bằng và tái tạo được; 200 mẫu mới không có
 exact/masked/near match với development hoặc final holdout v1 ở ngưỡng 0,92.
 Chạy `./scripts/demo/35_sft_candidate_v3.sh` để xem quota và kết quả audit.
+
+Final holdout v2 đã được soạn đủ 120 ca mới và project owner đã duyệt 120/120
+nhãn. Draft đầu bị dừng vì 23/47 ca đầu dùng cách nói quá nhân tạo; feedback đó
+được lưu riêng và draft hiện tại đã được viết lại trước khi duyệt lại toàn bộ.
+Dataset cùng sidecar review đã được khóa bằng hash. Chạy
+`./scripts/demo/36_final_holdout_v2.sh audit` để xem separation và `gate` để kiểm
+tra review. Protocol vẫn chưa cho model inference tập này; bước kế tiếp là kiểm
+tra tokenization rồi khóa cấu hình training v3.

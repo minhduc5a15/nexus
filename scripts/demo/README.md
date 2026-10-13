@@ -347,3 +347,14 @@ model:
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh
 ```
+
+`36_final_holdout_v2.sh` tái tạo và audit 120 ca blind holdout mới, sau đó cho
+project owner review từng nhãn. Stage `audit`, `check` và `gate` không gọi model;
+`gate` chỉ đạt khi đủ 120 quyết định `approved`:
+
+```sh
+./scripts/demo/36_final_holdout_v2.sh audit
+./scripts/demo/36_final_holdout_v2.sh labels
+./scripts/demo/36_final_holdout_v2.sh check
+./scripts/demo/36_final_holdout_v2.sh gate
+```

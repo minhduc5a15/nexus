@@ -507,3 +507,37 @@ Tái tạo và audit dataset:
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh
 ```
+
+## Final holdout v2
+
+Final holdout v2 đã được soạn thành 120 ca mới: 84 action, 12 clarification và
+24 no-action. Mỗi action có 12 ca; 66 family mới chứa tối đa bốn ca. Gold label
+được viết độc lập, không lấy classifier hoặc policy làm đáp án.
+
+Draft đầu tiên bị dừng sau 47 ca review: 24 ca được duyệt và 23 ca cần sửa. Các
+family CREATE/EDIT dùng `DATA(...)`, `§` và cách nói kỹ thuật không giống input
+thật. Feedback này được lưu riêng, không bị ghi đè khi dataset đổi hash.
+
+Draft hiện tại viết lại toàn bộ CREATE/EDIT và rà lại DELETE/DEADLINE/DUE cùng
+các control chưa duyệt bằng cách nói tự nhiên. Với CREATE/EDIT, khi dấu chấm cuối
+có thể chỉ là dấu kết câu, gold chấp nhận cả content có và không có dấu chấm.
+Audit cấm quay lại các marker nhân tạo đã bị phản hồi.
+
+Separation audit so sánh với 600 prompt training v3, 80 development v1 và 120
+holdout v1 đã lộ. Không có exact, masked hoặc near match ở ngưỡng 0,92;
+similarity lớn nhất là 0,906667. Đây vẫn là phép sàng lọc chuỗi, nên project owner
+phải review đủ 120 nhãn trước khi bất kỳ model nào được nhìn thấy tập này.
+
+```sh
+./scripts/demo/36_final_holdout_v2.sh audit
+./scripts/demo/36_final_holdout_v2.sh labels
+./scripts/demo/36_final_holdout_v2.sh check
+./scripts/demo/36_final_holdout_v2.sh gate
+```
+
+Project owner đã hoàn tất review 120/120 ca; sidecar không còn quyết định
+`pending` hay `needs_correction`. Dataset và từng snapshot được khóa bằng
+SHA-256, nên mọi sửa đổi tiếp theo sẽ làm gate thất bại. `gate` đạt chỉ xác nhận
+chất lượng nhãn và cho phép chuẩn bị protocol tiếp theo; manifest vẫn đặt
+`final_holdout_inference_authorized_by_protocol=false`, chưa tự gọi GPU hay cho
+model nhìn thấy final holdout v2.

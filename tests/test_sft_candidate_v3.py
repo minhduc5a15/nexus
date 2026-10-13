@@ -48,7 +48,8 @@ class SftCandidateV3Tests(unittest.TestCase):
         manifest = audit.verify_manifest()
         review = audit.verify_review()
         self.assertFalse(manifest["training_authorized"])
-        self.assertFalse(manifest["evaluation_inputs"]["final_holdout_v2"]["model_inference_authorized"])
+        self.assertTrue(manifest["evaluation_inputs"]["final_holdout_v2"]["human_review_complete"])
+        self.assertFalse(manifest["evaluation_inputs"]["final_holdout_v2"]["model_inference_authorized_by_protocol"])
         self.assertFalse(review["training_authorized"])
         self.assertFalse(review["final_holdout_v2_inference_authorized"])
 

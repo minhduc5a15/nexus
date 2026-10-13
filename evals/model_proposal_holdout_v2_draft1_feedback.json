@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "feedback_id": "nexus-final-holdout-v2-draft1-human-feedback",
+  "recorded_at": "2026-10-13",
+  "source_review_sha256": "e1b57e7fc04e63ed0e112ea35fe3319dc4831471b693248fe90ce86836e3c70d",
+  "source_dataset": {
+    "path": "evals/model_proposal_holdout_v2.json",
+    "sha256": "0c7f8f6efbd224ae7354fb67c7d2e08068c5ef5ba48aa03b95c0761b3768dab0",
+    "cases": 120
+  },
+  "reviewer": {
+    "name": "project_owner",
+    "kind": "human"
+  },
+  "counts": {
+    "approved": 24,
+    "needs_correction": 23,
+    "pending_at_stop": 73
+  },
+  "reason_for_stopping": "23 of the first 47 reviewed cases needed correction; revise synthetic language families before continuing.",
+  "reviewed_cases": [
+    {
+      "id": "final2_create_01",
+      "case_sha256": "dae0e5899a7e8b20eb7383fb32dcbba41c8de88ddbbf1d489c31198c0a3a1d5b",
+      "decision": "needs_correction",
+      "notes": "trong thực tế, không một ai lại gõ cụm DATA(...) bao giờ cả. Với lại dấu chấm cuối câu trong ngoặc không cần giữ lại cũng không vấn đề gì"
+    },
+    {
+      "id": "final2_create_02",
+      "case_sha256": "9890951d75a72b9cd7c9c9840998142f4585c817b232d053258824a2e37160ff",
+      "decision": "needs_correction",
+      "notes": "Sửa phần DATA(...)"
+    },
+    {
+      "id": "final2_create_03",
+      "case_sha256": "39a463b764d71763b2bca5d8c3a867d26ba6f4552cc7525dc32697bebc63cf07",
+      "decision": "needs_correction",
+      "notes": "Tương tự các ca trước"
+    },
+    {
+      "id": "final2_create_04",
+      "case_sha256": "5abc6da94cbf7b79370acca7f27bdaca7986aeff738a7d69b2f362f2b85707c2",
+      "decision": "needs_correction",
+      "notes": "tương tự các ca trước"
+    },
+    {
+      "id": "final2_create_05",
+      "case_sha256": "3883ebbc808606008d4294d18d0611737c827ed4bbac46a6998fcc88491a0c4c",
+      "decision": "needs_correction",
+      "notes": "Không có ai thực sự gõ cái từ \"chính thức\" bao giờ cả."
+    },
+    {
+      "id": "final2_create_06",
+      "case_sha256": "4d00d3be666421ddb721cb54f5faff650b38d8fe96d05ae889937d8b7c124e7c",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 5"
+    },
+    {
+      "id": "final2_create_07",
+      "case_sha256": "7d13184542ddbad3ab11e5a44f1ca172bdb8a112dc1f5f92b3fdbed5fe220348",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 5"
+    },
+    {
+      "id": "final2_create_08",
+      "case_sha256": "e87d4eeff60b440ed489f0cdefb6208ca99f073be323580a25e3604cb85b874c",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 5"
+    },
+    {
+      "id": "final2_create_09",
+      "case_sha256": "98cdf0ab09593c50c9b1788140f8eafcc6765418281c5c797a27333c72d88a1e",
+      "decision": "needs_correction",
+      "notes": "trường hợp này khá vô nghĩa, không ai gõ cái dấu đó trong câu bao giờ. Nếu thật sự có thì ta sẽ xử lý sau."
+    },
+    {
+      "id": "final2_create_10",
+      "case_sha256": "eb468232f6ba5fb26b99ada6b3ff696a2e70237e786364697df04a2b258152de",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 9"
+    },
+    {
+      "id": "final2_create_11",
+      "case_sha256": "aedcc2c6e66a4d99aa92b57cf91a7ca033e3f637cc11bac325641e8d7d0bdfc9",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 9"
+    },
+    {
+      "id": "final2_create_12",
+      "case_sha256": "ed42803277392b68204acc582cb9940e7b6f0b611d1eb1c6958d35bdc7204f90",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 9"
+    },
+    {
+      "id": "final2_list_01",
+      "case_sha256": "e791c755af08ceae65e9db05c70d1953cd982ffae8ebe4bf75cd6c988d4cea33",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_02",
+      "case_sha256": "a5ac628aec5b6deaa0000c011c549aa85f14e9fa1cfd79830f4877e23b319865",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_03",
+      "case_sha256": "9d06f5b613eecbee28477c72739292a79f50cfe7aa81a22e1c7e5dceb3d7cc60",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_04",
+      "case_sha256": "2f5e3f0664efe40bf3126b54540ff71bbf7d721d583a070bb4e2ab2b006851ab",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_05",
+      "case_sha256": "e51f0fc965c93085ecd745a3e3291125dc7ccae632c8b3ef48f0869da5ea1834",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_06",
+      "case_sha256": "864e9b436cc8d6aca8a2cb97e50f89de55a24298080ca76d7191dd7779d95caa",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_07",
+      "case_sha256": "a053fd646ae1d10b782a146f79ceb59a64d7ff23f5b64f66118fb07dd64e2eb1",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_08",
+      "case_sha256": "0829317043c0b6a6056192d9936b0b5d861123deab795f4e286adee94ce8936e",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_09",
+      "case_sha256": "9eda96ba7eb4298080af7ca604a46fbde8632b195347f29c890615c51dba69fa",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_10",
+      "case_sha256": "6216f7fb1c6bd67b298628f719a9b2eb594ea9e4a28aa797c7a71754d495a260",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_11",
+      "case_sha256": "3bc7806975866f6fb62b602a6b3030ce107094a43ace7ffda79c2bb10835cd83",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_list_12",
+      "case_sha256": "9bff7dca9a2645ccb0094bc99860c2f0b99059b14bb091157ce92e9745c7ae39",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_01",
+      "case_sha256": "b108f64605d19cafc15c9687f23108edcce558afb7659b1898ac3753c8b47806",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_02",
+      "case_sha256": "7b9ea07564a5f2c26201d235da0d4d8959d18aa3627c6a17b5c7d75932f15cea",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_03",
+      "case_sha256": "86a8414c173d96de2659e3e945b6bf809201d5642bd8a7c64dc5a5da7742f531",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_04",
+      "case_sha256": "59fb5515e7e64cefdea0cb13c46c0e17e181d63394e92d5e8152c4b60306f27d",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_05",
+      "case_sha256": "e380dc3257d5abd2f622bfd989622d5810e4dc18184326766a4faddf210aa200",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_06",
+      "case_sha256": "5ae2bac62995ff89f627c8a27e23e27d589e570994d9163c25ad402815487550",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_07",
+      "case_sha256": "049c0cc52dbd53fe657325911902a0bdbd8e0c635dc5b9a8488c8ebb59f4e460",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_08",
+      "case_sha256": "5cb183993fd12babdfdb6662fd278098ae7b67df7a62f7fe572887b2e2319338",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_09",
+      "case_sha256": "8a18596f65433ce99b196fe661c9dd16765f8c9ac5dea21d1f8d4fcd350d46fd",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_10",
+      "case_sha256": "24dd7bf6a64b1b4d9d2c5c5749d34a86b50f0c4c4dc5473a24b9d43e61222d1f",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_11",
+      "case_sha256": "cd289f4e989290b1e033e49737b4d1eb2e802b5b3c4fef66237985df71f7ff5f",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_complete_12",
+      "case_sha256": "0233fcd48585852030766090114dd0b46a7c2f326f9a445325e77dcaa29e379a",
+      "decision": "approved",
+      "notes": ""
+    },
+    {
+      "id": "final2_edit_01",
+      "case_sha256": "7102583ad58bd81368508ef268d53aec6f279b428117570a8a192ded067a25ec",
+      "decision": "needs_correction",
+      "notes": "trong thực tế, không ai lại dùng cụm DATA(...) bao giờ cả."
+    },
+    {
+      "id": "final2_edit_02",
+      "case_sha256": "57f344422ac7dfc244cd358a986e43d1e7f40afaf2a94c3f96ec9439fba45153",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 37"
+    },
+    {
+      "id": "final2_edit_03",
+      "case_sha256": "b0826b4b3ed7f7250a907c6b9b7bfba0d76d1248a7c4e20268d50e06984f6ed9",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 37"
+    },
+    {
+      "id": "final2_edit_04",
+      "case_sha256": "ca479a9acd178596583278cfbae437b2fd42ff85f896fe98cf9a89d834d04cbb",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 37"
+    },
+    {
+      "id": "final2_edit_05",
+      "case_sha256": "58aca40c7eac2d9b222be529c17973e2e42709b3d667302572f1dad8a69af586",
+      "decision": "needs_correction",
+      "notes": "trong thực tế, hiếm có ai lại gõ cái cụm \"bằng chuỗi sau\"."
+    },
+    {
+      "id": "final2_edit_06",
+      "case_sha256": "41b7167ef6d8aa559e34c4b52e3e3a403fbca621abefc8e58f565b1b8969e06f",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 41"
+    },
+    {
+      "id": "final2_edit_07",
+      "case_sha256": "d0be49f8d4a03d12d7070092121426ae3dfd1c2930612738eef0da46dd177acc",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 41"
+    },
+    {
+      "id": "final2_edit_08",
+      "case_sha256": "136c3294f31a19ed5cfd7abd4a9a7e2340a03ba94d30ba6ac65f811d9a29552c",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 41"
+    },
+    {
+      "id": "final2_edit_09",
+      "case_sha256": "8f7011b638a0ca3bd7fb51aa7ab8fdab9b762845e0646ed3dfae943224a0c156",
+      "decision": "needs_correction",
+      "notes": "không ai lại yêu cầu lằng nhằng bằng cách dùng cái ký hiệu § bao giờ cả."
+    },
+    {
+      "id": "final2_edit_10",
+      "case_sha256": "0693c05e603a00c85a9d7b11b3ab12297446e0b4c8f270646359b3e84af9962f",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 45"
+    },
+    {
+      "id": "final2_edit_11",
+      "case_sha256": "db1a3fbd72304cabb3365c453bee23f1d583b57bbdec6c1579d8f6361a921cfc",
+      "decision": "needs_correction",
+      "notes": "tương tự ca 45"
+    }
+  ]
+}
