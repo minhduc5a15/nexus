@@ -560,7 +560,10 @@ tiếp tục đóng.
 Theo giá Modal kiểm tra ngày 14/10/2026, trần timeout gồm 10.200 giây T4 cùng
 CPU/RAM và model-download CPU-only là 2,428632 USD. Protocol xin trần 2,60 USD,
 không automatic retry. Project owner đã duyệt ngân sách này ngày 14/10/2026.
-Final holdout v2 vẫn đóng; preflight sau hoàn toàn offline:
+Run `sft-candidate-v3-train-20261014a` tới step 184/300 thì heartbeat local hết
+hạn và Modal hủy input remote. Run không OOM/NaN nhưng chưa kịp chép checkpoint
+step 150 khỏi thư mục tạm, nên không giữ được adapter. Authorization đã được thu
+hồi; Final holdout v2 vẫn đóng. Preflight sau hoàn toàn offline:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens

@@ -15,6 +15,7 @@ from scripts.eval_proposals import ACTION_TO_TOOL, load_cases, strict_json
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
+ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3.json"
 
 
 class TrainingPlanV3Error(ValueError):
@@ -106,7 +107,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "authorized_for_one_train_and_development_run", "Runner status changed")
+    _require(execution.get("runner_status") == "blocked_after_interrupted_authorized_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
 
     runtime = plan["runtime"]
@@ -128,14 +129,28 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is True, "Approved protocol must authorize training")
+    _require(plan.get("training_authorized") is False, "Consumed authorization must block training")
     _require(
         plan.get("authorization_basis")
-        == "Project owner explicitly approved the 2.60 USD Modal cap on 2026-10-14.",
+        == "The one authorized run was consumed by sft-candidate-v3-train-20261014a and interrupted by local Modal heartbeat cancellation.",
         "Training authorization basis changed",
     )
-    _require(plan.get("next_gate") == "run_train_then_development_once_without_automatic_retry", "Unexpected next gate")
+    _require(plan.get("next_gate") == "review_interruption_before_any_separately_authorized_detached_replacement_run", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
+    attempt = load_json(ATTEMPT)
+    _require(attempt.get("status") == "interrupted", "Training attempt status changed")
+    _require(attempt.get("run_id") == "sft-candidate-v3-train-20261014a", "Training attempt run ID changed")
+    _require(attempt.get("authorized_manifest_sha256") == "d48709b19d6cae099b3fd11ece64af2e8f1bb03bec6bc6045dc5869120f40860", "Authorized manifest provenance changed")
+    progress = attempt.get("observed_progress", {})
+    _require(progress.get("last_logged_optimizer_step") == 184, "Interrupted progress changed")
+    _require(progress.get("retained_adapter_paths") == [] and progress.get("train_report_written") is False, "Interrupted artifact state changed")
+    gates = attempt.get("gates", {})
+    _require(gates.get("original_authorization_consumed") is True, "Original authorization was not consumed")
+    _require(gates.get("replacement_run_authorized") is False, "Replacement run must remain blocked")
+    _require(gates.get("final_holdout_v2_inference_authorized") is False, "Final holdout must remain closed")
+    raw_state = ROOT / "evals/results/sft-candidate-v3-train-20261014a/sft-candidate-v3/train-state.json"
+    if raw_state.is_file():
+        _require(attempt["state"]["raw_state_sha256"] == sha256(raw_state), "Downloaded raw state hash mismatch")
     return {
         "protocol_id": plan["protocol_id"],
         "dataset_cases": dataset_spec["count"],
@@ -146,9 +161,16 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": True,
+        "training_authorized": False,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
+        "attempt": {
+            "run_id": attempt["run_id"],
+            "status": attempt["status"],
+            "last_logged_optimizer_step": progress["last_logged_optimizer_step"],
+            "retained_adapters": len(progress["retained_adapter_paths"]),
+            "replacement_run_authorized": gates["replacement_run_authorized"],
+        },
     }
 
 

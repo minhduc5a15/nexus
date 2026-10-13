@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "attempt_id": "nexus-sft-candidate-v3-train-20261014a",
+  "run_id": "sft-candidate-v3-train-20261014a",
+  "protocol_id": "nexus-sft-qlora-candidate-v3",
+  "status": "interrupted",
+  "authorized_commit": "add711a190912be470bacffdfe276817a1aba19c",
+  "authorized_manifest_sha256": "d48709b19d6cae099b3fd11ece64af2e8f1bb03bec6bc6045dc5869120f40860",
+  "runner_sha256": "5fbd98f0d9cc08be7eb59c2f195c8b09a80cefa987bbde1af0a0393b0faade23",
+  "modal_app_id": "ap-XRXT6HRhp4JGBjTObp4s7s",
+  "state": {
+    "started_at": "2026-10-13T20:32:54.472999+00:00",
+    "finished_at": "2026-10-13T21:46:51.478089+00:00",
+    "elapsed_seconds": 4437.00509,
+    "error_type": "InputCancellation",
+    "error_message": "Input was cancelled by user",
+    "raw_state_sha256": "c9a6ace8a812216b5773d3eb6c6949fd46d29fafe63172cbedfd8072369c57fe"
+  },
+  "observed_progress": {
+    "last_logged_optimizer_step": 184,
+    "planned_optimizer_steps": 300,
+    "last_logged_epoch": 1.23,
+    "step_150_checkpoint_reached_in_ephemeral_trainer_output": true,
+    "retained_adapter_paths": [],
+    "train_report_written": false
+  },
+  "failure_analysis": {
+    "initial_preemption": "Modal transparently rescheduled the same invocation before optimizer step 1.",
+    "terminal_trigger": "The local Modal CLI heartbeat repeatedly timed out; the app stopped and canceled the active remote input.",
+    "model_or_data_failure": false,
+    "nan_or_oom_observed": false,
+    "recommended_transport_change": "Use modal run --detach for any separately authorized replacement run, then download artifacts from the volume."
+  },
+  "cost": {
+    "invoice_amount_known": false,
+    "train_wall_time_compute_estimate_usd": 1.0015207889148,
+    "estimate_excludes": [
+      "brief CPU-only ensure_model execution",
+      "provider billing adjustments around preemption",
+      "network or volume charges"
+    ]
+  },
+  "gates": {
+    "original_authorization_consumed": true,
+    "automatic_retry_performed_by_project": false,
+    "replacement_run_authorized": false,
+    "development_authorized": false,
+    "final_holdout_v2_inference_authorized": false
+  },
+  "next_gate": "project_owner_reviews_interruption_and_separately_authorizes_or_rejects_one_detached_replacement_run"
+}

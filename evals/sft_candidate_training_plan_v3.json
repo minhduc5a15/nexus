@@ -166,7 +166,7 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "authorized_for_one_train_and_development_run",
+    "runner_status": "blocked_after_interrupted_authorized_run",
     "runner_path": "modal_sft_candidate_v3.py"
   },
   "budget": {
@@ -190,7 +190,7 @@
     "gguf_export": false,
     "deployment_rollout": false
   },
-  "training_authorized": true,
-  "authorization_basis": "Project owner explicitly approved the 2.60 USD Modal cap on 2026-10-14.",
-  "next_gate": "run_train_then_development_once_without_automatic_retry"
+  "training_authorized": false,
+  "authorization_basis": "The one authorized run was consumed by sft-candidate-v3-train-20261014a and interrupted by local Modal heartbeat cancellation.",
+  "next_gate": "review_interruption_before_any_separately_authorized_detached_replacement_run"
 }
