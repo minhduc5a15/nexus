@@ -330,3 +330,11 @@ Runner không thực thi proposal. Nó lưu từng case vào Modal Volume và c�
 chỉ tiếp tục phần còn thiếu nếu hạ tầng bị ngắt; một run đã hoàn tất không thể bị
 ghi đè. Final run hiện tại là `sft-final-holdout-20261013a`; candidate step 200
 không đạt gate và đã bị loại trước bước xuất GGUF.
+
+`34_sft_dataset_v3_design.sh` kiểm tra taxonomy 24 ca lỗi, quota 600 mẫu cho
+dataset v3 và quota 120 ca cho final holdout v2. Script chỉ đọc artifact và
+report local nếu có; nó không tạo dữ liệu, gọi model, GPU, tool hay database:
+
+```sh
+./scripts/demo/34_sft_dataset_v3_design.sh
+```

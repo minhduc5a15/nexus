@@ -495,3 +495,8 @@ protocol riêng. Candidate QLoRA step 200 tăng proposal exact từ 104/120 lên
 regression safety mới từ câu trích dẫn. Candidate đã bị loại trước bước GGUF;
 model mặc định không đổi. Xem [dữ liệu proposal](evals/README.proposal-data.md)
 và [báo cáo SFT/final holdout](evals/README.sft-sanity.md).
+
+Giai đoạn kế tiếp đã khóa taxonomy từ 24 ca lỗi và quota dataset v3: giữ 400
+mẫu đã review, thêm 200 mẫu mới để đạt 600. Final holdout v2 gồm 120 ca mới là
+bắt buộc và vẫn đóng với model cho tới khi dữ liệu, nhãn và candidate được khóa.
+Audit offline: `./scripts/demo/34_sft_dataset_v3_design.sh`.

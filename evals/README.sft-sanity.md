@@ -463,3 +463,28 @@ và 72 quyết định review bằng:
 ```sh
 ./scripts/demo/33_sft_final_holdout.sh audit sft-final-holdout-20261013a
 ```
+
+## Thiết kế dataset v3 sau final holdout
+
+Final holdout v1 đã trở thành diagnostic. Artifact
+`sft_dataset_v3_design.json` không chép prompt lỗi vào training; nó rút 24 ca
+có bằng chứng thành 12 nhóm lỗi trừu tượng. Có 15 ca sai automatic và 14 ca có
+phản hồi non-call sai ngữ nghĩa; một ca có thể thuộc cả hai tập.
+
+Dataset v3 dự kiến giữ nguyên 400 mẫu v2 đã review và thêm 200 mẫu mới, tổng
+600 mẫu. Quota cuối là 420 tool-call, 90 clarification và 90 no-action; mỗi một
+trong bảy action có đúng 60 mẫu. 200 mẫu mới được phân bổ trước theo taxonomy,
+trong đó ưu tiên ranh giới content, chép ID/thời gian, câu mơ hồ, trích dẫn và
+truy vấn ngày không được hỗ trợ. Thiết kế vẫn khóa `training_authorized=false`.
+
+Final holdout v2 là bắt buộc cho kết luận generalization tiếp theo. Nó giữ cấu
+trúc 120 ca gồm 84 action và 36 control, nhưng phải dùng các family mới. Trình tự
+được khóa là: hoàn tất và review dataset v3 → soạn, review và hash-lock holdout
+v2 → train → chọn đúng một candidate bằng development/diagnostic → chỉ lúc đó
+mới inference holdout v2. Hiện `model_inference_authorized=false`.
+
+Audit thiết kế mà không gọi model hoặc GPU:
+
+```sh
+./scripts/demo/34_sft_dataset_v3_design.sh
+```

@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "design_id": "nexus-sft-dataset-v3-design-v1",
+  "created_at": "2026-10-13",
+  "purpose": "Turn exposed development/final-holdout-v1 failures into abstract training targets without copying evaluation prompts.",
+  "sources": {
+    "candidate_v2": {
+      "path": "evals/sft_candidate_v2.json",
+      "sha256": "e135124b19e332054b3b8e4e95d87858ff9f771bba3754c1926c6b75af5f022e",
+      "cases": 400
+    },
+    "development": {
+      "path": "evals/model_proposal_development_v1.json",
+      "sha256": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+      "role": "diagnostic"
+    },
+    "development_review": {
+      "path": "evals/sft_candidate_development_review_v2.json",
+      "sha256": "3511849e1dd2095245be928917f9d65980ecc3faa9153299267a41c0ee53a68e"
+    },
+    "development_raw_report": {
+      "path": "evals/results/sft-candidate-v2-development-20261013a/sft-candidate-v2/development.json",
+      "sha256": "969a560b8b4764a7e923283d7212437e8748e18ce1647e098e246dcae4b9482a",
+      "tracked": false
+    },
+    "final_holdout_v1": {
+      "path": "evals/model_proposal_holdout_v1.json",
+      "sha256": "f95f8c836ce93081298b1308a0a9bdd46e86eec688579ce5761d1edd1931344f",
+      "role": "exposed_diagnostic"
+    },
+    "final_holdout_v1_review": {
+      "path": "evals/sft_final_holdout_review_v1.json",
+      "sha256": "e060d239fd326bc92e0db9c6e20953b54eada31b0adf9b60173aacee1425f5fb"
+    },
+    "final_holdout_v1_raw_report": {
+      "path": "evals/results/sft-final-holdout-20261013a/sft-final-holdout-v1/report.json",
+      "sha256": "a59bbf4ff36577c5c29992d409ee1f7569c043e4c392b2bcbdea8c1bf7791301",
+      "tracked": false
+    }
+  },
+  "evidence": [
+    {
+      "split": "development",
+      "case_id": "deadline_relative",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "exact_deadline_id_and_time"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "ambiguous_today",
+      "signals": [
+        "automatic_unexpected_call",
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "ambiguous_scope_overreach"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_026",
+      "signals": [
+        "automatic_missing_call"
+      ],
+      "categories": [
+        "colloquial_create_coverage"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_027",
+      "signals": [
+        "automatic_missing_call"
+      ],
+      "categories": [
+        "colloquial_create_coverage"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_029",
+      "signals": [
+        "automatic_missing_call"
+      ],
+      "categories": [
+        "colloquial_create_coverage"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_048",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_content_boundary"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "unsupported_content_lookup",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "bare_statement",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_069",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "missing_slot_reply_accuracy"
+      ]
+    },
+    {
+      "split": "development",
+      "case_id": "dev_075",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "negation_reply_accuracy"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_002",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_character_fidelity"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_039",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_content_boundary"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_044",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_content_boundary"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_045",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_content_boundary"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_047",
+      "signals": [
+        "automatic_arguments_mismatch"
+      ],
+      "categories": [
+        "verbatim_content_boundary"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_094",
+      "signals": [
+        "automatic_unexpected_call",
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "ambiguous_scope_overreach"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_095",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_099",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_103",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "quoted_command_semantics"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_106",
+      "signals": [
+        "automatic_unexpected_call",
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "quoted_command_overreach"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_107",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_108",
+      "signals": [
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "capability_reply_accuracy"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_115",
+      "signals": [
+        "automatic_unexpected_call",
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "unsupported_date_scope_coercion"
+      ]
+    },
+    {
+      "split": "final_holdout_v1",
+      "case_id": "hold_116",
+      "signals": [
+        "automatic_unexpected_call",
+        "semantic_reply_fail"
+      ],
+      "categories": [
+        "unsupported_date_scope_coercion"
+      ]
+    }
+  ],
+  "taxonomy": [
+    {
+      "id": "verbatim_character_fidelity",
+      "kind": "argument",
+      "priority": "critical",
+      "evidence_cases": 1,
+      "v3_new_examples": 12,
+      "goal": "Giữ nguyên từng ký tự, dòng và chữ hoa trong content."
+    },
+    {
+      "id": "verbatim_content_boundary",
+      "kind": "argument",
+      "priority": "critical",
+      "evidence_cases": 5,
+      "v3_new_examples": 24,
+      "goal": "Phân biệt dấu câu thuộc payload với dấu kết thúc lời yêu cầu."
+    },
+    {
+      "id": "exact_deadline_id_and_time",
+      "kind": "argument",
+      "priority": "critical",
+      "evidence_cases": 1,
+      "v3_new_examples": 12,
+      "goal": "Chép đúng ID và toàn bộ cụm when, không kéo từ lời dẫn vào arguments."
+    },
+    {
+      "id": "colloquial_create_coverage",
+      "kind": "action",
+      "priority": "high",
+      "evidence_cases": 3,
+      "v3_new_examples": 16,
+      "goal": "Nhận diện yêu cầu CREATE đời thường nhưng vẫn đòi quyền rõ ràng."
+    },
+    {
+      "id": "ambiguous_scope_overreach",
+      "kind": "authorization",
+      "priority": "critical",
+      "evidence_cases": 2,
+      "v3_new_examples": 20,
+      "goal": "Không tự biến câu hỏi chung về hôm nay thành DUE today."
+    },
+    {
+      "id": "quoted_command_overreach",
+      "kind": "authorization",
+      "priority": "critical",
+      "evidence_cases": 1,
+      "v3_new_examples": 20,
+      "goal": "Không thực thi câu lệnh chỉ được trích dẫn, thuật lại hoặc thảo luận."
+    },
+    {
+      "id": "unsupported_date_scope_coercion",
+      "kind": "authorization",
+      "priority": "critical",
+      "evidence_cases": 2,
+      "v3_new_examples": 20,
+      "goal": "Không đổi truy vấn ngày tùy ý thành today hoặc tomorrow."
+    },
+    {
+      "id": "capability_reply_accuracy",
+      "kind": "reply",
+      "priority": "high",
+      "evidence_cases": 6,
+      "v3_new_examples": 24,
+      "goal": "Mô tả đúng giới hạn hiện có và không bịa hạn chế theo content."
+    },
+    {
+      "id": "missing_slot_reply_accuracy",
+      "kind": "reply",
+      "priority": "high",
+      "evidence_cases": 1,
+      "v3_new_examples": 12,
+      "goal": "Hỏi đúng slot còn thiếu thay vì phủ nhận input hợp lệ."
+    },
+    {
+      "id": "negation_reply_accuracy",
+      "kind": "reply",
+      "priority": "high",
+      "evidence_cases": 1,
+      "v3_new_examples": 12,
+      "goal": "Nói không thay đổi trạng thái, không ngụ ý trạng thái đã tồn tại."
+    },
+    {
+      "id": "quoted_command_semantics",
+      "kind": "reply",
+      "priority": "medium",
+      "evidence_cases": 1,
+      "v3_new_examples": 8,
+      "goal": "Giải thích đúng câu mệnh lệnh được trích dẫn mà không biến nó thành trạng thái."
+    },
+    {
+      "id": "balanced_regression_coverage",
+      "kind": "coverage",
+      "priority": "high",
+      "evidence_cases": 0,
+      "v3_new_examples": 20,
+      "goal": "Giữ coverage cho các action đang đạt tốt, tránh catastrophic regression."
+    }
+  ],
+  "dataset_v3": {
+    "total_cases": 600,
+    "preserved_candidate_v2_cases": 400,
+    "new_cases": 200,
+    "behavior_balance": {
+      "call": 420,
+      "clarify": 90,
+      "no_action": 90
+    },
+    "action_balance": {
+      "create": 60,
+      "list": 60,
+      "complete": 60,
+      "edit": 60,
+      "delete": 60,
+      "deadline": 60,
+      "due_query": 60
+    },
+    "requirements": [
+      "Preserve all 400 reviewed v2 records byte-for-byte as the prefix.",
+      "Add exactly 20 call examples per action, 30 clarification examples and 30 no-action examples.",
+      "Use new lexical families; do not copy or lightly paraphrase any development or holdout prompt.",
+      "Supervise only the assistant response; never train a success claim for application side effects.",
+      "Every call argument must preserve the labeled ID/content/when/scope exactly.",
+      "Screen exact, masked and near similarity against development and both exposed holdouts before review."
+    ],
+    "training_authorized": false
+  },
+  "final_holdout_v2": {
+    "required": true,
+    "total_cases": 120,
+    "action_cases": 84,
+    "action_balance": {
+      "create": 12,
+      "list": 12,
+      "complete": 12,
+      "edit": 12,
+      "delete": 12,
+      "deadline": 12,
+      "due_query": 12
+    },
+    "control_cases": 36,
+    "behavior_balance": {
+      "call": 84,
+      "clarify": 12,
+      "no_action": 24
+    },
+    "creation_order": "Author, review and hash-lock after dataset v3 is frozen but before the next training run.",
+    "separation": [
+      "No prompt or phrasing family may occur in dataset v3, development v1 or final holdout v1.",
+      "Do not use final holdout v2 to select training examples, hyperparameters or checkpoints.",
+      "Human label review must complete before any model inference.",
+      "Run it only after selecting one candidate on development and exposed regression sets."
+    ],
+    "model_inference_authorized": false
+  }
+}
