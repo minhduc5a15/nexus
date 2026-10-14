@@ -144,6 +144,19 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     progress = attempt.get("observed_progress", {})
     _require(progress.get("last_logged_optimizer_step") == 184, "Interrupted progress changed")
     _require(progress.get("retained_adapter_paths") == [] and progress.get("train_report_written") is False, "Interrupted artifact state changed")
+    cost = attempt.get("cost", {})
+    _require(
+        math.isclose(cost.get("modal_app_metered_cost_usd", -1), 1.0208283, abs_tol=1e-12),
+        "Interrupted attempt metered cost changed",
+    )
+    _require(
+        math.isclose(
+            sum(cost.get("modal_app_metered_breakdown_usd", {}).values()),
+            cost.get("modal_app_metered_cost_usd", -1),
+            abs_tol=1e-12,
+        ),
+        "Interrupted attempt cost breakdown is inconsistent",
+    )
     gates = attempt.get("gates", {})
     _require(gates.get("original_authorization_consumed") is True, "Original authorization was not consumed")
     _require(gates.get("replacement_run_authorized") is False, "Replacement run must remain blocked")
@@ -169,6 +182,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
             "status": attempt["status"],
             "last_logged_optimizer_step": progress["last_logged_optimizer_step"],
             "retained_adapters": len(progress["retained_adapter_paths"]),
+            "metered_cost_usd": cost["modal_app_metered_cost_usd"],
             "replacement_run_authorized": gates["replacement_run_authorized"],
         },
     }

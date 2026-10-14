@@ -33,6 +33,7 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         self.assertEqual(summary["attempt"]["status"], "interrupted")
         self.assertEqual(summary["attempt"]["last_logged_optimizer_step"], 184)
         self.assertEqual(summary["attempt"]["retained_adapters"], 0)
+        self.assertEqual(summary["attempt"]["metered_cost_usd"], 1.0208283)
         self.assertFalse(summary["attempt"]["replacement_run_authorized"])
 
     def test_authorization_and_holdout_state_are_locked(self):
