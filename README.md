@@ -524,6 +524,9 @@ nhưng không có adapter nào được giữ lại. Runner đã được gia c�
 Volume. Project owner đã duyệt riêng một lượt thay thế train + development với
 trần bổ sung 2,60 USD. Lượt thay thế bị Modal preempt ở step 68; cùng input được
 khởi động lại nhưng runner cũ từ chối state đã tồn tại. Chi phí metered là
-0,45206372 USD và không có adapter. Authorization đã bị khóa lại. Runner hiện
+0,45206372 USD và không có adapter. Authorization của lượt thay thế đã được dùng
+hết. Runner hiện
 nhận diện cùng Modal input ID, giữ optimizer state và checkpoint phục hồi mỗi 25
-step; chưa có lượt GPU mới nào được phép chạy.
+step; development cũng lưu kết quả mỗi 10 ca để cùng input có thể tiếp tục sau
+preemption. Project owner đã duyệt lượt thứ ba với hai run ID hậu tố
+`20261014c` và trần bổ sung 2,60 USD. Final holdout v2 vẫn đóng.

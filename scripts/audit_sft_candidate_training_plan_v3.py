@@ -18,6 +18,7 @@ PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
 ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3.json"
 REPLACEMENT_ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3_replacement.json"
 REPLACEMENT_AUTHORIZATION = ROOT / "evals/sft_candidate_training_replacement_v3.json"
+ACTIVE_AUTHORIZATION = ROOT / "evals/sft_candidate_training_reentrant_authorization_v3.json"
 
 
 class TrainingPlanV3Error(ValueError):
@@ -112,22 +113,22 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "blocked_after_preempted_replacement_run", "Runner status changed")
+    _require(execution.get("runner_status") == "authorized_for_one_reentrant_train_and_development_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
     authorized_runs = {
-        "train": "sft-candidate-v3-train-20261014b",
-        "development": "sft-candidate-v3-development-20261014b",
+        "train": "sft-candidate-v3-train-20261014c",
+        "development": "sft-candidate-v3-development-20261014c",
     }
     _require(execution.get("authorized_run_ids") == authorized_runs, "Authorized run IDs changed")
     _require(
-        execution.get("replacement_authorization_path")
-        == "evals/sft_candidate_training_replacement_v3.json",
-        "Replacement authorization path changed",
+        execution.get("active_authorization_path")
+        == "evals/sft_candidate_training_reentrant_authorization_v3.json",
+        "Active authorization path changed",
     )
     _require(
-        execution.get("replacement_authorization_sha256")
-        == sha256(REPLACEMENT_AUTHORIZATION),
-        "Replacement authorization hash changed",
+        execution.get("active_authorization_sha256")
+        == sha256(ACTIVE_AUTHORIZATION),
+        "Active authorization hash changed",
     )
 
     runtime = plan["runtime"]
@@ -149,17 +150,31 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is False, "Consumed replacement must block training")
+    _require(plan.get("training_authorized") is True, "Reentrant training must be authorized")
     _require(
         plan.get("authorization_basis")
-        == "The authorized detached replacement was consumed by sft-candidate-v3-train-20261014b and interrupted by provider preemption before a recovery checkpoint.",
+        == "Project owner explicitly approved one same-input reentrant train and development run with an additional 2.60 USD cap on 2026-10-14.",
         "Training authorization basis changed",
     )
-    _require(plan.get("next_gate") == "implement_and_review_same_input_reentrant_training_before_any_new_paid_run", "Unexpected next gate")
+    _require(plan.get("next_gate") == "run_reentrant_train_then_development_once_without_project_automatic_retry", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
+    active = load_json(ACTIVE_AUTHORIZATION)
+    _require(active.get("status") == "authorized", "Active authorization status changed")
+    _require(active.get("authorized_run_ids") == authorized_runs, "Active authorization run IDs changed")
+    _require(active.get("additional_cost_cap_usd") == 2.6, "Active authorization cap changed")
+    _require(active.get("execution", {}).get("transport") == "modal_run_detach", "Active transport changed")
+    _require(active.get("execution", {}).get("project_automatic_retry") is False, "Active project retry rule changed")
+    _require(active.get("execution", {}).get("provider_same_input_resume") is True, "Active provider resume rule changed")
+    _require(active.get("execution", {}).get("recovery_checkpoint_interval_steps") == 25, "Active recovery interval changed")
+    _require(active.get("scope", {}).get("final_holdout_v2_inference") is False, "Active authorization includes final holdout")
+    _require(active.get("consumed") is False, "Active authorization was already consumed")
+    replacement_runs = {
+        "train": "sft-candidate-v3-train-20261014b",
+        "development": "sft-candidate-v3-development-20261014b",
+    }
     replacement = load_json(REPLACEMENT_AUTHORIZATION)
     _require(replacement.get("status") == "consumed", "Replacement authorization status changed")
-    _require(replacement.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
+    _require(replacement.get("authorized_run_ids") == replacement_runs, "Replacement authorization run IDs changed")
     _require(replacement.get("additional_cost_cap_usd") == 2.6, "Replacement authorization cap changed")
     _require(replacement.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
     _require(replacement.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
@@ -167,7 +182,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(replacement.get("consumed") is True, "Replacement authorization was not consumed")
     replacement_attempt = load_json(REPLACEMENT_ATTEMPT)
     _require(replacement_attempt.get("status") == "interrupted", "Replacement attempt status changed")
-    _require(replacement_attempt.get("run_id") == authorized_runs["train"], "Replacement attempt run ID changed")
+    _require(replacement_attempt.get("run_id") == replacement_runs["train"], "Replacement attempt run ID changed")
     _require(
         replacement_attempt.get("authorized_manifest_sha256")
         == "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669",
@@ -243,7 +258,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
         "authorized_run_ids": authorized_runs,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
@@ -274,6 +289,11 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
                     "third_run_authorized"
                 ],
             },
+        },
+        "active_authorization": {
+            "authorization_id": active["authorization_id"],
+            "additional_cost_cap_usd": active["additional_cost_cap_usd"],
+            "consumed": active["consumed"],
         },
     }
 

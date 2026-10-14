@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "authorization_id": "nexus-sft-candidate-v3-reentrant-20261014c",
+  "approved_on": "2026-10-14",
+  "status": "authorized",
+  "reason": "Run the reviewed same-input reentrant trainer after the detached replacement was preempted.",
+  "authorized_run_ids": {
+    "train": "sft-candidate-v3-train-20261014c",
+    "development": "sft-candidate-v3-development-20261014c"
+  },
+  "execution": {
+    "transport": "modal_run_detach",
+    "project_automatic_retry": false,
+    "provider_same_input_resume": true,
+    "recovery_checkpoint_interval_steps": 25,
+    "resume_scope": "same_modal_input_id_only",
+    "train_from_scratch": true
+  },
+  "additional_cost_cap_usd": 2.6,
+  "scope": {
+    "train": true,
+    "development": true,
+    "final_holdout_v2_inference": false,
+    "gguf_export": false,
+    "deployment_rollout": false
+  },
+  "prior_attempts_metered_cost_usd": 1.47289202,
+  "approval_basis": "Project owner explicitly replied 'Đồng ý' after reviewing both interrupted attempts, the reentrant runner, the exact run IDs, and the additional 2.60 USD cap.",
+  "consumed": false
+}

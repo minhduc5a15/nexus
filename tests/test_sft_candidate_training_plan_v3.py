@@ -27,7 +27,7 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
         self.assertAlmostEqual(summary["maximum_compute_usd"], 2.428632)
         self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertTrue(summary["training_authorized"])
         self.assertFalse(summary["final_holdout_v2_inference_authorized"])
         self.assertTrue(summary["runner_authored"])
         self.assertEqual(summary["attempt"]["status"], "interrupted")
@@ -49,18 +49,20 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         )
         self.assertEqual(
             summary["authorized_run_ids"]["train"],
-            "sft-candidate-v3-train-20261014b",
+            "sft-candidate-v3-train-20261014c",
         )
+        self.assertEqual(summary["active_authorization"]["additional_cost_cap_usd"], 2.6)
+        self.assertFalse(summary["active_authorization"]["consumed"])
 
     def test_authorization_and_holdout_state_are_locked(self):
         original = audit.load_json(audit.PLAN)
         for field, message in (
-            ("training_authorized", "must block"),
+            ("training_authorized", "must be authorized"),
             ("holdout", "must remain closed"),
         ):
             broken = deepcopy(original)
             if field == "training_authorized":
-                broken[field] = True
+                broken[field] = False
             else:
                 broken["final_holdout"]["model_inference_authorized"] = True
             with self.subTest(field=field):

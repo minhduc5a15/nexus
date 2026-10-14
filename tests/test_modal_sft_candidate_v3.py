@@ -85,6 +85,50 @@ class ModalSftCandidateV3RecoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(FileExistsError, "Completed candidate"):
             runner._prepare_train_state(output, modal_input_id="in-1")
 
+    def test_development_same_input_resumes_and_records_interruption(self):
+        output = self.output()
+        (output / "development-state.json").write_text(
+            json.dumps(
+                {
+                    "status": "interrupted",
+                    "started_at": "start",
+                    "modal_input_id": "in-1",
+                    "resume_count": 0,
+                    "error": {"type": "KeyboardInterrupt", "message": ""},
+                    "finished_at": "finish",
+                }
+            ),
+            encoding="utf-8",
+        )
+        state_path, state = runner._prepare_development_state(
+            output, modal_input_id="in-1", now="resume"
+        )
+        self.assertEqual(state_path.name, "development-state.json")
+        self.assertEqual(state["resume_count"], 1)
+        self.assertEqual(state["resumed_at"], "resume")
+        self.assertEqual(state["interruptions"][0]["error"]["type"], "KeyboardInterrupt")
+
+    def test_development_different_input_cannot_reuse_state(self):
+        output = self.output()
+        (output / "development-state.json").write_text(
+            json.dumps({"status": "interrupted", "modal_input_id": "in-1"}),
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(FileExistsError, "different Modal input"):
+            runner._prepare_development_state(output, modal_input_id="in-2")
+
+    def test_development_partial_must_be_an_ordered_prefix(self):
+        output = self.output()
+        partial = output / "partial.json"
+        cases = [{"id": "one"}, {"id": "two"}]
+        partial.write_text(json.dumps([{"id": "one"}]), encoding="utf-8")
+        self.assertEqual(
+            runner._load_partial_development_rows(partial, cases), [{"id": "one"}]
+        )
+        partial.write_text(json.dumps([{"id": "two"}]), encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "case order changed"):
+            runner._load_partial_development_rows(partial, cases)
+
 
 if __name__ == "__main__":
     unittest.main()

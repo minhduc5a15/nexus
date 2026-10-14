@@ -1,4 +1,4 @@
-"""Validate the blocked, reentrant SFT candidate v3 protocol and artifacts."""
+"""Validate the authorized reentrant SFT candidate v3 protocol and artifacts."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from scripts.score_sft_generation import summarize_proposal_texts
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "evals/sft_candidate_training_plan_v3.json"
 RUNNER = ROOT / "modal_sft_candidate_v3.py"
-EXPECTED_MANIFEST_SHA256 = "2d8c1ea2451b7b68dc67c684cbf376d5f5e2363e278c66b58b7c8d61ddbfad3a"
+EXPECTED_MANIFEST_SHA256 = "2174284d2e95bad9625dc26d23f5598991f96b2f127f4c991574392101608fe5"
 EXPECTED_MODEL = {
     "id": "Qwen/Qwen3-4B-Instruct-2507",
     "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
@@ -203,34 +203,36 @@ def validate_protocol(
     _require(
         authorized_runs
         == {
-            "train": "sft-candidate-v3-train-20261014b",
-            "development": "sft-candidate-v3-development-20261014b",
+            "train": "sft-candidate-v3-train-20261014c",
+            "development": "sft-candidate-v3-development-20261014c",
         },
-        "Authorized replacement run IDs changed",
+        "Authorized reentrant run IDs changed",
     )
-    authorization_path = root / execution.get("replacement_authorization_path", "")
+    authorization_path = root / execution.get("active_authorization_path", "")
     _require(
-        execution.get("replacement_authorization_sha256") == sha256(authorization_path),
-        "Replacement authorization hash changed",
+        execution.get("active_authorization_sha256") == sha256(authorization_path),
+        "Active authorization hash changed",
     )
     authorization = load_json(authorization_path)
-    _require(authorization.get("status") == "consumed", "Replacement authorization status changed")
-    _require(authorization.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
-    _require(authorization.get("additional_cost_cap_usd") == 2.6, "Replacement cost cap changed")
-    _require(authorization.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
-    _require(authorization.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
-    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Replacement authorizes final holdout")
-    _require(authorization.get("consumed") is True, "Replacement authorization was not consumed")
+    _require(authorization.get("status") == "authorized", "Reentrant run is not authorized")
+    _require(authorization.get("authorized_run_ids") == authorized_runs, "Reentrant authorization run IDs changed")
+    _require(authorization.get("additional_cost_cap_usd") == 2.6, "Reentrant cost cap changed")
+    _require(authorization.get("execution", {}).get("transport") == "modal_run_detach", "Reentrant transport changed")
+    _require(authorization.get("execution", {}).get("project_automatic_retry") is False, "Reentrant project retry rule changed")
+    _require(authorization.get("execution", {}).get("provider_same_input_resume") is True, "Provider same-input resume changed")
+    _require(authorization.get("execution", {}).get("recovery_checkpoint_interval_steps") == 25, "Authorized recovery interval changed")
+    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Reentrant authorization includes final holdout")
+    _require(authorization.get("consumed") is False, "Reentrant authorization was already consumed")
     budget = manifest.get("budget", {})
     _require(math.isclose(maximum_seconds * budget.get("t4_usd_per_second", -1), budget.get("maximum_gpu_usd", -1), abs_tol=1e-9), "GPU cost arithmetic changed")
     _require(budget.get("requested_total_cost_cap_usd") == 2.6, "Requested total cost cap changed")
     _require(budget["requested_total_cost_cap_usd"] > budget["maximum_compute_usd"], "Total cost cap must exceed the compute ceiling")
     _require(budget.get("pricing_checked_on") == "2026-10-14", "Pricing verification date changed")
 
-    _require(manifest.get("training_authorized") is False, "Consumed replacement must block training")
+    _require(manifest.get("training_authorized") is True, "Reentrant training budget is not authorized")
     _require(
         manifest.get("authorization_basis")
-        == "The authorized detached replacement was consumed by sft-candidate-v3-train-20261014b and interrupted by provider preemption before a recovery checkpoint.",
+        == "Project owner explicitly approved one same-input reentrant train and development run with an additional 2.60 USD cap on 2026-10-14.",
         "Candidate training authorization basis changed",
     )
     scope = manifest.get("scope", {})
@@ -313,7 +315,7 @@ def validate_protocol(
         "maximum_planned_gpu_seconds": maximum_seconds,
         "maximum_planned_gpu_cost_usd": budget["maximum_gpu_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
         "authorized_run_ids": authorized_runs,
         "final_holdout_inference": False,
     }

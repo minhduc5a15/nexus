@@ -25,12 +25,12 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertEqual(summary["probe_balance"], {"call": 28, "clarify": 7, "no_action": 5})
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
         self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertTrue(summary["training_authorized"])
         self.assertEqual(
             summary["authorized_run_ids"],
             {
-                "train": "sft-candidate-v3-train-20261014b",
-                "development": "sft-candidate-v3-development-20261014b",
+                "train": "sft-candidate-v3-train-20261014c",
+                "development": "sft-candidate-v3-development-20261014c",
             },
         )
         self.assertFalse(summary["final_holdout_inference"])
@@ -56,6 +56,8 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertIn("modal.current_input_id()", runner)
         self.assertIn("resume_from_checkpoint=", runner)
         self.assertIn("save_only_model=False", runner)
+        self.assertIn("_prepare_development_state(", runner)
+        self.assertIn("development-partial-", runner)
         self.assertNotIn('output_dir=f"/tmp/nexus-sft-candidate-v3-', runner)
 
     def test_images_exclude_holdouts_and_training_excludes_development(self):

@@ -18,7 +18,7 @@ import modal
 
 APP_NAME = "nexus-sft-candidate-v3"
 PROTOCOL_ID = "nexus-sft-qlora-candidate-v3"
-MANIFEST_SHA256 = "2d8c1ea2451b7b68dc67c684cbf376d5f5e2363e278c66b58b7c8d61ddbfad3a"
+MANIFEST_SHA256 = "2174284d2e95bad9625dc26d23f5598991f96b2f127f4c991574392101608fe5"
 MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 MODEL_REVISION = "cdbee75f17c01a7cc42f958dc650907174af0554"
 CANDIDATE_SHA256 = "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7"
@@ -204,6 +204,77 @@ def _train_result_summary(report: dict[str, Any]) -> dict[str, Any]:
         "gates": report["gates"],
         "state": report["state"],
     }
+
+
+def _prepare_development_state(
+    output: Path,
+    *,
+    modal_input_id: str,
+    now: str | None = None,
+) -> tuple[Path, dict[str, Any]]:
+    state_path = output / "development-state.json"
+    timestamp = now or datetime.now(timezone.utc).isoformat()
+    if not state_path.exists():
+        return state_path, {
+            "status": "running",
+            "started_at": timestamp,
+            "modal_input_id": modal_input_id,
+            "resume_count": 0,
+            "interruptions": [],
+        }
+
+    previous = json.loads(state_path.read_text(encoding="utf-8"))
+    if previous.get("modal_input_id") != modal_input_id:
+        raise FileExistsError(
+            "Refusing to reuse development state from a different Modal input"
+        )
+    if previous.get("status") not in {"running", "interrupted"}:
+        raise RuntimeError("Development state cannot be resumed")
+    interruptions = list(previous.get("interruptions", []))
+    if previous.get("error"):
+        interruptions.append(
+            {
+                "finished_at": previous.get("finished_at"),
+                "error": previous["error"],
+            }
+        )
+    return state_path, {
+        "status": "running",
+        "started_at": previous.get("started_at", timestamp),
+        "modal_input_id": modal_input_id,
+        "resume_count": int(previous.get("resume_count", 0)) + 1,
+        "resumed_at": timestamp,
+        "interruptions": interruptions,
+    }
+
+
+def _development_result_summary(report: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "report": report["report_path"],
+        "baseline": report["baseline"]["summary"],
+        "candidates": {
+            label: value["summary"]
+            for label, value in report["candidates"].items()
+        },
+        "comparisons": report["comparisons"],
+        "gates": report["gates"],
+        "state": report["state"],
+    }
+
+
+def _load_partial_development_rows(
+    path: Path, cases: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, list):
+        raise RuntimeError(f"Development partial is not a list: {path}")
+    expected_ids = [case["id"] for case in cases[: len(value)]]
+    observed_ids = [row.get("id") for row in value if isinstance(row, dict)]
+    if len(observed_ids) != len(value) or observed_ids != expected_ids:
+        raise RuntimeError(f"Development partial case order changed: {path}")
+    return value
 
 
 def _file_sha256(path: Path) -> str:
@@ -765,7 +836,12 @@ def run_train(run_id: str) -> dict[str, Any]:
 
 
 def _generate_development_cases(
-    model: Any, tokenizer: Any, cases: list[dict[str, Any]]
+    model: Any,
+    tokenizer: Any,
+    cases: list[dict[str, Any]],
+    *,
+    existing_rows: list[dict[str, Any]] | None = None,
+    checkpoint: Any | None = None,
 ):
     import torch
     from nexus.agent.client import build_model_request, default_model_settings
@@ -773,9 +849,9 @@ def _generate_development_cases(
     from scripts.score_sft_generation import score_proposal_text
 
     model.eval()
-    rows = []
+    rows = list(existing_rows or [])
     with torch.inference_mode():
-        for index, case in enumerate(cases, start=1):
+        for index, case in enumerate(cases[len(rows) :], start=len(rows) + 1):
             payload, routing = build_model_request(
                 case["prompt"],
                 prompt_version="v13",
@@ -815,6 +891,10 @@ def _generate_development_cases(
                 }
             )
             rows.append(scored)
+            if checkpoint is not None and (
+                index % 10 == 0 or index == len(cases)
+            ):
+                checkpoint(rows)
             print(
                 f"[{index:02d}/{len(cases)}] {case['id']}: "
                 f"{scored['automatic_status']} {scored['error_tags']}",
@@ -845,29 +925,36 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
 
     run_id = _safe_run_id(run_id)
     train_run_id = _safe_run_id(train_run_id)
+    manifest = _manifest()
+    if manifest.get("training_authorized") is not True:
+        raise PermissionError("Candidate development budget has not been authorized")
+    authorized_runs = manifest["execution"]["authorized_run_ids"]
+    if run_id != authorized_runs["development"]:
+        raise PermissionError(
+            f"Development is authorized only for {authorized_runs['development']}"
+        )
+    if train_run_id != authorized_runs["train"]:
+        raise PermissionError(
+            f"Development may read only {authorized_runs['train']}"
+        )
+    result_volume.reload()
     output = _output(run_id)
     report_path = output / "development.json"
-    state_path = output / "development-state.json"
-    if report_path.exists() or state_path.exists():
-        raise FileExistsError(
-            f"Refusing to overwrite development artifacts for {run_id}"
-        )
+    modal_input_id = modal.current_input_id()
+    if report_path.is_file():
+        completed_report = json.loads(report_path.read_text(encoding="utf-8"))
+        if completed_report.get("state", {}).get("modal_input_id") != modal_input_id:
+            raise FileExistsError(
+                "Refusing to reuse completed development artifacts from another Modal input"
+            )
+        return _development_result_summary(completed_report)
     output.mkdir(parents=True, exist_ok=True)
-    state = {"status": "running", "started_at": datetime.now(timezone.utc).isoformat()}
+    state_path, state = _prepare_development_state(
+        output, modal_input_id=modal_input_id
+    )
     _write_json(state_path, state)
+    result_volume.commit()
     try:
-        manifest = _manifest()
-        if manifest.get("training_authorized") is not True:
-            raise PermissionError("Candidate development budget has not been authorized")
-        authorized_runs = manifest["execution"]["authorized_run_ids"]
-        if run_id != authorized_runs["development"]:
-            raise PermissionError(
-                f"Development is authorized only for {authorized_runs['development']}"
-            )
-        if train_run_id != authorized_runs["train"]:
-            raise PermissionError(
-                f"Development may read only {authorized_runs['train']}"
-            )
         development_path = Path("/repo/evals/model_proposal_development_v1.json")
         if _file_sha256(development_path) != DEVELOPMENT_SHA256:
             raise RuntimeError("Frozen development dataset hash mismatch")
@@ -875,7 +962,6 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
         if len(cases) != manifest["development"]["count"]:
             raise RuntimeError("Frozen development case count mismatch")
 
-        result_volume.reload()
         train_report_path = _output(train_run_id) / "train.json"
         adapter_dirs = {
             label: _output(train_run_id) / f"adapter-{label}"
@@ -907,7 +993,16 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
             tokenizer.pad_token = tokenizer.eos_token
         torch.cuda.reset_peak_memory_stats()
         base = _load_quantized_base(use_cache=True)
-        baseline_cases = _generate_development_cases(base, tokenizer, cases)
+        baseline_partial = output / "development-partial-base.json"
+        baseline_cases = _generate_development_cases(
+            base,
+            tokenizer,
+            cases,
+            existing_rows=_load_partial_development_rows(baseline_partial, cases),
+            checkpoint=lambda rows: (
+                _write_json(baseline_partial, rows), result_volume.commit()
+            ),
+        )
         baseline_summary = summarize_proposal_texts(baseline_cases)
         del base
         gc.collect()
@@ -925,7 +1020,18 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
             expected_hash = train_report["adapters"][label]["state_sha256_reloaded"]
             if candidate_hash != expected_hash:
                 raise RuntimeError(f"Reloaded {label} state hash mismatch")
-            candidate_cases = _generate_development_cases(candidate, tokenizer, cases)
+            candidate_partial = output / f"development-partial-{label}.json"
+            candidate_cases = _generate_development_cases(
+                candidate,
+                tokenizer,
+                cases,
+                existing_rows=_load_partial_development_rows(
+                    candidate_partial, cases
+                ),
+                checkpoint=lambda rows, path=candidate_partial: (
+                    _write_json(path, rows), result_volume.commit()
+                ),
+            )
             candidates[label] = {
                 "summary": summarize_proposal_texts(candidate_cases),
                 "cases": candidate_cases,
@@ -959,6 +1065,7 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
             "protocol_id": PROTOCOL_ID,
             "run_id": run_id,
             "stage": "development",
+            "report_path": str(report_path),
             "train_run_id": train_run_id,
             "model": manifest["model"],
             "dataset": manifest["development"],
@@ -986,16 +1093,7 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
         _write_json(report_path, report)
         _write_json(state_path, state)
         result_volume.commit()
-        return {
-            "report": str(report_path),
-            "baseline": baseline_summary,
-            "candidates": {
-                label: value["summary"] for label, value in candidates.items()
-            },
-            "comparisons": report["comparisons"],
-            "gates": gates,
-            "state": state,
-        }
+        return _development_result_summary(report)
     except BaseException as error:
         state.update(
             status="interrupted",

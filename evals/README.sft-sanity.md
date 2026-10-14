@@ -549,7 +549,7 @@ thành 1.296–1.368 token mỗi sequence, median 1.318. Phần target assistant
 9–48 token, tổng 15.067 supervised token. Kiểm tra prefix xác nhận toàn bộ token
 system/user mang label `-100`; chỉ suffix assistant tham gia tính loss.
 
-Protocol training v3 đang là đề xuất chưa được phép chạy. Nó giữ QLoRA v2 làm
+Protocol training v3 giữ QLoRA v2 làm
 đối chứng: NF4, rank 16, alpha 32, batch vật lý 1, gradient accumulation 4,
 learning rate `1e-4` và hai lượt qua dataset. Dataset tăng từ 400 lên 600 mẫu nên
 số optimizer step tăng từ 200 lên 300; checkpoint nằm ở cuối mỗi lượt, step 150
@@ -567,9 +567,13 @@ hồi. Runner thay thế dùng detached mode và ghi checkpoint Trainer trực t
 Volume. Project owner đã duyệt một lượt train + development thay thế với trần
 bổ sung 2,60 USD và run ID cố định. Modal preempt lượt thay thế ở step 68 rồi
 khởi động lại cùng input; guard cũ từ chối state đã tồn tại. Lượt này tốn
-0,45206372 USD metered cost và không giữ được adapter. Authorization hiện bị
-khóa. Runner mới chỉ resume đúng cùng Modal input ID, lưu đầy đủ optimizer state
-mỗi 25 step và vẫn chốt candidate ở step 150/300. Final holdout v2 vẫn đóng.
+0,45206372 USD metered cost và không giữ được adapter. Runner mới chỉ resume
+đúng cùng Modal input ID, lưu đầy đủ optimizer state mỗi 25 step, chốt candidate
+ở step 150/300 và lưu dần development mỗi 10 ca. Project owner đã duyệt lượt
+thứ ba với run train `sft-candidate-v3-train-20261014c`, run development
+`sft-candidate-v3-development-20261014c` và trần bổ sung 2,60 USD. Không có
+project automatic retry; cơ chế tiếp tục chỉ áp dụng khi Modal khởi động lại
+đúng cùng input. Final holdout v2 vẫn đóng.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.
