@@ -565,7 +565,11 @@ hạn và Modal hủy input remote. Run không OOM/NaN nhưng chưa kịp chép 
 step 150 khỏi thư mục tạm, nên không giữ được adapter. Authorization đã được thu
 hồi. Runner thay thế dùng detached mode và ghi checkpoint Trainer trực tiếp vào
 Volume. Project owner đã duyệt một lượt train + development thay thế với trần
-bổ sung 2,60 USD và run ID cố định. Final holdout v2 vẫn đóng.
+bổ sung 2,60 USD và run ID cố định. Modal preempt lượt thay thế ở step 68 rồi
+khởi động lại cùng input; guard cũ từ chối state đã tồn tại. Lượt này tốn
+0,45206372 USD metered cost và không giữ được adapter. Authorization hiện bị
+khóa. Runner mới chỉ resume đúng cùng Modal input ID, lưu đầy đủ optimizer state
+mỗi 25 step và vẫn chốt candidate ở step 150/300. Final holdout v2 vẫn đóng.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

@@ -522,4 +522,8 @@ Modal CLI local và dịch vụ hết hạn, khiến input remote bị hủy. Kh
 nhưng không có adapter nào được giữ lại. Runner đã được gia cố để dùng
 `modal run --detach` và ghi checkpoint Trainer định kỳ trực tiếp vào Modal
 Volume. Project owner đã duyệt riêng một lượt thay thế train + development với
-trần bổ sung 2,60 USD; chỉ hai run ID khóa trong manifest được phép chạy.
+trần bổ sung 2,60 USD. Lượt thay thế bị Modal preempt ở step 68; cùng input được
+khởi động lại nhưng runner cũ từ chối state đã tồn tại. Chi phí metered là
+0,45206372 USD và không có adapter. Authorization đã bị khóa lại. Runner hiện
+nhận diện cùng Modal input ID, giữ optimizer state và checkpoint phục hồi mỗi 25
+step; chưa có lượt GPU mới nào được phép chạy.

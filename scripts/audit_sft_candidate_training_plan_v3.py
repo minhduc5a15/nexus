@@ -16,6 +16,7 @@ from scripts.eval_proposals import ACTION_TO_TOOL, load_cases, strict_json
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
 ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3.json"
+REPLACEMENT_ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3_replacement.json"
 REPLACEMENT_AUTHORIZATION = ROOT / "evals/sft_candidate_training_replacement_v3.json"
 
 
@@ -80,6 +81,9 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(expected_steps == training.get("maximum_steps") == 300, "Optimizer-step arithmetic changed")
     _require(training.get("optimizer_steps_per_epoch") == 150, "Epoch checkpoint changed")
     _require(training.get("save_steps") == [150, 300], "Checkpoint schedule changed")
+    _require(training.get("recovery_checkpoint_interval_steps") == 25, "Recovery checkpoint interval changed")
+    _require(training.get("recovery_checkpoint_retention") == 1, "Recovery checkpoint retention changed")
+    _require(training.get("resume_scope") == "same_modal_input_id_only", "Recovery scope changed")
     _require(training.get("warmup_steps") == 15, "Warmup ratio changed")
     _require(training.get("automatic_retry") is False, "Automatic retry must remain disabled")
     probe = _probe_balance(plan, dataset)
@@ -108,7 +112,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "authorized_for_one_detached_replacement_run", "Runner status changed")
+    _require(execution.get("runner_status") == "blocked_after_preempted_replacement_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
     authorized_runs = {
         "train": "sft-candidate-v3-train-20261014b",
@@ -145,22 +149,63 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is True, "Replacement training must be authorized")
+    _require(plan.get("training_authorized") is False, "Consumed replacement must block training")
     _require(
         plan.get("authorization_basis")
-        == "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
+        == "The authorized detached replacement was consumed by sft-candidate-v3-train-20261014b and interrupted by provider preemption before a recovery checkpoint.",
         "Training authorization basis changed",
     )
-    _require(plan.get("next_gate") == "run_detached_replacement_train_then_development_once_without_automatic_retry", "Unexpected next gate")
+    _require(plan.get("next_gate") == "implement_and_review_same_input_reentrant_training_before_any_new_paid_run", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
     replacement = load_json(REPLACEMENT_AUTHORIZATION)
-    _require(replacement.get("status") == "authorized", "Replacement authorization status changed")
+    _require(replacement.get("status") == "consumed", "Replacement authorization status changed")
     _require(replacement.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
     _require(replacement.get("additional_cost_cap_usd") == 2.6, "Replacement authorization cap changed")
     _require(replacement.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
     _require(replacement.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
     _require(replacement.get("scope", {}).get("final_holdout_v2_inference") is False, "Replacement must not authorize final holdout")
-    _require(replacement.get("consumed") is False, "Replacement authorization was already consumed")
+    _require(replacement.get("consumed") is True, "Replacement authorization was not consumed")
+    replacement_attempt = load_json(REPLACEMENT_ATTEMPT)
+    _require(replacement_attempt.get("status") == "interrupted", "Replacement attempt status changed")
+    _require(replacement_attempt.get("run_id") == authorized_runs["train"], "Replacement attempt run ID changed")
+    _require(
+        replacement_attempt.get("authorized_manifest_sha256")
+        == "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669",
+        "Replacement attempt manifest provenance changed",
+    )
+    replacement_progress = replacement_attempt.get("observed_progress", {})
+    _require(replacement_progress.get("last_logged_optimizer_step") == 68, "Replacement progress changed")
+    _require(replacement_progress.get("provider_preemption_observed") is True, "Provider preemption record changed")
+    _require(replacement_progress.get("restart_rejected_by_existing_state_guard") is True, "Restart failure record changed")
+    _require(replacement_progress.get("retained_adapter_paths") == [], "Unexpected retained replacement adapter")
+    replacement_cost = replacement_attempt.get("cost", {})
+    _require(
+        math.isclose(
+            replacement_cost.get("modal_app_metered_cost_usd", -1),
+            0.45206372,
+            abs_tol=1e-12,
+        ),
+        "Replacement metered cost changed",
+    )
+    _require(
+        math.isclose(
+            sum(replacement_cost.get("modal_app_metered_breakdown_usd", {}).values()),
+            replacement_cost.get("modal_app_metered_cost_usd", -1),
+            abs_tol=1e-12,
+        ),
+        "Replacement cost breakdown is inconsistent",
+    )
+    replacement_gates = replacement_attempt.get("gates", {})
+    _require(replacement_gates.get("replacement_authorization_consumed") is True, "Replacement authorization consumption changed")
+    _require(replacement_gates.get("third_run_authorized") is False, "Third run must remain blocked")
+    _require(replacement_gates.get("final_holdout_v2_inference_authorized") is False, "Final holdout must remain closed")
+    replacement_raw_state = ROOT / "evals/results/sft-candidate-v3-train-20261014b/sft-candidate-v3/train-state.json"
+    if replacement_raw_state.is_file():
+        _require(
+            replacement_attempt["state"]["raw_state_sha256"]
+            == sha256(replacement_raw_state),
+            "Replacement raw state hash mismatch",
+        )
     attempt = load_json(ATTEMPT)
     _require(attempt.get("status") == "interrupted", "Training attempt status changed")
     _require(attempt.get("run_id") == "sft-candidate-v3-train-20261014a", "Training attempt run ID changed")
@@ -198,7 +243,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": True,
+        "training_authorized": False,
         "authorized_run_ids": authorized_runs,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
@@ -214,6 +259,21 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
             "authorization_id": replacement["authorization_id"],
             "additional_cost_cap_usd": replacement["additional_cost_cap_usd"],
             "consumed": replacement["consumed"],
+            "attempt": {
+                "status": replacement_attempt["status"],
+                "last_logged_optimizer_step": replacement_progress[
+                    "last_logged_optimizer_step"
+                ],
+                "metered_cost_usd": replacement_cost[
+                    "modal_app_metered_cost_usd"
+                ],
+                "retained_adapters": len(
+                    replacement_progress["retained_adapter_paths"]
+                ),
+                "third_run_authorized": replacement_gates[
+                    "third_run_authorized"
+                ],
+            },
         },
     }
 

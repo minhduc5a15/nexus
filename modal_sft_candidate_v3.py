@@ -10,7 +10,6 @@ import math
 from pathlib import Path
 import random
 import re
-import shutil
 import sys
 import time
 from typing import Any
@@ -19,7 +18,7 @@ import modal
 
 APP_NAME = "nexus-sft-candidate-v3"
 PROTOCOL_ID = "nexus-sft-qlora-candidate-v3"
-MANIFEST_SHA256 = "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669"
+MANIFEST_SHA256 = "2d8c1ea2451b7b68dc67c684cbf376d5f5e2363e278c66b58b7c8d61ddbfad3a"
 MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 MODEL_REVISION = "cdbee75f17c01a7cc42f958dc650907174af0554"
 CANDIDATE_SHA256 = "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7"
@@ -121,6 +120,90 @@ def _safe_run_id(run_id: str) -> str:
 
 def _output(run_id: str) -> Path:
     return Path("/results") / _safe_run_id(run_id) / "sft-candidate-v3"
+
+
+def _latest_trainer_checkpoint(path: Path) -> Path | None:
+    checkpoints: list[tuple[int, Path]] = []
+    if path.is_dir():
+        for candidate in path.iterdir():
+            match = re.fullmatch(r"checkpoint-(\d+)", candidate.name)
+            if (
+                candidate.is_dir()
+                and match
+                and (candidate / ".nexus-complete").is_file()
+            ):
+                checkpoints.append((int(match.group(1)), candidate))
+    return max(checkpoints, default=(0, None), key=lambda item: item[0])[1]
+
+
+def _prepare_train_state(
+    output: Path,
+    *,
+    modal_input_id: str,
+    now: str | None = None,
+) -> tuple[Path, dict[str, Any], Path | None]:
+    report_path = output / "train.json"
+    state_path = output / "train-state.json"
+    if report_path.exists():
+        raise FileExistsError(f"Completed candidate artifacts already exist in {output}")
+    timestamp = now or datetime.now(timezone.utc).isoformat()
+    trainer_output = output / "trainer-checkpoints"
+    checkpoint = _latest_trainer_checkpoint(trainer_output)
+    if (
+        checkpoint is not None
+        and (checkpoint / ".nexus-complete").read_text(encoding="utf-8").strip()
+        != modal_input_id
+    ):
+        raise FileExistsError("Recovery checkpoint belongs to another Modal input")
+    if not state_path.exists():
+        state = {
+            "status": "running",
+            "started_at": timestamp,
+            "modal_input_id": modal_input_id,
+            "resume_count": 0,
+            "interruptions": [],
+        }
+        return state_path, state, checkpoint
+
+    previous = json.loads(state_path.read_text(encoding="utf-8"))
+    if previous.get("modal_input_id") != modal_input_id:
+        raise FileExistsError(
+            "Refusing to reuse candidate state from a different Modal input"
+        )
+    if previous.get("status") not in {"running", "interrupted"}:
+        raise RuntimeError("Candidate state cannot be resumed")
+    interruptions = list(previous.get("interruptions", []))
+    if previous.get("error"):
+        interruptions.append(
+            {
+                "finished_at": previous.get("finished_at"),
+                "error": previous["error"],
+            }
+        )
+    state = {
+        "status": "running",
+        "started_at": previous.get("started_at", timestamp),
+        "modal_input_id": modal_input_id,
+        "resume_count": int(previous.get("resume_count", 0)) + 1,
+        "resumed_at": timestamp,
+        "interruptions": interruptions,
+        "last_recovery_checkpoint": (
+            checkpoint.name if checkpoint is not None else None
+        ),
+    }
+    return state_path, state, checkpoint
+
+
+def _train_result_summary(report: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "report": report["report_path"],
+        "training": report["training"],
+        "teacher_forced_before": report["teacher_forced_before"],
+        "teacher_forced_after": report["teacher_forced_after"],
+        "adapters": report["adapters"],
+        "gates": report["gates"],
+        "state": report["state"],
+    }
 
 
 def _file_sha256(path: Path) -> str:
@@ -442,26 +525,53 @@ def run_train(run_id: str) -> dict[str, Any]:
     class CommitCheckpointCallback(TrainerCallback):
         """Publish each completed Trainer checkpoint to the attached Volume."""
 
+        def __init__(self, state_path, run_state, tokenizer, epoch_one_dir):
+            self.state_path = state_path
+            self.run_state = run_state
+            self.tokenizer = tokenizer
+            self.epoch_one_dir = epoch_one_dir
+
         def on_save(self, args, state, control, **kwargs):
+            checkpoint = Path(args.output_dir) / f"checkpoint-{state.global_step}"
+            if state.global_step == 150 and not self.epoch_one_dir.exists():
+                kwargs["model"].save_pretrained(self.epoch_one_dir)
+                self.tokenizer.save_pretrained(self.epoch_one_dir)
+            (checkpoint / ".nexus-complete").write_text(
+                self.run_state["modal_input_id"] + "\n", encoding="utf-8"
+            )
+            self.run_state["last_recovery_checkpoint"] = checkpoint.name
+            self.run_state["last_checkpoint_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
+            _write_json(self.state_path, self.run_state)
             result_volume.commit()
             return control
 
     run_id = _safe_run_id(run_id)
+    manifest = _manifest()
+    if manifest.get("training_authorized") is not True:
+        raise PermissionError("Candidate training budget has not been authorized")
+    expected_run_id = manifest["execution"]["authorized_run_ids"]["train"]
+    if run_id != expected_run_id:
+        raise PermissionError(f"Training is authorized only for {expected_run_id}")
+    result_volume.reload()
     output = _output(run_id)
     report_path = output / "train.json"
-    state_path = output / "train-state.json"
-    if report_path.exists() or state_path.exists():
-        raise FileExistsError(f"Refusing to overwrite candidate artifacts for {run_id}")
+    modal_input_id = modal.current_input_id()
+    if report_path.is_file():
+        completed_report = json.loads(report_path.read_text(encoding="utf-8"))
+        if completed_report.get("state", {}).get("modal_input_id") != modal_input_id:
+            raise FileExistsError(
+                "Refusing to reuse completed candidate artifacts from another Modal input"
+            )
+        return _train_result_summary(completed_report)
     output.mkdir(parents=True, exist_ok=True)
-    state = {"status": "running", "started_at": datetime.now(timezone.utc).isoformat()}
+    state_path, state, resume_checkpoint = _prepare_train_state(
+        output, modal_input_id=modal_input_id
+    )
     _write_json(state_path, state)
+    result_volume.commit()
     try:
-        manifest = _manifest()
-        if manifest.get("training_authorized") is not True:
-            raise PermissionError("Candidate training budget has not been authorized")
-        expected_run_id = manifest["execution"]["authorized_run_ids"]["train"]
-        if run_id != expected_run_id:
-            raise PermissionError(f"Training is authorized only for {expected_run_id}")
         _set_seed(manifest["training"]["seed"])
         tokenizer, rows = _load_training_rows(manifest)
         rows_by_id = {row["id"]: row for row in rows}
@@ -482,6 +592,7 @@ def run_train(run_id: str) -> dict[str, Any]:
         )
         training = manifest["training"]
         trainer_output = output / "trainer-checkpoints"
+        epoch_one_dir = output / "adapter-step-150"
         args = SFTConfig(
             output_dir=str(trainer_output),
             max_steps=training["maximum_steps"],
@@ -494,9 +605,9 @@ def run_train(run_id: str) -> dict[str, Any]:
             weight_decay=training["weight_decay"],
             logging_steps=1,
             save_strategy="steps",
-            save_steps=training["save_steps"][0],
-            save_total_limit=len(training["save_steps"]),
-            save_only_model=True,
+            save_steps=training["recovery_checkpoint_interval_steps"],
+            save_total_limit=training["recovery_checkpoint_retention"],
+            save_only_model=False,
             report_to="none",
             fp16=False,
             bf16=False,
@@ -514,19 +625,23 @@ def run_train(run_id: str) -> dict[str, Any]:
             train_dataset=dataset,
             processing_class=tokenizer,
             data_collator=lambda features: _collate(features, tokenizer.pad_token_id),
-            callbacks=[CommitCheckpointCallback()],
+            callbacks=[
+                CommitCheckpointCallback(
+                    state_path, state, tokenizer, epoch_one_dir
+                )
+            ],
         )
-        train_result = trainer.train()
+        train_result = trainer.train(
+            resume_from_checkpoint=(
+                str(resume_checkpoint) if resume_checkpoint is not None else None
+            )
+        )
         after = _teacher_forced_metrics(model, probe_rows)
         final_hash = _adapter_state_sha256(model)
-        epoch_one_source = trainer_output / "checkpoint-150"
-        if not epoch_one_source.is_dir():
+        if not epoch_one_dir.is_dir():
             raise RuntimeError("Trainer did not save the step-150 adapter")
-        epoch_one_dir = output / "adapter-step-150"
         epoch_two_dir = output / "adapter-step-300"
-        shutil.copytree(epoch_one_source, epoch_one_dir)
         trainer.save_model(str(epoch_two_dir))
-        tokenizer.save_pretrained(epoch_one_dir)
         tokenizer.save_pretrained(epoch_two_dir)
         directory_hashes = {
             "step-150": _directory_sha256(epoch_one_dir),
@@ -564,7 +679,6 @@ def run_train(run_id: str) -> dict[str, Any]:
             del reloaded, reloaded_base
             gc.collect()
             torch.cuda.empty_cache()
-        shutil.rmtree(trainer_output)
         gates = {
             "training_dataset_complete": len(rows) == manifest["dataset"]["count"],
             "only_lora_parameters_trainable": parameters["only_lora_trainable"],
@@ -574,6 +688,10 @@ def run_train(run_id: str) -> dict[str, Any]:
             "adapter_hash_changed": initial_hash != final_hash,
             "epoch_one_adapter_saved": epoch_one_dir.is_dir(),
             "epoch_two_adapter_saved": epoch_two_dir.is_dir(),
+            "recovery_checkpoint_saved": _latest_trainer_checkpoint(
+                trainer_output
+            )
+            is not None,
             "final_adapter_reloaded_identically": final_hash
             == reloaded_hashes["step-300"],
         }
@@ -587,6 +705,7 @@ def run_train(run_id: str) -> dict[str, Any]:
             "protocol_id": PROTOCOL_ID,
             "run_id": run_id,
             "stage": "train",
+            "report_path": str(report_path),
             "model": manifest["model"],
             "dataset": manifest["dataset"],
             "configuration": {
@@ -600,6 +719,10 @@ def run_train(run_id: str) -> dict[str, Any]:
                 "runtime_seconds": float(
                     train_result.metrics.get("train_runtime", 0.0)
                 ),
+                "resume_count": state["resume_count"],
+                "recovery_checkpoint_interval_steps": training[
+                    "recovery_checkpoint_interval_steps"
+                ],
                 "loss_history": loss_history,
             },
             "teacher_forced_before": before,
@@ -629,15 +752,7 @@ def run_train(run_id: str) -> dict[str, Any]:
         _write_json(report_path, report)
         _write_json(state_path, state)
         result_volume.commit()
-        return {
-            "report": str(report_path),
-            "training": report["training"],
-            "teacher_forced_before": before,
-            "teacher_forced_after": after,
-            "adapters": report["adapters"],
-            "gates": gates,
-            "state": state,
-        }
+        return _train_result_summary(report)
     except BaseException as error:
         state.update(
             status="interrupted",

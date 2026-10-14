@@ -1,4 +1,4 @@
-"""Validate the authorized replacement SFT candidate v3 protocol and artifacts."""
+"""Validate the blocked, reentrant SFT candidate v3 protocol and artifacts."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from scripts.score_sft_generation import summarize_proposal_texts
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "evals/sft_candidate_training_plan_v3.json"
 RUNNER = ROOT / "modal_sft_candidate_v3.py"
-EXPECTED_MANIFEST_SHA256 = "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669"
+EXPECTED_MANIFEST_SHA256 = "2d8c1ea2451b7b68dc67c684cbf376d5f5e2363e278c66b58b7c8d61ddbfad3a"
 EXPECTED_MODEL = {
     "id": "Qwen/Qwen3-4B-Instruct-2507",
     "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
@@ -183,6 +183,9 @@ def validate_protocol(
     _require(training.get("effective_batch_size") == 4, "Effective batch size changed")
     _require(training.get("maximum_steps") == 300, "Optimizer step count changed")
     _require(training.get("save_steps") == [150, 300], "Checkpoint schedule changed")
+    _require(training.get("recovery_checkpoint_interval_steps") == 25, "Recovery checkpoint interval changed")
+    _require(training.get("recovery_checkpoint_retention") == 1, "Recovery checkpoint retention changed")
+    _require(training.get("resume_scope") == "same_modal_input_id_only", "Recovery resume scope changed")
     expected_steps = (
         training["dataset_passes"] * dataset_spec["count"]
         // training["effective_batch_size"]
@@ -211,22 +214,23 @@ def validate_protocol(
         "Replacement authorization hash changed",
     )
     authorization = load_json(authorization_path)
-    _require(authorization.get("status") == "authorized", "Replacement run is not authorized")
+    _require(authorization.get("status") == "consumed", "Replacement authorization status changed")
     _require(authorization.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
     _require(authorization.get("additional_cost_cap_usd") == 2.6, "Replacement cost cap changed")
     _require(authorization.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
     _require(authorization.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
     _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Replacement authorizes final holdout")
+    _require(authorization.get("consumed") is True, "Replacement authorization was not consumed")
     budget = manifest.get("budget", {})
     _require(math.isclose(maximum_seconds * budget.get("t4_usd_per_second", -1), budget.get("maximum_gpu_usd", -1), abs_tol=1e-9), "GPU cost arithmetic changed")
     _require(budget.get("requested_total_cost_cap_usd") == 2.6, "Requested total cost cap changed")
     _require(budget["requested_total_cost_cap_usd"] > budget["maximum_compute_usd"], "Total cost cap must exceed the compute ceiling")
     _require(budget.get("pricing_checked_on") == "2026-10-14", "Pricing verification date changed")
 
-    _require(manifest.get("training_authorized") is True, "Replacement training budget is not authorized")
+    _require(manifest.get("training_authorized") is False, "Consumed replacement must block training")
     _require(
         manifest.get("authorization_basis")
-        == "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
+        == "The authorized detached replacement was consumed by sft-candidate-v3-train-20261014b and interrupted by provider preemption before a recovery checkpoint.",
         "Candidate training authorization basis changed",
     )
     scope = manifest.get("scope", {})
@@ -284,9 +288,13 @@ def validate_protocol(
     _require("if not protocol[\"training_authorized\"]" in runner_text, "Local training authorization guard missing")
     _require(
         'trainer_output = output / "trainer-checkpoints"' in runner_text
-        and "callbacks=[CommitCheckpointCallback()]" in runner_text
+        and "CommitCheckpointCallback(" in runner_text
+        and "modal.current_input_id()" in runner_text
+        and "resume_from_checkpoint=" in runner_text
+        and "save_only_model=False" in runner_text
+        and 'checkpoint / ".nexus-complete"' in runner_text
         and 'output_dir=f"/tmp/nexus-sft-candidate-v3-' not in runner_text,
-        "Durable checkpoint path or commit callback missing",
+        "Reentrant checkpoint contract missing",
     )
     defaults = [ast.literal_eval(value) for value in _function(tree, "main").args.defaults]
     _require(defaults and defaults[0] == "preflight", "Runner default stage must be preflight")
@@ -305,7 +313,7 @@ def validate_protocol(
         "maximum_planned_gpu_seconds": maximum_seconds,
         "maximum_planned_gpu_cost_usd": budget["maximum_gpu_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": True,
+        "training_authorized": False,
         "authorized_run_ids": authorized_runs,
         "final_holdout_inference": False,
     }

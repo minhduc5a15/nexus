@@ -364,8 +364,10 @@ kiểm tra assistant-only loss mask. `37_sft_candidate_v3_training_plan.sh` audi
 cấu hình 300 optimizer step cùng phép tính trần Modal 2,60 USD. Cả hai đều
 offline. Run đầu được duyệt ngày 14/10/2026 đã bị heartbeat local hủy ở step
 184. Project owner đã duyệt một lượt thay thế với trần bổ sung 2,60 USD và hai
-run ID cố định trong manifest. Hai stage dài chạy với `modal run --detach`;
-checkpoint Trainer được ghi thẳng vào Volume và commit sau mỗi lần save:
+run ID cố định trong manifest. Lượt thay thế bị preempt ở step 68 và đã tiêu thụ
+authorization; các stage trả phí lại bị khóa. Runner hiện hỗ trợ resume đúng
+cùng Modal input ID, giữ một checkpoint phục hồi mỗi 25 step trên Volume và lưu
+candidate riêng ở step 150/300. Hai stage dài dùng `modal run --detach`:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens

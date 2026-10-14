@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "attempt_id": "nexus-sft-candidate-v3-train-20261014b",
+  "run_id": "sft-candidate-v3-train-20261014b",
+  "protocol_id": "nexus-sft-qlora-candidate-v3",
+  "status": "interrupted",
+  "authorized_commit": "372fabf",
+  "authorized_manifest_sha256": "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669",
+  "runner_sha256": "940e8c4614a9dfd4bb2f543b89af4aa8aa083990fadd1439ee6d47932a71f92e",
+  "modal_app_id": "ap-x6pHvZbKx0IyeXZz0gMJfX",
+  "state": {
+    "started_at": "2026-10-14T03:39:18.584471+00:00",
+    "finished_at": "2026-10-14T04:08:19.891945+00:00",
+    "elapsed_seconds": 1741.307474,
+    "error_type": "KeyboardInterrupt",
+    "error_message": "",
+    "raw_state_sha256": "8065c964184396d0a6e62faa1db2c3e1e7b379c5a0623faf6b18040471040b9d"
+  },
+  "observed_progress": {
+    "last_logged_optimizer_step": 68,
+    "planned_optimizer_steps": 300,
+    "provider_preemption_observed": true,
+    "provider_restarted_same_input": true,
+    "restart_rejected_by_existing_state_guard": true,
+    "retained_adapter_paths": [],
+    "retained_recovery_checkpoints": [],
+    "train_report_written": false
+  },
+  "failure_analysis": {
+    "terminal_trigger": "Modal preempted the T4 and restarted the same input; the runner treated its own persisted state as an overwrite attempt.",
+    "model_or_data_failure": false,
+    "nan_or_oom_observed": false,
+    "detached_transport_worked": true,
+    "required_architecture_change": "Bind persisted state to modal.current_input_id(), save resumable Trainer checkpoints on the Volume more frequently, and resume only the same input."
+  },
+  "cost": {
+    "billing_checked_on": "2026-10-14",
+    "modal_app_metered_cost_usd": 0.45206372,
+    "modal_app_metered_breakdown_usd": {
+      "t4": 0.32515659,
+      "cpu": 0.05529775,
+      "memory": 0.07160911,
+      "network_egress": 2.7e-7
+    },
+    "workspace_credit_allocation_per_app_known": false,
+    "billing_source": "modal billing report filtered by modal_app_id at hourly resolution"
+  },
+  "gates": {
+    "replacement_authorization_consumed": true,
+    "project_automatic_retry_performed": false,
+    "third_run_authorized": false,
+    "development_authorized": false,
+    "final_holdout_v2_inference_authorized": false
+  },
+  "next_gate": "implement_and_review_same_input_reentrant_training_before_any_new_paid_run"
+}

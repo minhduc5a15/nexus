@@ -75,6 +75,9 @@
       150,
       300
     ],
+    "recovery_checkpoint_interval_steps": 25,
+    "recovery_checkpoint_retention": 1,
+    "resume_scope": "same_modal_input_id_only",
     "teacher_forced_probe_ids": [
       "sft_create_delimited",
       "sft_create_blank_line",
@@ -166,14 +169,14 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "authorized_for_one_detached_replacement_run",
+    "runner_status": "blocked_after_preempted_replacement_run",
     "runner_path": "modal_sft_candidate_v3.py",
     "authorized_run_ids": {
       "train": "sft-candidate-v3-train-20261014b",
       "development": "sft-candidate-v3-development-20261014b"
     },
     "replacement_authorization_path": "evals/sft_candidate_training_replacement_v3.json",
-    "replacement_authorization_sha256": "b5015de5e9fe46521209bf2ad94812092dd2f6a5464ce4c5396a57b9eccf87bc"
+    "replacement_authorization_sha256": "0db5c3517f162bcc0f0123d4043d885e27eaa89c51ec1dbd1a64836cf7a50928"
   },
   "budget": {
     "pricing_source": "https://modal.com/pricing",
@@ -196,7 +199,7 @@
     "gguf_export": false,
     "deployment_rollout": false
   },
-  "training_authorized": true,
-  "authorization_basis": "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
-  "next_gate": "run_detached_replacement_train_then_development_once_without_automatic_retry"
+  "training_authorized": false,
+  "authorization_basis": "The authorized detached replacement was consumed by sft-candidate-v3-train-20261014b and interrupted by provider preemption before a recovery checkpoint.",
+  "next_gate": "implement_and_review_same_input_reentrant_training_before_any_new_paid_run"
 }
