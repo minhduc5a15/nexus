@@ -25,7 +25,14 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertEqual(summary["probe_balance"], {"call": 28, "clarify": 7, "no_action": 5})
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
         self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertTrue(summary["training_authorized"])
+        self.assertEqual(
+            summary["authorized_run_ids"],
+            {
+                "train": "sft-candidate-v3-train-20261014b",
+                "development": "sft-candidate-v3-development-20261014b",
+            },
+        )
         self.assertFalse(summary["final_holdout_inference"])
 
     def test_runner_has_two_independent_authorization_guards(self):
@@ -60,7 +67,7 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         original = protocol.RUNNER.read_text(encoding="utf-8")
         variants = (
             (
-                original.replace('if manifest.get("training_authorized") is not True:', "if False:", 1),
+                original.replace('if manifest.get("training_authorized") is not True:', "if False:"),
                 "Remote training authorization",
             ),
             (

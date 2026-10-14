@@ -519,7 +519,7 @@ suffix assistant. Protocol QLoRA v3 hiện là bản đề xuất offline: 300 o
 step, checkpoint 150/300, Modal T4 và trần xin phép 2,60 USD. Run được duyệt
 ngày 14/10/2026 đã bị gián đoạn ở step 184/300 do heartbeat giữa
 Modal CLI local và dịch vụ hết hạn, khiến input remote bị hủy. Không có NaN/OOM,
-nhưng không có adapter nào được giữ lại. Authorization đã được thu hồi; mọi lượt
-thay thế phải được duyệt riêng. Runner đã được gia cố để dùng
+nhưng không có adapter nào được giữ lại. Runner đã được gia cố để dùng
 `modal run --detach` và ghi checkpoint Trainer định kỳ trực tiếp vào Modal
-Volume; thay đổi này chưa cấp quyền chạy GPU mới.
+Volume. Project owner đã duyệt riêng một lượt thay thế train + development với
+trần bổ sung 2,60 USD; chỉ hai run ID khóa trong manifest được phép chạy.

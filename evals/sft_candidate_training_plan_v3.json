@@ -166,8 +166,14 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "blocked_after_interrupted_authorized_run",
-    "runner_path": "modal_sft_candidate_v3.py"
+    "runner_status": "authorized_for_one_detached_replacement_run",
+    "runner_path": "modal_sft_candidate_v3.py",
+    "authorized_run_ids": {
+      "train": "sft-candidate-v3-train-20261014b",
+      "development": "sft-candidate-v3-development-20261014b"
+    },
+    "replacement_authorization_path": "evals/sft_candidate_training_replacement_v3.json",
+    "replacement_authorization_sha256": "b5015de5e9fe46521209bf2ad94812092dd2f6a5464ce4c5396a57b9eccf87bc"
   },
   "budget": {
     "pricing_source": "https://modal.com/pricing",
@@ -190,7 +196,7 @@
     "gguf_export": false,
     "deployment_rollout": false
   },
-  "training_authorized": false,
-  "authorization_basis": "The one authorized run was consumed by sft-candidate-v3-train-20261014a and interrupted by local Modal heartbeat cancellation.",
-  "next_gate": "review_interruption_before_any_separately_authorized_detached_replacement_run"
+  "training_authorized": true,
+  "authorization_basis": "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
+  "next_gate": "run_detached_replacement_train_then_development_once_without_automatic_retry"
 }

@@ -19,7 +19,7 @@ import modal
 
 APP_NAME = "nexus-sft-candidate-v3"
 PROTOCOL_ID = "nexus-sft-qlora-candidate-v3"
-MANIFEST_SHA256 = "9a67e53900fe47eb0ab7fc27c1e9aff598676eb87e83a62829fe687ab71078da"
+MANIFEST_SHA256 = "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669"
 MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 MODEL_REVISION = "cdbee75f17c01a7cc42f958dc650907174af0554"
 CANDIDATE_SHA256 = "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7"
@@ -459,6 +459,9 @@ def run_train(run_id: str) -> dict[str, Any]:
         manifest = _manifest()
         if manifest.get("training_authorized") is not True:
             raise PermissionError("Candidate training budget has not been authorized")
+        expected_run_id = manifest["execution"]["authorized_run_ids"]["train"]
+        if run_id != expected_run_id:
+            raise PermissionError(f"Training is authorized only for {expected_run_id}")
         _set_seed(manifest["training"]["seed"])
         tokenizer, rows = _load_training_rows(manifest)
         rows_by_id = {row["id"]: row for row in rows}
@@ -739,6 +742,17 @@ def run_development(run_id: str, train_run_id: str) -> dict[str, Any]:
     _write_json(state_path, state)
     try:
         manifest = _manifest()
+        if manifest.get("training_authorized") is not True:
+            raise PermissionError("Candidate development budget has not been authorized")
+        authorized_runs = manifest["execution"]["authorized_run_ids"]
+        if run_id != authorized_runs["development"]:
+            raise PermissionError(
+                f"Development is authorized only for {authorized_runs['development']}"
+            )
+        if train_run_id != authorized_runs["train"]:
+            raise PermissionError(
+                f"Development may read only {authorized_runs['train']}"
+            )
         development_path = Path("/repo/evals/model_proposal_development_v1.json")
         if _file_sha256(development_path) != DEVELOPMENT_SHA256:
             raise RuntimeError("Frozen development dataset hash mismatch")
@@ -896,15 +910,18 @@ def main(stage: str = "preflight", run_id: str = "", train_run_id: str = ""):
         raise PermissionError(
             "Training is locked until the user approves the stated Modal budget"
         )
+    authorized_runs = protocol["authorized_run_ids"]
+    expected_run_id = authorized_runs[stage]
     if not run_id:
-        run_id = (
-            "sft-candidate-v3-"
-            + stage
-            + "-"
-            + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        )
+        run_id = expected_run_id
+    if run_id != expected_run_id:
+        raise PermissionError(f"{stage} is authorized only for {expected_run_id}")
     if stage == "development" and not train_run_id:
         raise ValueError("development requires --train-run-id from completed training")
+    if stage == "development" and train_run_id != authorized_runs["train"]:
+        raise PermissionError(
+            f"development may read only {authorized_runs['train']}"
+        )
     print("Run ID:", run_id)
     ready = ensure_model.remote()
     print("Locked base model ready:", json.dumps(ready, ensure_ascii=False))

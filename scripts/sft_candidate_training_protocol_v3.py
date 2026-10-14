@@ -1,4 +1,4 @@
-"""Validate the blocked 600-case SFT candidate v3 protocol and future artifacts."""
+"""Validate the authorized replacement SFT candidate v3 protocol and artifacts."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from scripts.score_sft_generation import summarize_proposal_texts
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "evals/sft_candidate_training_plan_v3.json"
 RUNNER = ROOT / "modal_sft_candidate_v3.py"
-EXPECTED_MANIFEST_SHA256 = "9a67e53900fe47eb0ab7fc27c1e9aff598676eb87e83a62829fe687ab71078da"
+EXPECTED_MANIFEST_SHA256 = "940ad04e5b39a4dc863ce3010ae8ca1e4259c3e3ce560c2c2f4c9765258e8669"
 EXPECTED_MODEL = {
     "id": "Qwen/Qwen3-4B-Instruct-2507",
     "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
@@ -196,16 +196,37 @@ def validate_protocol(
     development_timeout = execution.get("development_timeout_seconds")
     maximum_seconds = execution.get("maximum_planned_gpu_seconds")
     _require(train_timeout + development_timeout == maximum_seconds == 10200, "GPU timeout budget changed")
+    authorized_runs = execution.get("authorized_run_ids", {})
+    _require(
+        authorized_runs
+        == {
+            "train": "sft-candidate-v3-train-20261014b",
+            "development": "sft-candidate-v3-development-20261014b",
+        },
+        "Authorized replacement run IDs changed",
+    )
+    authorization_path = root / execution.get("replacement_authorization_path", "")
+    _require(
+        execution.get("replacement_authorization_sha256") == sha256(authorization_path),
+        "Replacement authorization hash changed",
+    )
+    authorization = load_json(authorization_path)
+    _require(authorization.get("status") == "authorized", "Replacement run is not authorized")
+    _require(authorization.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
+    _require(authorization.get("additional_cost_cap_usd") == 2.6, "Replacement cost cap changed")
+    _require(authorization.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
+    _require(authorization.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
+    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Replacement authorizes final holdout")
     budget = manifest.get("budget", {})
     _require(math.isclose(maximum_seconds * budget.get("t4_usd_per_second", -1), budget.get("maximum_gpu_usd", -1), abs_tol=1e-9), "GPU cost arithmetic changed")
     _require(budget.get("requested_total_cost_cap_usd") == 2.6, "Requested total cost cap changed")
     _require(budget["requested_total_cost_cap_usd"] > budget["maximum_compute_usd"], "Total cost cap must exceed the compute ceiling")
     _require(budget.get("pricing_checked_on") == "2026-10-14", "Pricing verification date changed")
 
-    _require(manifest.get("training_authorized") is False, "Consumed authorization must block training")
+    _require(manifest.get("training_authorized") is True, "Replacement training budget is not authorized")
     _require(
         manifest.get("authorization_basis")
-        == "The one authorized run was consumed by sft-candidate-v3-train-20261014a and interrupted by local Modal heartbeat cancellation.",
+        == "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
         "Candidate training authorization basis changed",
     )
     scope = manifest.get("scope", {})
@@ -256,7 +277,10 @@ def validate_protocol(
     _require(not any("holdout" in path.casefold() for path in training_paths + development_paths), "Runner image contains final holdout data")
     _require("evals/model_proposal_development_v1.json" in development_paths, "Development image is missing its locked dataset")
     runner_text = runner_path.read_text(encoding="utf-8")
-    _require("if manifest.get(\"training_authorized\") is not True" in runner_text, "Remote training authorization guard missing")
+    _require(
+        runner_text.count('if manifest.get("training_authorized") is not True') == 2,
+        "Remote training authorization guard missing",
+    )
     _require("if not protocol[\"training_authorized\"]" in runner_text, "Local training authorization guard missing")
     _require(
         'trainer_output = output / "trainer-checkpoints"' in runner_text
@@ -281,7 +305,8 @@ def validate_protocol(
         "maximum_planned_gpu_seconds": maximum_seconds,
         "maximum_planned_gpu_cost_usd": budget["maximum_gpu_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
+        "authorized_run_ids": authorized_runs,
         "final_holdout_inference": False,
     }
 

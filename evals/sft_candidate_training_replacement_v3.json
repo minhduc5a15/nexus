@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "authorization_id": "nexus-sft-candidate-v3-replacement-20261014b",
+  "approved_on": "2026-10-14",
+  "status": "authorized",
+  "reason": "Replace the interrupted authorized run after hardening transport and checkpoint persistence.",
+  "replaces_run_id": "sft-candidate-v3-train-20261014a",
+  "authorized_run_ids": {
+    "train": "sft-candidate-v3-train-20261014b",
+    "development": "sft-candidate-v3-development-20261014b"
+  },
+  "execution": {
+    "transport": "modal_run_detach",
+    "automatic_retry": false,
+    "train_from_scratch": true,
+    "durable_checkpoint_steps": [
+      150,
+      300
+    ]
+  },
+  "additional_cost_cap_usd": 2.6,
+  "scope": {
+    "train": true,
+    "development": true,
+    "final_holdout_v2_inference": false,
+    "gguf_export": false,
+    "deployment_rollout": false
+  },
+  "approval_basis": "Project owner explicitly replied 'Đồng ý' after reviewing the interrupted run, its 1.02082830 USD metered cost, the detached replacement design, and the additional 2.60 USD cap.",
+  "consumed": false
+}

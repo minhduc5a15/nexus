@@ -16,6 +16,7 @@ from scripts.eval_proposals import ACTION_TO_TOOL, load_cases, strict_json
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
 ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3.json"
+REPLACEMENT_AUTHORIZATION = ROOT / "evals/sft_candidate_training_replacement_v3.json"
 
 
 class TrainingPlanV3Error(ValueError):
@@ -107,8 +108,23 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "blocked_after_interrupted_authorized_run", "Runner status changed")
+    _require(execution.get("runner_status") == "authorized_for_one_detached_replacement_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
+    authorized_runs = {
+        "train": "sft-candidate-v3-train-20261014b",
+        "development": "sft-candidate-v3-development-20261014b",
+    }
+    _require(execution.get("authorized_run_ids") == authorized_runs, "Authorized run IDs changed")
+    _require(
+        execution.get("replacement_authorization_path")
+        == "evals/sft_candidate_training_replacement_v3.json",
+        "Replacement authorization path changed",
+    )
+    _require(
+        execution.get("replacement_authorization_sha256")
+        == sha256(REPLACEMENT_AUTHORIZATION),
+        "Replacement authorization hash changed",
+    )
 
     runtime = plan["runtime"]
     budget = plan["budget"]
@@ -129,14 +145,22 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is False, "Consumed authorization must block training")
+    _require(plan.get("training_authorized") is True, "Replacement training must be authorized")
     _require(
         plan.get("authorization_basis")
-        == "The one authorized run was consumed by sft-candidate-v3-train-20261014a and interrupted by local Modal heartbeat cancellation.",
+        == "Project owner explicitly approved one detached replacement train and development run with an additional 2.60 USD cap on 2026-10-14.",
         "Training authorization basis changed",
     )
-    _require(plan.get("next_gate") == "review_interruption_before_any_separately_authorized_detached_replacement_run", "Unexpected next gate")
+    _require(plan.get("next_gate") == "run_detached_replacement_train_then_development_once_without_automatic_retry", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
+    replacement = load_json(REPLACEMENT_AUTHORIZATION)
+    _require(replacement.get("status") == "authorized", "Replacement authorization status changed")
+    _require(replacement.get("authorized_run_ids") == authorized_runs, "Replacement authorization run IDs changed")
+    _require(replacement.get("additional_cost_cap_usd") == 2.6, "Replacement authorization cap changed")
+    _require(replacement.get("execution", {}).get("transport") == "modal_run_detach", "Replacement transport changed")
+    _require(replacement.get("execution", {}).get("automatic_retry") is False, "Replacement retry rule changed")
+    _require(replacement.get("scope", {}).get("final_holdout_v2_inference") is False, "Replacement must not authorize final holdout")
+    _require(replacement.get("consumed") is False, "Replacement authorization was already consumed")
     attempt = load_json(ATTEMPT)
     _require(attempt.get("status") == "interrupted", "Training attempt status changed")
     _require(attempt.get("run_id") == "sft-candidate-v3-train-20261014a", "Training attempt run ID changed")
@@ -174,7 +198,8 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
+        "authorized_run_ids": authorized_runs,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
         "attempt": {
@@ -183,7 +208,12 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
             "last_logged_optimizer_step": progress["last_logged_optimizer_step"],
             "retained_adapters": len(progress["retained_adapter_paths"]),
             "metered_cost_usd": cost["modal_app_metered_cost_usd"],
-            "replacement_run_authorized": gates["replacement_run_authorized"],
+            "replacement_run_authorized_at_interruption": gates["replacement_run_authorized"],
+        },
+        "replacement": {
+            "authorization_id": replacement["authorization_id"],
+            "additional_cost_cap_usd": replacement["additional_cost_cap_usd"],
+            "consumed": replacement["consumed"],
         },
     }
 
