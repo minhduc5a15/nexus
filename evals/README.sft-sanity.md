@@ -573,7 +573,12 @@ khởi động lại cùng input; guard cũ từ chối state đã tồn tại. 
 thứ ba với run train `sft-candidate-v3-train-20261014c`, run development
 `sft-candidate-v3-development-20261014c` và trần bổ sung 2,60 USD. Không có
 project automatic retry; cơ chế tiếp tục chỉ áp dụng khi Modal khởi động lại
-đúng cùng input. Final holdout v2 vẫn đóng.
+đúng cùng input. Lượt thứ ba đã ghi checkpoint recovery đầy đủ ở step 25 và log
+tới step 31. Sau đó operator gửi `Ctrl+C` để ngắt client local vì hiểu nhầm rằng
+detached sẽ giữ nguyên remote input; Modal gửi user cancellation tới input.
+Lượt này tốn 0,21459993 USD metered cost, không có checkpoint candidate 150/300
+và development chưa chạy. Tổng ba lượt thử là 1,68749195 USD metered cost. Mọi
+lượt trả phí mới bị khóa; final holdout v2 vẫn đóng.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

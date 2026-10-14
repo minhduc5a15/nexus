@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "attempt_id": "nexus-sft-candidate-v3-train-20261014c",
+  "run_id": "sft-candidate-v3-train-20261014c",
+  "protocol_id": "nexus-sft-qlora-candidate-v3",
+  "status": "interrupted",
+  "authorized_commit": "a71471c",
+  "authorized_manifest_sha256": "2174284d2e95bad9625dc26d23f5598991f96b2f127f4c991574392101608fe5",
+  "runner_sha256": "831a4661334a932c6baadb7051bba876250e41bed1b7720227cd484675dadaa5",
+  "modal_app_id": "ap-1AjewLLWmjyOua1yN9OrE1",
+  "modal_function_call_id": "fc-01M4WE97X04C1TXCTS0A72WS3G",
+  "modal_input_id": "in-01M4WE97X2S868S67G25JGMZV4:1791955869603-0",
+  "state": {
+    "started_at": "2026-10-14T05:31:22.481815+00:00",
+    "finished_at": "2026-10-14T05:45:18.768642+00:00",
+    "elapsed_seconds": 836.286827,
+    "error_type": "InputCancellation",
+    "error_message": "Input was cancelled by user",
+    "raw_state_sha256": "6c72a8c9bbf4c2a3e5f46db391f15a920267cd7bcb032c442b9cd5d2bb1ba6f1"
+  },
+  "observed_progress": {
+    "last_logged_optimizer_step": 31,
+    "last_durable_optimizer_step": 25,
+    "planned_optimizer_steps": 300,
+    "provider_preemption_observed": false,
+    "operator_cancellation_observed": true,
+    "retained_candidate_adapter_paths": [],
+    "retained_recovery_checkpoints": [
+      "trainer-checkpoints/checkpoint-25"
+    ],
+    "train_report_written": false,
+    "development_started": false
+  },
+  "failure_analysis": {
+    "terminal_trigger": "The operator sent Ctrl+C to the local Modal CLI after reading the detached-mode message; Modal subsequently delivered a user cancellation signal to the remote input.",
+    "model_or_data_failure": false,
+    "nan_or_oom_observed": false,
+    "recovery_checkpointing_worked": true,
+    "operator_error": true,
+    "lesson": "Do not send Ctrl+C to a detached local entrypoint while its remote call is active. Let the local entrypoint return naturally or use a separately deployed remote orchestration path."
+  },
+  "cost": {
+    "billing_checked_on": "2026-10-14",
+    "modal_app_metered_cost_usd": 0.21459993,
+    "modal_app_metered_breakdown_usd": {
+      "t4": 0.15274458,
+      "cpu": 0.02765049,
+      "memory": 0.03420447,
+      "network_egress": 3.9e-7
+    },
+    "prior_attempts_metered_cost_usd": 1.47289202,
+    "all_three_attempts_metered_cost_usd": 1.68749195,
+    "workspace_credit_allocation_per_app_known": false,
+    "billing_source": "modal billing report filtered by modal_app_id at hourly resolution"
+  },
+  "gates": {
+    "reentrant_authorization_consumed": true,
+    "project_automatic_retry_performed": false,
+    "new_run_authorized": false,
+    "development_authorized": false,
+    "final_holdout_v2_inference_authorized": false
+  },
+  "next_gate": "review_operator_cancellation_and_choose_a_launch_strategy_before_any_new_paid_run"
+}

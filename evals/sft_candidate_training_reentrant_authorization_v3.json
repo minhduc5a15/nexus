@@ -2,7 +2,7 @@
   "schema_version": 1,
   "authorization_id": "nexus-sft-candidate-v3-reentrant-20261014c",
   "approved_on": "2026-10-14",
-  "status": "authorized",
+  "status": "consumed",
   "reason": "Run the reviewed same-input reentrant trainer after the detached replacement was preempted.",
   "authorized_run_ids": {
     "train": "sft-candidate-v3-train-20261014c",
@@ -26,5 +26,10 @@
   },
   "prior_attempts_metered_cost_usd": 1.47289202,
   "approval_basis": "Project owner explicitly replied 'Đồng ý' after reviewing both interrupted attempts, the reentrant runner, the exact run IDs, and the additional 2.60 USD cap.",
-  "consumed": false
+  "consumed": true,
+  "consumed_by": {
+    "run_id": "sft-candidate-v3-train-20261014c",
+    "modal_app_id": "ap-1AjewLLWmjyOua1yN9OrE1",
+    "outcome": "interrupted_by_operator_cancellation_after_detached_client_was_stopped"
+  }
 }

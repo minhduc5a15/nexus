@@ -19,6 +19,7 @@ ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3.json"
 REPLACEMENT_ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3_replacement.json"
 REPLACEMENT_AUTHORIZATION = ROOT / "evals/sft_candidate_training_replacement_v3.json"
 ACTIVE_AUTHORIZATION = ROOT / "evals/sft_candidate_training_reentrant_authorization_v3.json"
+REENTRANT_ATTEMPT = ROOT / "evals/sft_candidate_training_attempt_v3_reentrant.json"
 
 
 class TrainingPlanV3Error(ValueError):
@@ -113,7 +114,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     gpu_seconds = execution.get("train_timeout_seconds") + execution.get("development_timeout_seconds")
     _require(gpu_seconds == execution.get("maximum_planned_gpu_seconds") == 10200, "GPU timeout arithmetic changed")
     _require(execution.get("automatic_retry") is False, "Execution retry changed")
-    _require(execution.get("runner_status") == "authorized_for_one_reentrant_train_and_development_run", "Runner status changed")
+    _require(execution.get("runner_status") == "blocked_after_operator_cancelled_reentrant_run", "Runner status changed")
     _require(execution.get("runner_path") == "modal_sft_candidate_v3.py", "Runner path changed")
     authorized_runs = {
         "train": "sft-candidate-v3-train-20261014c",
@@ -150,16 +151,16 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(math.isclose(gpu + cpu + memory, budget["maximum_compute_usd"], abs_tol=1e-12), "Total budget arithmetic changed")
     _require(budget["maximum_compute_usd"] < budget["requested_total_cost_cap_usd"] == 2.6, "Requested cap changed")
 
-    _require(plan.get("training_authorized") is True, "Reentrant training must be authorized")
+    _require(plan.get("training_authorized") is False, "Reentrant training must remain blocked")
     _require(
         plan.get("authorization_basis")
-        == "Project owner explicitly approved one same-input reentrant train and development run with an additional 2.60 USD cap on 2026-10-14.",
+        == "The authorized reentrant run was consumed by sft-candidate-v3-train-20261014c and interrupted when the operator cancelled the detached local entrypoint.",
         "Training authorization basis changed",
     )
-    _require(plan.get("next_gate") == "run_reentrant_train_then_development_once_without_project_automatic_retry", "Unexpected next gate")
+    _require(plan.get("next_gate") == "review_operator_cancellation_and_choose_a_launch_strategy_before_any_new_paid_run", "Unexpected next gate")
     _require(not any(plan.get("scope", {}).values()), "Draft scope must exclude external effects and rollout")
     active = load_json(ACTIVE_AUTHORIZATION)
-    _require(active.get("status") == "authorized", "Active authorization status changed")
+    _require(active.get("status") == "consumed", "Active authorization status changed")
     _require(active.get("authorized_run_ids") == authorized_runs, "Active authorization run IDs changed")
     _require(active.get("additional_cost_cap_usd") == 2.6, "Active authorization cap changed")
     _require(active.get("execution", {}).get("transport") == "modal_run_detach", "Active transport changed")
@@ -167,7 +168,41 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
     _require(active.get("execution", {}).get("provider_same_input_resume") is True, "Active provider resume rule changed")
     _require(active.get("execution", {}).get("recovery_checkpoint_interval_steps") == 25, "Active recovery interval changed")
     _require(active.get("scope", {}).get("final_holdout_v2_inference") is False, "Active authorization includes final holdout")
-    _require(active.get("consumed") is False, "Active authorization was already consumed")
+    _require(active.get("consumed") is True, "Active authorization was not consumed")
+    reentrant_attempt = load_json(REENTRANT_ATTEMPT)
+    _require(reentrant_attempt.get("status") == "interrupted", "Reentrant attempt status changed")
+    _require(reentrant_attempt.get("run_id") == authorized_runs["train"], "Reentrant attempt run ID changed")
+    _require(reentrant_attempt.get("authorized_commit") == "a71471c", "Reentrant attempt commit changed")
+    _require(
+        reentrant_attempt.get("authorized_manifest_sha256")
+        == "2174284d2e95bad9625dc26d23f5598991f96b2f127f4c991574392101608fe5",
+        "Reentrant attempt manifest provenance changed",
+    )
+    reentrant_progress = reentrant_attempt.get("observed_progress", {})
+    _require(reentrant_progress.get("last_logged_optimizer_step") == 31, "Reentrant logged progress changed")
+    _require(reentrant_progress.get("last_durable_optimizer_step") == 25, "Reentrant durable progress changed")
+    _require(reentrant_progress.get("operator_cancellation_observed") is True, "Operator cancellation record changed")
+    _require(reentrant_progress.get("retained_candidate_adapter_paths") == [], "Unexpected retained candidate adapter")
+    reentrant_cost = reentrant_attempt.get("cost", {})
+    _require(
+        math.isclose(reentrant_cost.get("modal_app_metered_cost_usd", -1), 0.21459993, abs_tol=1e-12),
+        "Reentrant metered cost changed",
+    )
+    _require(
+        math.isclose(
+            sum(reentrant_cost.get("modal_app_metered_breakdown_usd", {}).values()),
+            reentrant_cost.get("modal_app_metered_cost_usd", -1),
+            abs_tol=1e-12,
+        ),
+        "Reentrant cost breakdown is inconsistent",
+    )
+    _require(reentrant_attempt.get("gates", {}).get("new_run_authorized") is False, "A new paid run must remain blocked")
+    reentrant_raw_state = ROOT / "evals/results/sft-candidate-v3-train-20261014c/sft-candidate-v3/train-state.json"
+    if reentrant_raw_state.is_file():
+        _require(
+            reentrant_attempt["state"]["raw_state_sha256"] == sha256(reentrant_raw_state),
+            "Reentrant raw state hash mismatch",
+        )
     replacement_runs = {
         "train": "sft-candidate-v3-train-20261014b",
         "development": "sft-candidate-v3-development-20261014b",
@@ -258,7 +293,7 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
         "maximum_planned_gpu_seconds": gpu_seconds,
         "maximum_compute_usd": budget["maximum_compute_usd"],
         "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": True,
+        "training_authorized": False,
         "authorized_run_ids": authorized_runs,
         "final_holdout_v2_inference_authorized": False,
         "runner_authored": True,
@@ -294,6 +329,13 @@ def validate_plan(path: Path = PLAN) -> dict[str, Any]:
             "authorization_id": active["authorization_id"],
             "additional_cost_cap_usd": active["additional_cost_cap_usd"],
             "consumed": active["consumed"],
+        },
+        "reentrant_attempt": {
+            "status": reentrant_attempt["status"],
+            "last_logged_optimizer_step": reentrant_progress["last_logged_optimizer_step"],
+            "last_durable_optimizer_step": reentrant_progress["last_durable_optimizer_step"],
+            "metered_cost_usd": reentrant_cost["modal_app_metered_cost_usd"],
+            "candidate_adapters": len(reentrant_progress["retained_candidate_adapter_paths"]),
         },
     }
 

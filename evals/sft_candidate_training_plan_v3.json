@@ -169,14 +169,14 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "authorized_for_one_reentrant_train_and_development_run",
+    "runner_status": "blocked_after_operator_cancelled_reentrant_run",
     "runner_path": "modal_sft_candidate_v3.py",
     "authorized_run_ids": {
       "train": "sft-candidate-v3-train-20261014c",
       "development": "sft-candidate-v3-development-20261014c"
     },
     "active_authorization_path": "evals/sft_candidate_training_reentrant_authorization_v3.json",
-    "active_authorization_sha256": "87d8f419b2a6a78ff180eca180ad0ac90d52137e597119d7d44bdb6bc9ca8c0f"
+    "active_authorization_sha256": "4d24dc9a3e3b1095da710d20b85239f27945e4f53864cde94586a0686461bf4c"
   },
   "budget": {
     "pricing_source": "https://modal.com/pricing",
@@ -199,7 +199,7 @@
     "gguf_export": false,
     "deployment_rollout": false
   },
-  "training_authorized": true,
-  "authorization_basis": "Project owner explicitly approved one same-input reentrant train and development run with an additional 2.60 USD cap on 2026-10-14.",
-  "next_gate": "run_reentrant_train_then_development_once_without_project_automatic_retry"
+  "training_authorized": false,
+  "authorization_basis": "The authorized reentrant run was consumed by sft-candidate-v3-train-20261014c and interrupted when the operator cancelled the detached local entrypoint.",
+  "next_gate": "review_operator_cancellation_and_choose_a_launch_strategy_before_any_new_paid_run"
 }

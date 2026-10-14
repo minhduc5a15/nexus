@@ -529,4 +529,7 @@ hết. Runner hiện
 nhận diện cùng Modal input ID, giữ optimizer state và checkpoint phục hồi mỗi 25
 step; development cũng lưu kết quả mỗi 10 ca để cùng input có thể tiếp tục sau
 preemption. Project owner đã duyệt lượt thứ ba với hai run ID hậu tố
-`20261014c` và trần bổ sung 2,60 USD. Final holdout v2 vẫn đóng.
+`20261014c` và trần bổ sung 2,60 USD. Lượt này tạo được checkpoint recovery ở
+step 25 và chạy tới step 31, nhưng bị hủy khi operator gửi `Ctrl+C` cho Modal
+CLI đang detached. Chi phí metered là 0,21459993 USD; chưa có candidate. Mọi
+lượt trả phí tiếp theo bị khóa và final holdout v2 vẫn đóng.

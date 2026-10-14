@@ -366,14 +366,15 @@ offline. Run đầu được duyệt ngày 14/10/2026 đã bị heartbeat local 
 184. Project owner đã duyệt một lượt thay thế với trần bổ sung 2,60 USD và hai
 run ID cố định trong manifest. Lượt thay thế bị preempt ở step 68 và đã tiêu thụ
 authorization. Project owner đã duyệt lượt thứ ba với hai run ID hậu tố
-`20261014c` và trần bổ sung 2,60 USD. Runner hỗ trợ resume đúng cùng Modal input
-ID, giữ một checkpoint train mỗi 25 step trên Volume, lưu candidate riêng ở
-step 150/300 và lưu development mỗi 10 ca. Hai stage dài dùng
-`modal run --detach`:
+`20261014c` và trần bổ sung 2,60 USD. Lượt này chứng minh checkpoint recovery
+step 25 được ghi đầy đủ, nhưng operator gửi `Ctrl+C` cho Modal CLI detached nên
+remote input bị hủy ở step 31. Chưa có candidate; các stage trả phí hiện bị
+khóa. Runner hỗ trợ resume đúng cùng Modal input ID, giữ một checkpoint train
+mỗi 25 step trên Volume, lưu candidate riêng ở step 150/300 và lưu development
+mỗi 10 ca.
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens
 ./scripts/demo/37_sft_candidate_v3_training_plan.sh preflight
-./scripts/demo/37_sft_candidate_v3_training_plan.sh train sft-candidate-v3-train-20261014c
-./scripts/demo/37_sft_candidate_v3_training_plan.sh development sft-candidate-v3-development-20261014c sft-candidate-v3-train-20261014c
+# Hai lệnh trả phí bị authorization guard chặn cho tới khi có lượt mới được duyệt.
 ```
