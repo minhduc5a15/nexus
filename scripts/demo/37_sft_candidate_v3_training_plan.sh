@@ -20,14 +20,14 @@ case "${stage}" in
     ;;
   train)
     run_id="${2:?Cách dùng: $0 train RUN_ID}"
-    heading 'Train candidate v3 trên T4 — không automatic retry'
-    "${modal_bin}" run modal_sft_candidate_v3.py --stage train --run-id "${run_id}"
+    heading 'Train candidate v3 trên T4 — detached, không automatic retry'
+    "${modal_bin}" run --detach modal_sft_candidate_v3.py --stage train --run-id "${run_id}"
     ;;
   development)
     run_id="${2:?Cách dùng: $0 development RUN_ID TRAIN_RUN_ID}"
     train_run_id="${3:?Cách dùng: $0 development RUN_ID TRAIN_RUN_ID}"
     heading 'So base, step 150 và step 300 trên development đã lộ'
-    "${modal_bin}" run modal_sft_candidate_v3.py \
+    "${modal_bin}" run --detach modal_sft_candidate_v3.py \
       --stage development --run-id "${run_id}" --train-run-id "${train_run_id}"
     ;;
   *)

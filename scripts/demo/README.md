@@ -364,7 +364,9 @@ kiểm tra assistant-only loss mask. `37_sft_candidate_v3_training_plan.sh` audi
 cấu hình 300 optimizer step cùng phép tính trần Modal 2,60 USD. Cả hai đều
 offline. Run được duyệt ngày 14/10/2026 đã bị heartbeat local hủy ở step 184;
 authorization hiện bị khóa lại. Các stage `train` và `development` sẽ bị
-preflight từ chối cho tới khi một lượt thay thế được duyệt riêng:
+preflight từ chối cho tới khi một lượt thay thế được duyệt riêng. Khi được mở
+khóa, hai stage dài chạy với `modal run --detach`; checkpoint Trainer được ghi
+thẳng vào Volume và commit sau mỗi lần save:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens

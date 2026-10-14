@@ -436,7 +436,15 @@ def run_train(run_id: str) -> dict[str, Any]:
     import torch
     from datasets import Dataset
     from peft import PeftModel
+    from transformers import TrainerCallback
     from trl import SFTConfig, SFTTrainer
+
+    class CommitCheckpointCallback(TrainerCallback):
+        """Publish each completed Trainer checkpoint to the attached Volume."""
+
+        def on_save(self, args, state, control, **kwargs):
+            result_volume.commit()
+            return control
 
     run_id = _safe_run_id(run_id)
     output = _output(run_id)
@@ -470,8 +478,9 @@ def run_train(run_id: str) -> dict[str, Any]:
             ]
         )
         training = manifest["training"]
+        trainer_output = output / "trainer-checkpoints"
         args = SFTConfig(
-            output_dir=f"/tmp/nexus-sft-candidate-v3-{run_id}",
+            output_dir=str(trainer_output),
             max_steps=training["maximum_steps"],
             per_device_train_batch_size=training["per_device_batch_size"],
             gradient_accumulation_steps=training["gradient_accumulation_steps"],
@@ -502,12 +511,12 @@ def run_train(run_id: str) -> dict[str, Any]:
             train_dataset=dataset,
             processing_class=tokenizer,
             data_collator=lambda features: _collate(features, tokenizer.pad_token_id),
+            callbacks=[CommitCheckpointCallback()],
         )
         train_result = trainer.train()
         after = _teacher_forced_metrics(model, probe_rows)
         final_hash = _adapter_state_sha256(model)
-        temporary_output = Path(args.output_dir)
-        epoch_one_source = temporary_output / "checkpoint-150"
+        epoch_one_source = trainer_output / "checkpoint-150"
         if not epoch_one_source.is_dir():
             raise RuntimeError("Trainer did not save the step-150 adapter")
         epoch_one_dir = output / "adapter-step-150"
@@ -552,6 +561,7 @@ def run_train(run_id: str) -> dict[str, Any]:
             del reloaded, reloaded_base
             gc.collect()
             torch.cuda.empty_cache()
+        shutil.rmtree(trainer_output)
         gates = {
             "training_dataset_complete": len(rows) == manifest["dataset"]["count"],
             "only_lora_parameters_trainable": parameters["only_lora_trainable"],

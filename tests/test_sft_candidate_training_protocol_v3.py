@@ -37,6 +37,17 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertNotIn('add_local_file("modal_sft_candidate.py"', runner)
         self.assertIn('Path("/repo/modal_sft_candidate_v3.py")', runner)
 
+    def test_long_modal_stages_are_detached_and_checkpoints_are_durable(self):
+        demo = (
+            protocol.ROOT / "scripts/demo/37_sft_candidate_v3_training_plan.sh"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(demo.count('"${modal_bin}" run --detach'), 2)
+        runner = protocol.RUNNER.read_text(encoding="utf-8")
+        self.assertIn('trainer_output = output / "trainer-checkpoints"', runner)
+        self.assertIn("callbacks=[CommitCheckpointCallback()]", runner)
+        self.assertIn("result_volume.commit()", runner)
+        self.assertNotIn('output_dir=f"/tmp/nexus-sft-candidate-v3-', runner)
+
     def test_images_exclude_holdouts_and_training_excludes_development(self):
         tree = ast.parse(protocol.RUNNER.read_text(encoding="utf-8"))
         training = protocol._image_local_paths(tree, "training_image")

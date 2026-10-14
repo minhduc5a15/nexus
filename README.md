@@ -516,8 +516,10 @@ tra tokenization rồi khóa cấu hình training v3.
 Tokenization của 600 mẫu v3 đã được kiểm tra bằng đúng revision tokenizer Qwen:
 mọi sequence đều dưới trần 2.048 token (dài nhất 1.368), và loss mask chỉ mở cho
 suffix assistant. Protocol QLoRA v3 hiện là bản đề xuất offline: 300 optimizer
-step, checkpoint 150/300, Modal T4 và trần xin phép 2,60 USD. Manifest vẫn đặt
-Run được duyệt ngày 14/10/2026 đã bị gián đoạn ở step 184/300 do heartbeat giữa
+step, checkpoint 150/300, Modal T4 và trần xin phép 2,60 USD. Run được duyệt
+ngày 14/10/2026 đã bị gián đoạn ở step 184/300 do heartbeat giữa
 Modal CLI local và dịch vụ hết hạn, khiến input remote bị hủy. Không có NaN/OOM,
 nhưng không có adapter nào được giữ lại. Authorization đã được thu hồi; mọi lượt
-thay thế phải được duyệt riêng và nên chạy bằng `modal run --detach`.
+thay thế phải được duyệt riêng. Runner đã được gia cố để dùng
+`modal run --detach` và ghi checkpoint Trainer định kỳ trực tiếp vào Modal
+Volume; thay đổi này chưa cấp quyền chạy GPU mới.

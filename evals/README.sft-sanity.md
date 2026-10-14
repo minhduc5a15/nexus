@@ -563,7 +563,9 @@ không automatic retry. Project owner đã duyệt ngân sách này ngày 14/10/
 Run `sft-candidate-v3-train-20261014a` tới step 184/300 thì heartbeat local hết
 hạn và Modal hủy input remote. Run không OOM/NaN nhưng chưa kịp chép checkpoint
 step 150 khỏi thư mục tạm, nên không giữ được adapter. Authorization đã được thu
-hồi; Final holdout v2 vẫn đóng. Preflight sau hoàn toàn offline:
+hồi. Runner thay thế dùng detached mode và ghi checkpoint Trainer trực tiếp vào
+Volume, nhưng vẫn bị authorization guard khóa. Final holdout v2 vẫn đóng.
+Preflight sau hoàn toàn offline:
 
 ```sh
 ./scripts/demo/35_sft_candidate_v3.sh tokens

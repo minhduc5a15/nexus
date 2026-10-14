@@ -258,6 +258,12 @@ def validate_protocol(
     runner_text = runner_path.read_text(encoding="utf-8")
     _require("if manifest.get(\"training_authorized\") is not True" in runner_text, "Remote training authorization guard missing")
     _require("if not protocol[\"training_authorized\"]" in runner_text, "Local training authorization guard missing")
+    _require(
+        'trainer_output = output / "trainer-checkpoints"' in runner_text
+        and "callbacks=[CommitCheckpointCallback()]" in runner_text
+        and 'output_dir=f"/tmp/nexus-sft-candidate-v3-' not in runner_text,
+        "Durable checkpoint path or commit callback missing",
+    )
     defaults = [ast.literal_eval(value) for value in _function(tree, "main").args.defaults]
     _require(defaults and defaults[0] == "preflight", "Runner default stage must be preflight")
 
