@@ -579,6 +579,13 @@ detached sẽ giữ nguyên remote input; Modal gửi user cancellation tới in
 Lượt này tốn 0,21459993 USD metered cost, không có checkpoint candidate 150/300
 và development chưa chạy. Tổng ba lượt thử là 1,68749195 USD metered cost. Mọi
 lượt trả phí mới bị khóa; final holdout v2 vẫn đóng.
+
+Để loại bỏ phụ thuộc vào vòng đời của local entrypoint, bước vận hành kế tiếp
+dùng deployed function + `spawn()`. Registry Modal Dict reserve run ID bằng
+`skip_if_exists=True`, lưu FunctionCall ID và cho launcher thoát ngay. Status
+khôi phục call bằng ID với poll timeout 0; module điều khiển không chứa thao tác
+cancel. Canary CPU-only 90 giây sẽ được dùng để chứng minh contract này trước
+khi thiết kế quyền resume checkpoint 25 cho một run mới.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

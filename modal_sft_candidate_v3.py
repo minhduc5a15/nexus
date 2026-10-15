@@ -122,6 +122,77 @@ def _output(run_id: str) -> Path:
     return Path("/results") / _safe_run_id(run_id) / "sft-candidate-v3"
 
 
+@app.function(
+    image=protocol_image,
+    timeout=300,
+    cpu=0.25,
+    memory=256,
+    volumes={"/results": result_volume},
+)
+def run_orchestration_canary(
+    run_id: str, duration_seconds: int = 90
+) -> dict[str, Any]:
+    """Prove a spawned deployed call survives after its local launcher exits."""
+
+    run_id = _safe_run_id(run_id)
+    if (
+        isinstance(duration_seconds, bool)
+        or not isinstance(duration_seconds, int)
+        or not 30 <= duration_seconds <= 180
+    ):
+        raise ValueError("duration_seconds must be an integer from 30 to 180")
+    _manifest()
+    result_volume.reload()
+    output = _output(run_id) / "orchestration-canary"
+    state_path = output / "state.json"
+    report_path = output / "report.json"
+    if state_path.exists() or report_path.exists():
+        raise FileExistsError(f"Canary artifacts already exist for {run_id}")
+    output.mkdir(parents=True, exist_ok=True)
+    started_at = datetime.now(timezone.utc)
+    input_id = modal.current_input_id()
+    state = {
+        "status": "running",
+        "run_id": run_id,
+        "modal_input_id": input_id,
+        "started_at": started_at.isoformat(),
+        "duration_seconds": duration_seconds,
+        "heartbeats": [],
+    }
+    _write_json(state_path, state)
+    result_volume.commit()
+    for sequence in range(1, 4):
+        time.sleep(duration_seconds / 3)
+        state["heartbeats"].append(
+            {
+                "sequence": sequence,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        _write_json(state_path, state)
+        result_volume.commit()
+    finished_at = datetime.now(timezone.utc)
+    state.update(status="complete", finished_at=finished_at.isoformat())
+    report = {
+        "schema_version": 1,
+        "stage": "orchestration_canary",
+        "run_id": run_id,
+        "modal_input_id": input_id,
+        "started_at": started_at.isoformat(),
+        "finished_at": finished_at.isoformat(),
+        "elapsed_seconds": (finished_at - started_at).total_seconds(),
+        "heartbeats": state["heartbeats"],
+        "gpu_used": False,
+        "model_loaded": False,
+        "training_authorized": False,
+        "final_holdout_inference": False,
+    }
+    _write_json(state_path, state)
+    _write_json(report_path, report)
+    result_volume.commit()
+    return report
+
+
 def _latest_trainer_checkpoint(path: Path) -> Path | None:
     checkpoints: list[tuple[int, Path]] = []
     if path.is_dir():

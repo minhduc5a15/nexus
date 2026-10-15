@@ -378,3 +378,18 @@ mỗi 10 ca.
 ./scripts/demo/37_sft_candidate_v3_training_plan.sh preflight
 # Hai lệnh trả phí bị authorization guard chặn cho tới khi có lượt mới được duyệt.
 ```
+
+`38_modal_spawn_canary.sh` kiểm tra cơ chế điều phối thay thế. `preflight` chứng
+minh canary chỉ dùng CPU, launcher không thể cancel call và training/final
+holdout vẫn khóa. `deploy` chỉ deploy app; `launch` reserve một run ID rồi spawn
+canary 90 giây và thoát ngay; `status` poll lại bằng FunctionCall ID:
+
+```sh
+./scripts/demo/38_modal_spawn_canary.sh preflight
+./scripts/demo/38_modal_spawn_canary.sh deploy
+./scripts/demo/38_modal_spawn_canary.sh launch sft-v3-orchestration-canary-20261016a
+./scripts/demo/38_modal_spawn_canary.sh status sft-v3-orchestration-canary-20261016a
+```
+
+Canary không tải model, không dùng GPU và không mở quyền train. Cùng run ID chỉ
+được reserve một lần; spawn thất bại cũng được ghi lại thay vì tự retry.

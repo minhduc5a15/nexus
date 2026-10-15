@@ -533,3 +533,12 @@ preemption. Project owner đã duyệt lượt thứ ba với hai run ID hậu t
 step 25 và chạy tới step 31, nhưng bị hủy khi operator gửi `Ctrl+C` cho Modal
 CLI đang detached. Chi phí metered là 0,21459993 USD; chưa có candidate. Mọi
 lượt trả phí tiếp theo bị khóa và final holdout v2 vẫn đóng.
+
+Đường chạy Modal dài đang được tách khỏi local entrypoint. Runner có một canary
+CPU-only; launcher reserve run ID nguyên tử trong Modal Dict, gọi deployed
+function bằng `spawn()` rồi lưu `FunctionCall ID` trước khi thoát. Lệnh status
+khôi phục call bằng ID và chỉ poll, không có đường cancel. Chạy audit offline:
+
+```sh
+./scripts/demo/38_modal_spawn_canary.sh preflight
+```
