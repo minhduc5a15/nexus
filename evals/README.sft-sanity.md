@@ -598,6 +598,13 @@ step, adapter, optimizer, scheduler và RNG state trước khi cho Trainer đọ
 checkpoint; checkpoint phục hồi mới của target run luôn được ưu tiên nếu cùng
 input bị preempt lần nữa. Checkpoint inspector CPU-only dùng để lấy hash nguồn
 ngay trên Volume. Active manifest chưa có spec này và vẫn chặn GPU.
+
+Proposal `20261016d` khóa checkpoint source ở step 25 với directory SHA-256
+`e37986c9877f4bba225cec1b0e252dae5be5c243d0ad8a1e3923cd10f337d797`.
+Còn 275 optimizer step; run train và development dùng deployed spawn, registry
+chống duplicate và không automatic retry. Bảng giá Modal ngày 16/10/2026 cho
+trần compute 2,30236667 USD; trần xin duyệt là 2,45 USD. 465 test đã đạt nhưng
+active manifest và GPU authorization chưa được mở.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

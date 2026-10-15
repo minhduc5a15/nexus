@@ -259,6 +259,81 @@ class ModalSftV3ControlTests(unittest.TestCase):
             control.inspect_checkpoint("train-c", True, function=function)
         self.assertEqual(function.calls, [])
 
+    def authorized_train_plan(self):
+        return {
+            "training_authorized": True,
+            "execution": {"authorized_run_ids": {"train": "train-d"}},
+            "training": {
+                "cross_run_resume": {
+                    "source_run_id": "train-c",
+                    "checkpoint_step": 25,
+                    "directory_sha256": "a" * 64,
+                }
+            },
+            "scope": {"final_holdout_v2_inference": False},
+        }
+
+    def test_train_spawn_requires_active_authorization_before_reservation(self):
+        plan = self.authorized_train_plan()
+        plan["training_authorized"] = False
+        registry = FakeRegistry()
+        function = FakeFunction()
+        with self.assertRaisesRegex(control.ModalControlError, "not authorized"):
+            control.reserve_and_spawn_train(
+                "train-d",
+                plan=plan,
+                registry=registry,
+                function=function,
+                commit="abc",
+                record_path=self.record_path(),
+            )
+        self.assertEqual(registry.values, {})
+        self.assertEqual(function.calls, [])
+
+    def test_train_spawn_locks_run_id_resume_and_final_holdout(self):
+        registry = FakeRegistry()
+        function = FakeFunction()
+        plan = self.authorized_train_plan()
+        record = control.reserve_and_spawn_train(
+            "train-d",
+            plan=plan,
+            registry=registry,
+            function=function,
+            now=lambda: "now",
+            commit="abc",
+            record_path=self.record_path(),
+        )
+        self.assertEqual(function.calls, [("train-d",)])
+        self.assertEqual(record["resume"], plan["training"]["cross_run_resume"])
+        self.assertTrue(record["gpu_authorized"])
+        self.assertFalse(record["final_holdout_inference_authorized"])
+
+    def test_train_spawn_rejects_wrong_id_missing_resume_or_open_holdout(self):
+        variants = []
+        plan = self.authorized_train_plan()
+        variants.append(("wrong", plan, "authorized only"))
+        plan = self.authorized_train_plan()
+        del plan["training"]["cross_run_resume"]
+        variants.append(("train-d", plan, "lacks a cross-run"))
+        plan = self.authorized_train_plan()
+        plan["scope"]["final_holdout_v2_inference"] = True
+        variants.append(("train-d", plan, "final holdout"))
+        for run_id, plan, message in variants:
+            registry = FakeRegistry()
+            function = FakeFunction()
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(control.ModalControlError, message):
+                    control.reserve_and_spawn_train(
+                        run_id,
+                        plan=plan,
+                        registry=registry,
+                        function=function,
+                        commit="abc",
+                        record_path=self.record_path(),
+                    )
+                self.assertEqual(registry.values, {})
+                self.assertEqual(function.calls, [])
+
 
 if __name__ == "__main__":
     unittest.main()

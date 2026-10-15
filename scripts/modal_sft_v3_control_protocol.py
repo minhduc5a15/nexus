@@ -107,6 +107,14 @@ def validate_protocol() -> dict[str, Any]:
         "skip_if_exists=True" in control_text,
         "Launch reservation must reject duplicate run IDs",
     )
+    _require(
+        "Training is not authorized by the active manifest" in control_text,
+        "Local train authorization guard missing",
+    )
+    _require(
+        'modal.Function.from_name(APP_NAME, "run_train")' in control_text,
+        "Deployed train handle missing",
+    )
     demo_text = DEMO.read_text(encoding="utf-8")
     _require("modal\" deploy" in demo_text, "Demo must deploy before spawning")
     _require("launch-canary" in demo_text and " status " in demo_text, "Demo stages changed")

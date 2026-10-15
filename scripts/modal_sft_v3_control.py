@@ -23,6 +23,7 @@ CHECKPOINT_INSPECTOR_FUNCTION = "inspect_recovery_checkpoint"
 RUN_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 LOCAL_RESULTS = ROOT / "evals/results/modal-sft-v3-launches"
 CHECKPOINT_RESULTS = ROOT / "evals/results/modal-sft-v3-checkpoints"
+TRAINING_PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
 
 
 class ModalControlError(RuntimeError):
@@ -110,6 +111,71 @@ def reserve_and_spawn_canary(
     _write_json(record_path, reservation)
     try:
         call = function.spawn(run_id, duration_seconds)
+    except BaseException as error:
+        failed = {
+            **reservation,
+            "state": "spawn_failed",
+            "failed_at": now(),
+            "error": {"type": type(error).__name__, "message": str(error)},
+        }
+        registry.put(run_id, failed)
+        _write_json(record_path, failed)
+        raise
+    launched = {
+        **reservation,
+        "state": "spawned",
+        "spawned_at": now(),
+        "function_call_id": call.object_id,
+    }
+    registry.put(run_id, launched)
+    _write_json(record_path, launched)
+    return launched
+
+
+def reserve_and_spawn_train(
+    run_id: str,
+    *,
+    plan: dict[str, Any],
+    registry: Any,
+    function: Any,
+    now: Callable[[], str] = utc_now,
+    commit: str | None = None,
+    record_path: Path | None = None,
+) -> dict[str, Any]:
+    run_id = safe_run_id(run_id)
+    if plan.get("training_authorized") is not True:
+        raise ModalControlError("Training is not authorized by the active manifest")
+    execution = plan.get("execution", {})
+    expected_run_id = execution.get("authorized_run_ids", {}).get("train")
+    if run_id != expected_run_id:
+        raise ModalControlError(f"Training is authorized only for {expected_run_id}")
+    resume = plan.get("training", {}).get("cross_run_resume")
+    if not isinstance(resume, dict):
+        raise ModalControlError("Authorized training lacks a cross-run resume spec")
+    if plan.get("scope", {}).get("final_holdout_v2_inference") is not False:
+        raise ModalControlError("Training manifest does not keep final holdout closed")
+    record_path = record_path or local_record_path(run_id)
+    reservation = {
+        "schema_version": 1,
+        "run_id": run_id,
+        "stage": "train",
+        "state": "reserved",
+        "reservation_id": str(uuid.uuid4()),
+        "reserved_at": now(),
+        "deployment": {"app_name": APP_NAME, "function_name": "run_train"},
+        "source_commit": commit or _git_commit(),
+        "gpu_authorized": True,
+        "resume": resume,
+        "final_holdout_inference_authorized": False,
+    }
+    if not registry.put(run_id, reservation, skip_if_exists=True):
+        existing = registry.get(run_id)
+        raise ModalControlError(
+            f"run_id already reserved; refusing duplicate spawn: {existing}"
+        )
+    _write_json(record_path, reservation)
+    try:
+        call = function.spawn(run_id)
     except BaseException as error:
         failed = {
             **reservation,
@@ -223,6 +289,8 @@ def main() -> int:
     launch = subparsers.add_parser("launch-canary")
     launch.add_argument("run_id")
     launch.add_argument("--duration-seconds", type=int, default=90)
+    launch_train = subparsers.add_parser("launch-train")
+    launch_train.add_argument("run_id")
     status = subparsers.add_parser("status")
     status.add_argument("run_id")
     inspect_checkpoint_parser = subparsers.add_parser("inspect-checkpoint")
@@ -236,6 +304,14 @@ def main() -> int:
                 args.duration_seconds,
                 registry=_registry(),
                 function=modal.Function.from_name(APP_NAME, CANARY_FUNCTION),
+            )
+        elif args.command == "launch-train":
+            plan = json.loads(TRAINING_PLAN.read_text(encoding="utf-8"))
+            record = reserve_and_spawn_train(
+                args.run_id,
+                plan=plan,
+                registry=_registry(),
+                function=modal.Function.from_name(APP_NAME, "run_train"),
             )
         elif args.command == "status":
             record = poll_launch(

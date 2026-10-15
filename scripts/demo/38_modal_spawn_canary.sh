@@ -28,6 +28,7 @@ case "${stage}" in
   audit)
     heading 'Audit decision artifact và raw evidence — không gọi Modal'
     "${demo_python}" -m scripts.audit_modal_sft_v3_canary
+    "${demo_python}" -m scripts.audit_sft_candidate_resume_proposal_v3
     ;;
   inspect-checkpoint)
     heading 'Hash checkpoint recovery trên Volume — CPU-only, read-only'

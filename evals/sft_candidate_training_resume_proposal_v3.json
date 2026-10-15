@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "proposal_id": "nexus-sft-candidate-v3-cross-run-resume-20261016d",
+  "status": "ready_for_budget_review",
+  "protocol_id": "nexus-sft-qlora-candidate-v3",
+  "target_run_ids": {
+    "train": "sft-candidate-v3-train-20261016d",
+    "development": "sft-candidate-v3-development-20261016d"
+  },
+  "resume_source": {
+    "source_run_id": "sft-candidate-v3-train-20261014c",
+    "source_modal_input_id": "in-01M4WE97X2S868S67G25JGMZV4:1791955869603-0",
+    "checkpoint_step": 25,
+    "planned_final_step": 300,
+    "remaining_optimizer_steps": 275,
+    "directory_sha256": "e37986c9877f4bba225cec1b0e252dae5be5c243d0ad8a1e3923cd10f337d797",
+    "total_bytes": 149733650,
+    "inspection_path": "evals/results/modal-sft-v3-checkpoints/sft-candidate-v3-train-20261014c/checkpoint-25.json",
+    "inspection_sha256": "16ea86f568a8eca06d6029590b8791897a511b556e6da3e3d62c0bf2822cfc56"
+  },
+  "execution": {
+    "transport": "deployed_function_spawn",
+    "registry": "nexus-sft-candidate-v3-launches",
+    "atomic_duplicate_guard": true,
+    "automatic_retry": false,
+    "provider_same_input_resume": true,
+    "target_recovery_checkpoint_interval_steps": 25,
+    "train_timeout_seconds": 8400,
+    "development_timeout_seconds": 1800,
+    "maximum_planned_gpu_seconds": 10200
+  },
+  "budget": {
+    "pricing_checked_on": "2026-10-16",
+    "t4_usd_per_hour": 0.59,
+    "cpu_core_usd_per_hour": 0.0473,
+    "memory_gib_usd_per_hour": 0.008,
+    "maximum_compute_usd": 2.302366666666667,
+    "requested_additional_cost_cap_usd": 2.45,
+    "prior_three_training_attempts_metered_cost_usd": 1.68749195,
+    "canary_deploy_and_run_metered_cost_usd": 0.00024577
+  },
+  "scope": {
+    "train": true,
+    "development": true,
+    "diagnostic_holdout_v1": false,
+    "final_holdout_v2_inference": false,
+    "gguf_export": false,
+    "deployment_rollout": false
+  },
+  "gates_before_authorization": {
+    "deployed_spawn_canary_passed": true,
+    "checkpoint_inspected_in_place": true,
+    "cross_run_resume_unit_tests_passed": true,
+    "full_test_suite_passed": true,
+    "active_manifest_updated_and_hash_locked": false,
+    "project_owner_approved_additional_cost": false
+  },
+  "training_authorized": false,
+  "approval_required": "Explicit project-owner approval for one train and one development run with an additional 2.45 USD cap.",
+  "next_gate": "project_owner_budget_approval"
+}
