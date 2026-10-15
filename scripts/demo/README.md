@@ -397,3 +397,12 @@ Canary không tải model, không dùng GPU và không mở quyền train. Cùng
 `20261016a` đã đạt đủ ba heartbeat sau khi launcher thoát, status lấy lại kết
 quả qua FunctionCall ID và lần launch trùng trả exit code 2. Chi phí metered cho
 deploy + canary là 0,00024577 USD, GPU bằng 0.
+
+Sau khi deploy phiên bản runner có checkpoint inspector, stage sau hash
+checkpoint 25 trực tiếp trên Volume bằng CPU; nó không tải model hoặc sửa
+checkpoint:
+
+```sh
+./scripts/demo/38_modal_spawn_canary.sh deploy
+./scripts/demo/38_modal_spawn_canary.sh inspect-checkpoint
+```

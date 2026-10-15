@@ -74,6 +74,13 @@ def validate_protocol() -> dict[str, Any]:
         resources == {"timeout": 300, "cpu": 0.25, "memory": 256},
         "Canary must remain CPU-only and bounded",
     )
+    inspector_resources = _modal_resources(
+        _function(runner_tree, "inspect_recovery_checkpoint")
+    )
+    _require(
+        inspector_resources == {"timeout": 300, "cpu": 0.25, "memory": 512},
+        "Checkpoint inspector must remain CPU-only and bounded",
+    )
     control_tree = ast.parse(CONTROL.read_text(encoding="utf-8"))
     _require(
         _literal_assignment(control_tree, "APP_NAME") == "nexus-sft-candidate-v3",
@@ -108,6 +115,7 @@ def validate_protocol() -> dict[str, Any]:
         "registry_name": "nexus-sft-candidate-v3-launches",
         "function": "run_orchestration_canary",
         "resources": resources,
+        "checkpoint_inspector_resources": inspector_resources,
         "atomic_duplicate_guard": True,
         "launcher_waits_for_remote_result": False,
         "status_can_cancel": False,

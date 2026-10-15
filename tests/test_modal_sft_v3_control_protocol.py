@@ -22,6 +22,10 @@ class ModalSftV3ControlProtocolTests(unittest.TestCase):
         self.assertEqual(
             summary["resources"], {"timeout": 300, "cpu": 0.25, "memory": 256}
         )
+        self.assertEqual(
+            summary["checkpoint_inspector_resources"],
+            {"timeout": 300, "cpu": 0.25, "memory": 512},
+        )
         self.assertTrue(summary["atomic_duplicate_guard"])
         self.assertFalse(summary["launcher_waits_for_remote_result"])
         self.assertFalse(summary["status_can_cancel"])

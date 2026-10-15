@@ -58,6 +58,8 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertIn("save_only_model=False", runner)
         self.assertIn("_prepare_development_state(", runner)
         self.assertIn("development-partial-", runner)
+        self.assertIn("_validated_cross_run_resume_checkpoint(", runner)
+        self.assertIn('manifest["training"].get("cross_run_resume")', runner)
         self.assertNotIn('output_dir=f"/tmp/nexus-sft-candidate-v3-', runner)
 
     def test_images_exclude_holdouts_and_training_excludes_development(self):

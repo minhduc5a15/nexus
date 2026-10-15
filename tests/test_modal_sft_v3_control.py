@@ -36,6 +36,16 @@ class FakeFunction:
         return type("Call", (), {"object_id": self.call_id})()
 
 
+class FakeRemoteFunction:
+    def __init__(self, result):
+        self.result = result
+        self.calls = []
+
+    def remote(self, *args):
+        self.calls.append(args)
+        return self.result
+
+
 class FakeCall:
     def __init__(self, result=None, running=False):
         self.result = result
@@ -226,6 +236,28 @@ class ModalSftV3ControlTests(unittest.TestCase):
                         record_path=self.record_path(),
                     )
                 self.assertEqual(registry.values, {})
+
+    def test_checkpoint_inspection_is_read_only_and_persisted(self):
+        path = self.record_path()
+        result = {
+            "source_run_id": "train-c",
+            "checkpoint_step": 25,
+            "directory_sha256": "a" * 64,
+            "gpu_used": False,
+        }
+        function = FakeRemoteFunction(result)
+        observed = control.inspect_checkpoint(
+            "train-c", 25, function=function, output_path=path
+        )
+        self.assertEqual(observed, result)
+        self.assertEqual(function.calls, [("train-c", 25)])
+        self.assertIn('"checkpoint_step": 25', path.read_text())
+
+    def test_checkpoint_inspection_rejects_invalid_step_before_remote_call(self):
+        function = FakeRemoteFunction({})
+        with self.assertRaisesRegex(control.ModalControlError, "positive integer"):
+            control.inspect_checkpoint("train-c", True, function=function)
+        self.assertEqual(function.calls, [])
 
 
 if __name__ == "__main__":

@@ -85,6 +85,99 @@ class ModalSftCandidateV3RecoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(FileExistsError, "Completed candidate"):
             runner._prepare_train_state(output, modal_input_id="in-1")
 
+    def checkpoint(self, output: Path, *, step: int = 25, input_id: str = "old-input"):
+        checkpoint = output / f"checkpoint-{step}"
+        checkpoint.mkdir(parents=True)
+        for name in (
+            "adapter_config.json",
+            "adapter_model.safetensors",
+            "optimizer.pt",
+            "rng_state.pth",
+            "scheduler.pt",
+        ):
+            (checkpoint / name).write_text(name, encoding="utf-8")
+        (checkpoint / ".nexus-complete").write_text(input_id + "\n", encoding="utf-8")
+        (checkpoint / "trainer_state.json").write_text(
+            json.dumps({"global_step": step}), encoding="utf-8"
+        )
+        return checkpoint
+
+    def test_locked_cross_run_checkpoint_can_bootstrap_new_input(self):
+        volume = self.output()
+        source_output = volume / "source" / "sft-candidate-v3"
+        checkpoint = self.checkpoint(source_output / "trainer-checkpoints")
+        original_output = runner._output
+        self.addCleanup(setattr, runner, "_output", original_output)
+        runner._output = lambda run_id: volume / run_id / "sft-candidate-v3"
+        spec = {
+            "source_run_id": "source",
+            "source_modal_input_id": "old-input",
+            "checkpoint_step": 25,
+            "directory_sha256": runner._directory_sha256(checkpoint),
+        }
+        path, provenance = runner._validated_cross_run_resume_checkpoint(spec)
+        self.assertEqual(path, checkpoint)
+        target = volume / "target"
+        target.mkdir()
+        _, state, resume = runner._prepare_train_state(
+            target,
+            modal_input_id="new-input",
+            bootstrap_checkpoint=path,
+            bootstrap_provenance=provenance,
+            now="now",
+        )
+        self.assertEqual(resume, checkpoint)
+        self.assertEqual(state["bootstrap_resume"], provenance)
+        self.assertEqual(state["resume_count"], 0)
+
+    def test_cross_run_checkpoint_rejects_hash_step_marker_and_missing_state(self):
+        volume = self.output()
+        checkpoint = self.checkpoint(volume / "source/sft-candidate-v3/trainer-checkpoints")
+        original_output = runner._output
+        self.addCleanup(setattr, runner, "_output", original_output)
+        runner._output = lambda run_id: volume / run_id / "sft-candidate-v3"
+        base = {
+            "source_run_id": "source",
+            "source_modal_input_id": "old-input",
+            "checkpoint_step": 25,
+            "directory_sha256": runner._directory_sha256(checkpoint),
+        }
+        variants = (
+            ({**base, "directory_sha256": "0" * 64}, "directory hash mismatch"),
+            ({**base, "source_modal_input_id": "wrong"}, "input ID mismatch"),
+            ({**base, "checkpoint_step": 24}, "incomplete"),
+        )
+        for spec, message in variants:
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(RuntimeError, message):
+                    runner._validated_cross_run_resume_checkpoint(spec)
+        (checkpoint / "optimizer.pt").unlink()
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            runner._validated_cross_run_resume_checkpoint(base)
+
+    def test_same_input_recovery_checkpoint_takes_precedence_over_bootstrap(self):
+        output = self.output()
+        local = self.checkpoint(output / "trainer-checkpoints", step=50, input_id="new")
+        bootstrap = self.checkpoint(output / "bootstrap", step=25, input_id="old")
+        (output / "train-state.json").write_text(
+            json.dumps(
+                {
+                    "status": "interrupted",
+                    "modal_input_id": "new",
+                    "bootstrap_resume": {"checkpoint_step": 25},
+                }
+            ),
+            encoding="utf-8",
+        )
+        _, state, resume = runner._prepare_train_state(
+            output,
+            modal_input_id="new",
+            bootstrap_checkpoint=bootstrap,
+            bootstrap_provenance={"checkpoint_step": 25},
+        )
+        self.assertEqual(resume, local)
+        self.assertEqual(state["last_recovery_checkpoint"], "checkpoint-50")
+
     def test_development_same_input_resumes_and_records_interruption(self):
         output = self.output()
         (output / "development-state.json").write_text(

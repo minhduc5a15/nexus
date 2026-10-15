@@ -19,8 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_NAME = "nexus-sft-candidate-v3"
 REGISTRY_NAME = "nexus-sft-candidate-v3-launches"
 CANARY_FUNCTION = "run_orchestration_canary"
+CHECKPOINT_INSPECTOR_FUNCTION = "inspect_recovery_checkpoint"
 RUN_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 LOCAL_RESULTS = ROOT / "evals/results/modal-sft-v3-launches"
+CHECKPOINT_RESULTS = ROOT / "evals/results/modal-sft-v3-checkpoints"
 
 
 class ModalControlError(RuntimeError):
@@ -183,6 +185,34 @@ def poll_launch(
     return completed
 
 
+def inspect_checkpoint(
+    source_run_id: str,
+    checkpoint_step: int,
+    *,
+    function: Any,
+    output_path: Path | None = None,
+) -> dict[str, Any]:
+    source_run_id = safe_run_id(source_run_id)
+    if (
+        isinstance(checkpoint_step, bool)
+        or not isinstance(checkpoint_step, int)
+        or checkpoint_step <= 0
+    ):
+        raise ModalControlError("checkpoint_step must be a positive integer")
+    result = function.remote(source_run_id, checkpoint_step)
+    if not isinstance(result, dict):
+        raise ModalControlError("Checkpoint inspector returned a non-object")
+    if result.get("source_run_id") != source_run_id:
+        raise ModalControlError("Checkpoint inspector changed the source run ID")
+    if result.get("checkpoint_step") != checkpoint_step:
+        raise ModalControlError("Checkpoint inspector changed the checkpoint step")
+    output_path = output_path or (
+        CHECKPOINT_RESULTS / source_run_id / f"checkpoint-{checkpoint_step}.json"
+    )
+    _write_json(output_path, result)
+    return result
+
+
 def _registry():
     return modal.Dict.from_name(REGISTRY_NAME, create_if_missing=True)
 
@@ -195,6 +225,9 @@ def main() -> int:
     launch.add_argument("--duration-seconds", type=int, default=90)
     status = subparsers.add_parser("status")
     status.add_argument("run_id")
+    inspect_checkpoint_parser = subparsers.add_parser("inspect-checkpoint")
+    inspect_checkpoint_parser.add_argument("source_run_id")
+    inspect_checkpoint_parser.add_argument("checkpoint_step", type=int)
     args = parser.parse_args()
     try:
         if args.command == "launch-canary":
@@ -204,11 +237,19 @@ def main() -> int:
                 registry=_registry(),
                 function=modal.Function.from_name(APP_NAME, CANARY_FUNCTION),
             )
-        else:
+        elif args.command == "status":
             record = poll_launch(
                 args.run_id,
                 registry=_registry(),
                 call_from_id=modal.FunctionCall.from_id,
+            )
+        else:
+            record = inspect_checkpoint(
+                args.source_run_id,
+                args.checkpoint_step,
+                function=modal.Function.from_name(
+                    APP_NAME, CHECKPOINT_INSPECTOR_FUNCTION
+                ),
             )
     except (OSError, ValueError, ModalControlError) as error:
         parser.error(str(error))

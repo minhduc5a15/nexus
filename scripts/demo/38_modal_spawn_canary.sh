@@ -29,8 +29,13 @@ case "${stage}" in
     heading 'Audit decision artifact và raw evidence — không gọi Modal'
     "${demo_python}" -m scripts.audit_modal_sft_v3_canary
     ;;
+  inspect-checkpoint)
+    heading 'Hash checkpoint recovery trên Volume — CPU-only, read-only'
+    "${demo_python}" -m scripts.modal_sft_v3_control inspect-checkpoint \
+      sft-candidate-v3-train-20261014c 25
+    ;;
   *)
-    printf 'Stage phải là preflight, deploy, launch, status hoặc audit.\n' >&2
+    printf 'Stage phải là preflight, deploy, launch, status, audit hoặc inspect-checkpoint.\n' >&2
     exit 2
     ;;
 esac

@@ -591,6 +591,13 @@ và lần spawn trùng bị từ chối với exit code 2. Tổng chi phí deplo
 call đang chạy; status đã được sửa để coi cả hai loại timeout là trạng thái
 running. Gate tiếp theo là thiết kế quyền resume tường minh từ checkpoint 25
 cho một run mới; training vẫn khóa.
+
+Đường resume liên-run yêu cầu một spec bất biến gồm source run ID, Modal input
+ID gốc, step và SHA-256 toàn thư mục checkpoint. Runner kiểm tra marker, global
+step, adapter, optimizer, scheduler và RNG state trước khi cho Trainer đọc
+checkpoint; checkpoint phục hồi mới của target run luôn được ưu tiên nếu cùng
+input bị preempt lần nữa. Checkpoint inspector CPU-only dùng để lấy hash nguồn
+ngay trên Volume. Active manifest chưa có spec này và vẫn chặn GPU.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

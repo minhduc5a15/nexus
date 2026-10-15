@@ -193,6 +193,65 @@ def run_orchestration_canary(
     return report
 
 
+@app.function(
+    image=protocol_image,
+    timeout=300,
+    cpu=0.25,
+    memory=512,
+    volumes={"/results": result_volume},
+)
+def inspect_recovery_checkpoint(
+    source_run_id: str, checkpoint_step: int
+) -> dict[str, Any]:
+    """Hash one recovery checkpoint in place without loading a model or GPU."""
+
+    source_run_id = _safe_run_id(source_run_id)
+    if (
+        isinstance(checkpoint_step, bool)
+        or not isinstance(checkpoint_step, int)
+        or checkpoint_step <= 0
+    ):
+        raise ValueError("checkpoint_step must be a positive integer")
+    _manifest()
+    result_volume.reload()
+    checkpoint = (
+        _output(source_run_id)
+        / "trainer-checkpoints"
+        / f"checkpoint-{checkpoint_step}"
+    )
+    if not checkpoint.is_dir():
+        raise FileNotFoundError(f"Recovery checkpoint is missing: {checkpoint}")
+    marker_path = checkpoint / ".nexus-complete"
+    trainer_state_path = checkpoint / "trainer_state.json"
+    if not marker_path.is_file() or not trainer_state_path.is_file():
+        raise RuntimeError("Recovery checkpoint lacks its completion marker or state")
+    trainer_state = json.loads(trainer_state_path.read_text(encoding="utf-8"))
+    files = []
+    for candidate in sorted(item for item in checkpoint.rglob("*") if item.is_file()):
+        files.append(
+            {
+                "path": candidate.relative_to(checkpoint).as_posix(),
+                "bytes": candidate.stat().st_size,
+                "sha256": _file_sha256(candidate),
+            }
+        )
+    return {
+        "schema_version": 1,
+        "stage": "recovery_checkpoint_inspection",
+        "source_run_id": source_run_id,
+        "checkpoint_step": checkpoint_step,
+        "trainer_global_step": trainer_state.get("global_step"),
+        "source_modal_input_id": marker_path.read_text(encoding="utf-8").strip(),
+        "directory_sha256": _directory_sha256(checkpoint),
+        "files": files,
+        "total_bytes": sum(item["bytes"] for item in files),
+        "gpu_used": False,
+        "model_loaded": False,
+        "training_authorized": False,
+        "final_holdout_inference": False,
+    }
+
+
 def _latest_trainer_checkpoint(path: Path) -> Path | None:
     checkpoints: list[tuple[int, Path]] = []
     if path.is_dir():
@@ -211,6 +270,8 @@ def _prepare_train_state(
     output: Path,
     *,
     modal_input_id: str,
+    bootstrap_checkpoint: Path | None = None,
+    bootstrap_provenance: dict[str, Any] | None = None,
     now: str | None = None,
 ) -> tuple[Path, dict[str, Any], Path | None]:
     report_path = output / "train.json"
@@ -219,10 +280,11 @@ def _prepare_train_state(
         raise FileExistsError(f"Completed candidate artifacts already exist in {output}")
     timestamp = now or datetime.now(timezone.utc).isoformat()
     trainer_output = output / "trainer-checkpoints"
-    checkpoint = _latest_trainer_checkpoint(trainer_output)
+    local_checkpoint = _latest_trainer_checkpoint(trainer_output)
+    checkpoint = local_checkpoint or bootstrap_checkpoint
     if (
-        checkpoint is not None
-        and (checkpoint / ".nexus-complete").read_text(encoding="utf-8").strip()
+        local_checkpoint is not None
+        and (local_checkpoint / ".nexus-complete").read_text(encoding="utf-8").strip()
         != modal_input_id
     ):
         raise FileExistsError("Recovery checkpoint belongs to another Modal input")
@@ -234,6 +296,8 @@ def _prepare_train_state(
             "resume_count": 0,
             "interruptions": [],
         }
+        if bootstrap_provenance is not None:
+            state["bootstrap_resume"] = bootstrap_provenance
         return state_path, state, checkpoint
 
     previous = json.loads(state_path.read_text(encoding="utf-8"))
@@ -259,9 +323,13 @@ def _prepare_train_state(
         "resumed_at": timestamp,
         "interruptions": interruptions,
         "last_recovery_checkpoint": (
-            checkpoint.name if checkpoint is not None else None
+            local_checkpoint.name if local_checkpoint is not None else None
         ),
     }
+    if previous.get("bootstrap_resume") is not None:
+        state["bootstrap_resume"] = previous["bootstrap_resume"]
+    elif bootstrap_provenance is not None:
+        state["bootstrap_resume"] = bootstrap_provenance
     return state_path, state, checkpoint
 
 
@@ -364,6 +432,60 @@ def _directory_sha256(path: Path) -> str:
         digest.update(relative)
         digest.update(bytes.fromhex(_file_sha256(candidate)))
     return digest.hexdigest()
+
+
+def _validated_cross_run_resume_checkpoint(
+    spec: dict[str, Any] | None,
+) -> tuple[Path | None, dict[str, Any] | None]:
+    if spec is None:
+        return None, None
+    if not isinstance(spec, dict):
+        raise RuntimeError("Cross-run resume spec must be an object")
+    source_run_id = _safe_run_id(spec.get("source_run_id"))
+    step = spec.get("checkpoint_step")
+    if isinstance(step, bool) or not isinstance(step, int) or step <= 0:
+        raise RuntimeError("Cross-run checkpoint step must be a positive integer")
+    source_input_id = spec.get("source_modal_input_id")
+    expected_hash = spec.get("directory_sha256")
+    if not isinstance(source_input_id, str) or not source_input_id:
+        raise RuntimeError("Cross-run source Modal input ID is missing")
+    if not isinstance(expected_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        raise RuntimeError("Cross-run checkpoint hash is invalid")
+    checkpoint = (
+        _output(source_run_id)
+        / "trainer-checkpoints"
+        / f"checkpoint-{step}"
+    )
+    required = {
+        ".nexus-complete",
+        "adapter_config.json",
+        "adapter_model.safetensors",
+        "optimizer.pt",
+        "rng_state.pth",
+        "scheduler.pt",
+        "trainer_state.json",
+    }
+    missing = sorted(name for name in required if not (checkpoint / name).is_file())
+    if missing:
+        raise RuntimeError(f"Cross-run checkpoint is incomplete: {missing}")
+    marker = (checkpoint / ".nexus-complete").read_text(encoding="utf-8").strip()
+    if marker != source_input_id:
+        raise RuntimeError("Cross-run checkpoint Modal input ID mismatch")
+    trainer_state = json.loads(
+        (checkpoint / "trainer_state.json").read_text(encoding="utf-8")
+    )
+    if trainer_state.get("global_step") != step:
+        raise RuntimeError("Cross-run checkpoint trainer step mismatch")
+    observed_hash = _directory_sha256(checkpoint)
+    if observed_hash != expected_hash:
+        raise RuntimeError("Cross-run checkpoint directory hash mismatch")
+    provenance = {
+        "source_run_id": source_run_id,
+        "source_modal_input_id": source_input_id,
+        "checkpoint_step": step,
+        "directory_sha256": observed_hash,
+    }
+    return checkpoint, provenance
 
 
 def _adapter_state_sha256(model: Any) -> str:
@@ -708,8 +830,16 @@ def run_train(run_id: str) -> dict[str, Any]:
             )
         return _train_result_summary(completed_report)
     output.mkdir(parents=True, exist_ok=True)
+    bootstrap_checkpoint, bootstrap_provenance = (
+        _validated_cross_run_resume_checkpoint(
+            manifest["training"].get("cross_run_resume")
+        )
+    )
     state_path, state, resume_checkpoint = _prepare_train_state(
-        output, modal_input_id=modal_input_id
+        output,
+        modal_input_id=modal_input_id,
+        bootstrap_checkpoint=bootstrap_checkpoint,
+        bootstrap_provenance=bootstrap_provenance,
     )
     _write_json(state_path, state)
     result_volume.commit()

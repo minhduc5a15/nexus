@@ -545,3 +545,9 @@ USD, không có GPU. Chạy audit offline:
 ./scripts/demo/38_modal_spawn_canary.sh preflight
 ./scripts/demo/38_modal_spawn_canary.sh audit
 ```
+
+Runner cũng có đường resume liên-run nhưng chỉ hoạt động khi manifest được duyệt
+chỉ rõ source run, Modal input ID, checkpoint step và SHA-256 toàn thư mục.
+Checkpoint thiếu optimizer/scheduler/RNG, sai step, sai marker hoặc sai hash đều
+bị từ chối trước khi tạo Trainer. Manifest hiện không có resume spec và
+`training_authorized` vẫn là `false`.
