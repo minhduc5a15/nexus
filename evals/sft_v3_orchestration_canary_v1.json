@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-v3-deployed-spawn-canary-v1",
+  "status": "passed",
+  "run_id": "sft-v3-orchestration-canary-20261016a",
+  "source_commit": "c61de21f2bd82b3b9a8390a15f18b50bdf93483f",
+  "deployment": {
+    "app_name": "nexus-sft-candidate-v3",
+    "modal_app_id": "ap-FtvXwu6Tdr1yh5ebAxJSXp",
+    "function_name": "run_orchestration_canary",
+    "runner_sha256": "254c77cabd166d4c356e326b7be1967304f6daf49a482f72cb9fd51ed552fe37"
+  },
+  "launch": {
+    "reservation_id": "3e3910ff-3bb3-403c-b6c8-081eac581d64",
+    "function_call_id": "fc-01M50JCKQ4YJW68WFYXPZRVAH5",
+    "modal_input_id": "in-01M50JCKQE03AC99FSPX8JHTFE:1792094392075-0",
+    "launch_time_controller_sha256": "3d1482b12f47feea7333d30cb8a3be36122f417d2cd30dd185bc9f6ce1f10f81",
+    "launcher_returned_without_waiting": true,
+    "duplicate_launch_exit_code": 2,
+    "automatic_retry_performed": false
+  },
+  "result": {
+    "started_at": "2026-10-15T19:59:56.722571+00:00",
+    "finished_at": "2026-10-15T20:01:40.657136+00:00",
+    "elapsed_seconds": 103.934565,
+    "heartbeats": 3,
+    "gpu_used": false,
+    "model_loaded": false,
+    "training_authorized": false,
+    "final_holdout_inference": false
+  },
+  "artifacts": {
+    "raw_report_path": "evals/results/sft-v3-orchestration-canary-20261016a/report.json",
+    "raw_report_sha256": "ef6fd77fdc570dbe6af8f319c27538f01a96c9cfd31bd491ef4653487429b287",
+    "launch_record_path": "evals/results/modal-sft-v3-launches/sft-v3-orchestration-canary-20261016a/launch.json",
+    "launch_record_sha256": "4c18d9a3136820920a5b9a855d818ec9078a2d4091a8c11d8e1f5a31fe9486b0"
+  },
+  "billing": {
+    "checked_on": "2026-10-16",
+    "modal_app_id": "ap-FtvXwu6Tdr1yh5ebAxJSXp",
+    "deploy_and_canary_metered_cost_usd": 0.00024577,
+    "breakdown_usd": {
+      "cpu": 0.00021022,
+      "memory": 0.00003555,
+      "gpu": 0.0
+    },
+    "canary_hour_metered_cost_usd": 0.00023041,
+    "source": "Modal billing report at hourly resolution filtered by modal_app_id"
+  },
+  "integration_finding": {
+    "observed": "Modal 1.6.0 FunctionCall.get(timeout=0) raised the Python builtin TimeoutError while the call was pending.",
+    "fix": "The status poll now treats both builtin TimeoutError and modal.exception.TimeoutError as running and clears stale transient error fields.",
+    "remote_call_affected": false
+  },
+  "gates": {
+    "three_heartbeats_after_launcher_exit": true,
+    "call_result_recovered_by_function_call_id": true,
+    "duplicate_run_id_rejected_before_spawn": true,
+    "no_gpu_billing": true,
+    "no_model_loaded": true,
+    "training_remained_blocked": true,
+    "final_holdout_remained_closed": true
+  },
+  "next_gate": "design_and_review_explicit_cross_run_resume_from_checkpoint_25_before_requesting_new_gpu_budget"
+}

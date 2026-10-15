@@ -389,7 +389,11 @@ canary 90 giây và thoát ngay; `status` poll lại bằng FunctionCall ID:
 ./scripts/demo/38_modal_spawn_canary.sh deploy
 ./scripts/demo/38_modal_spawn_canary.sh launch sft-v3-orchestration-canary-20261016a
 ./scripts/demo/38_modal_spawn_canary.sh status sft-v3-orchestration-canary-20261016a
+./scripts/demo/38_modal_spawn_canary.sh audit
 ```
 
 Canary không tải model, không dùng GPU và không mở quyền train. Cùng run ID chỉ
-được reserve một lần; spawn thất bại cũng được ghi lại thay vì tự retry.
+được reserve một lần; spawn thất bại cũng được ghi lại thay vì tự retry. Run
+`20261016a` đã đạt đủ ba heartbeat sau khi launcher thoát, status lấy lại kết
+quả qua FunctionCall ID và lần launch trùng trả exit code 2. Chi phí metered cho
+deploy + canary là 0,00024577 USD, GPU bằng 0.

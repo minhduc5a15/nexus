@@ -584,8 +584,13 @@ lượt trả phí mới bị khóa; final holdout v2 vẫn đóng.
 dùng deployed function + `spawn()`. Registry Modal Dict reserve run ID bằng
 `skip_if_exists=True`, lưu FunctionCall ID và cho launcher thoát ngay. Status
 khôi phục call bằng ID với poll timeout 0; module điều khiển không chứa thao tác
-cancel. Canary CPU-only 90 giây sẽ được dùng để chứng minh contract này trước
-khi thiết kế quyền resume checkpoint 25 cho một run mới.
+cancel. Canary CPU-only `sft-v3-orchestration-canary-20261016a` đã hoàn tất ba
+heartbeat sau khi launcher thoát; status lấy lại kết quả bằng FunctionCall ID
+và lần spawn trùng bị từ chối với exit code 2. Tổng chi phí deploy + canary là
+0,00024577 USD, không có GPU. Modal 1.6.0 trả builtin `TimeoutError` khi poll
+call đang chạy; status đã được sửa để coi cả hai loại timeout là trạng thái
+running. Gate tiếp theo là thiết kế quyền resume tường minh từ checkpoint 25
+cho một run mới; training vẫn khóa.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

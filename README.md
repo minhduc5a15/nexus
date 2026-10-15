@@ -534,11 +534,14 @@ step 25 và chạy tới step 31, nhưng bị hủy khi operator gửi `Ctrl+C` 
 CLI đang detached. Chi phí metered là 0,21459993 USD; chưa có candidate. Mọi
 lượt trả phí tiếp theo bị khóa và final holdout v2 vẫn đóng.
 
-Đường chạy Modal dài đang được tách khỏi local entrypoint. Runner có một canary
-CPU-only; launcher reserve run ID nguyên tử trong Modal Dict, gọi deployed
-function bằng `spawn()` rồi lưu `FunctionCall ID` trước khi thoát. Lệnh status
-khôi phục call bằng ID và chỉ poll, không có đường cancel. Chạy audit offline:
+Đường chạy Modal dài đã được tách khỏi local entrypoint. Canary CPU-only hoàn
+tất ba heartbeat sau khi launcher thoát, và duplicate run ID bị từ chối trước
+khi spawn. Launcher reserve run ID nguyên tử trong Modal Dict, gọi deployed
+function bằng `spawn()` rồi lưu `FunctionCall ID`; status khôi phục call bằng ID
+và chỉ poll, không có đường cancel. Tổng chi phí deploy + canary là 0,00024577
+USD, không có GPU. Chạy audit offline:
 
 ```sh
 ./scripts/demo/38_modal_spawn_canary.sh preflight
+./scripts/demo/38_modal_spawn_canary.sh audit
 ```

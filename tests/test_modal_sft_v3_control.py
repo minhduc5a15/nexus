@@ -47,6 +47,11 @@ class FakeCall:
         return self.result
 
 
+class BuiltinTimeoutCall:
+    def get(self, timeout=None):
+        raise TimeoutError()
+
+
 class ModalSftV3ControlTests(unittest.TestCase):
     def record_path(self) -> Path:
         directory = tempfile.TemporaryDirectory()
@@ -106,8 +111,10 @@ class ModalSftV3ControlTests(unittest.TestCase):
         registry = FakeRegistry()
         registry.values["canary-1"] = {
             "run_id": "canary-1",
-            "state": "spawned",
+            "state": "remote_failed",
             "function_call_id": "fc-test",
+            "failed_at": "earlier",
+            "error": {"type": "TimeoutError", "message": ""},
         }
         call = FakeCall(running=True)
         record = control.poll_launch(
@@ -119,7 +126,25 @@ class ModalSftV3ControlTests(unittest.TestCase):
         )
         self.assertEqual(record["state"], "running")
         self.assertEqual(record["function_call_id"], "fc-test")
+        self.assertNotIn("failed_at", record)
+        self.assertNotIn("error", record)
         self.assertFalse(hasattr(call, "cancel_called"))
+
+    def test_builtin_timeout_from_modal_client_also_means_running(self):
+        registry = FakeRegistry()
+        registry.values["canary-1"] = {
+            "run_id": "canary-1",
+            "state": "spawned",
+            "function_call_id": "fc-test",
+        }
+        record = control.poll_launch(
+            "canary-1",
+            registry=registry,
+            call_from_id=lambda call_id: BuiltinTimeoutCall(),
+            now=lambda: "later",
+            record_path=self.record_path(),
+        )
+        self.assertEqual(record["state"], "running")
 
     def test_completed_status_persists_remote_result(self):
         registry = FakeRegistry()
@@ -138,6 +163,29 @@ class ModalSftV3ControlTests(unittest.TestCase):
         )
         self.assertEqual(record["state"], "complete")
         self.assertEqual(record["result"], result)
+
+    def test_completed_status_is_idempotent_without_remote_poll(self):
+        registry = FakeRegistry()
+        existing = {
+            "run_id": "canary-1",
+            "state": "complete",
+            "function_call_id": "fc-test",
+            "completed_at": "first",
+            "result": {"gpu_used": False},
+        }
+        registry.values["canary-1"] = existing
+
+        def unexpected_call(call_id):
+            self.fail("completed call should not be polled again")
+
+        record = control.poll_launch(
+            "canary-1",
+            registry=registry,
+            call_from_id=unexpected_call,
+            now=lambda: "later",
+            record_path=self.record_path(),
+        )
+        self.assertEqual(record, existing)
 
     def test_remote_failure_is_persisted(self):
         registry = FakeRegistry()

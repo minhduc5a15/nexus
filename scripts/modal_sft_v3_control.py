@@ -142,21 +142,29 @@ def poll_launch(
     record = registry.get(run_id)
     if not isinstance(record, dict):
         raise ModalControlError(f"No launch reservation exists for {run_id}")
+    if record.get("state") == "complete" and "result" in record:
+        _write_json(record_path, record)
+        return record
     call_id = record.get("function_call_id")
     if not isinstance(call_id, str) or not call_id:
         _write_json(record_path, record)
         return record
+    active_record = {
+        key: value
+        for key, value in record.items()
+        if key not in {"completed_at", "error", "failed_at", "last_polled_at", "result"}
+    }
     call = call_from_id(call_id)
     try:
         result = call.get(timeout=0)
-    except ModalTimeoutError:
-        running = {**record, "state": "running", "last_polled_at": now()}
+    except (ModalTimeoutError, TimeoutError):
+        running = {**active_record, "state": "running", "last_polled_at": now()}
         registry.put(run_id, running)
         _write_json(record_path, running)
         return running
     except BaseException as error:
         failed = {
-            **record,
+            **active_record,
             "state": "remote_failed",
             "failed_at": now(),
             "error": {"type": type(error).__name__, "message": str(error)},
@@ -165,7 +173,7 @@ def poll_launch(
         _write_json(record_path, failed)
         raise
     completed = {
-        **record,
+        **active_record,
         "state": "complete",
         "completed_at": now(),
         "result": result,

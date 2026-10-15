@@ -25,8 +25,12 @@ case "${stage}" in
     heading 'Poll canary bằng FunctionCall ID; không cancel remote input'
     "${demo_python}" -m scripts.modal_sft_v3_control status "${run_id}"
     ;;
+  audit)
+    heading 'Audit decision artifact và raw evidence — không gọi Modal'
+    "${demo_python}" -m scripts.audit_modal_sft_v3_canary
+    ;;
   *)
-    printf 'Stage phải là preflight, deploy, launch hoặc status.\n' >&2
+    printf 'Stage phải là preflight, deploy, launch, status hoặc audit.\n' >&2
     exit 2
     ;;
 esac
