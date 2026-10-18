@@ -61,7 +61,7 @@ def _literal_assignment(tree: ast.Module, name: str) -> Any:
 
 def validate_protocol() -> dict[str, Any]:
     plan = strict_json(PLAN.read_bytes())
-    _require(plan.get("training_authorized") is False, "Training must remain blocked")
+    _require(plan.get("training_authorized") is True, "Approved training must remain authorized")
     _require(
         plan.get("final_holdout", {}).get("model_inference_authorized") is False,
         "Final holdout must remain closed",
@@ -127,7 +127,7 @@ def validate_protocol() -> dict[str, Any]:
         "atomic_duplicate_guard": True,
         "launcher_waits_for_remote_result": False,
         "status_can_cancel": False,
-        "training_authorized": False,
+        "training_authorized": True,
         "final_holdout_inference_authorized": False,
     }
 

@@ -18,7 +18,7 @@ import modal
 
 APP_NAME = "nexus-sft-candidate-v3"
 PROTOCOL_ID = "nexus-sft-qlora-candidate-v3"
-MANIFEST_SHA256 = "225fa3abecff3dfc74cd93af2a632f7051c31bba03ad8093cf6acae9624bd279"
+MANIFEST_SHA256 = "43a527b6455b9bec55202d6dc9d078cdd9cd3f99ceb085162d1d2c0f8f29a78e"
 MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 MODEL_REVISION = "cdbee75f17c01a7cc42f958dc650907174af0554"
 CANDIDATE_SHA256 = "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7"

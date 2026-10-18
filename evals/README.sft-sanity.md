@@ -603,8 +603,9 @@ Proposal `20261016d` khóa checkpoint source ở step 25 với directory SHA-256
 `e37986c9877f4bba225cec1b0e252dae5be5c243d0ad8a1e3923cd10f337d797`.
 Còn 275 optimizer step; run train và development dùng deployed spawn, registry
 chống duplicate và không automatic retry. Bảng giá Modal ngày 16/10/2026 cho
-trần compute 2,30236667 USD; trần xin duyệt là 2,45 USD. 465 test đã đạt nhưng
-active manifest và GPU authorization chưa được mở.
+trần compute 2,30236667 USD; trần xin duyệt là 2,45 USD. Project owner đã duyệt
+ngày 19/10/2026; active manifest khóa checkpoint step 25, hai run ID và
+authorization artifact. Final holdout v2 vẫn đóng và automatic retry vẫn tắt.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

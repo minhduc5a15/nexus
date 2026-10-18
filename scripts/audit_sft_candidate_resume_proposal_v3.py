@@ -1,4 +1,4 @@
-"""Audit the blocked cross-run resume proposal before budget approval."""
+"""Audit the approved cross-run resume proposal and active authorization."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from scripts.eval_proposals import strict_json
 ROOT = Path(__file__).resolve().parents[1]
 PROPOSAL = ROOT / "evals/sft_candidate_training_resume_proposal_v3.json"
 ACTIVE_PLAN = ROOT / "evals/sft_candidate_training_plan_v3.json"
+AUTHORIZATION = ROOT / "evals/sft_candidate_training_resume_authorization_v3.json"
 
 
 class ResumeProposalError(ValueError):
@@ -39,9 +40,10 @@ def load(path: Path) -> dict[str, Any]:
 def validate(path: Path = PROPOSAL) -> dict[str, Any]:
     proposal = load(path)
     active = load(ACTIVE_PLAN)
-    _require(active.get("training_authorized") is False, "Active training must remain blocked")
-    _require(proposal.get("status") == "ready_for_budget_review", "Proposal status changed")
-    _require(proposal.get("training_authorized") is False, "Proposal unexpectedly authorizes training")
+    authorization = load(AUTHORIZATION)
+    _require(active.get("training_authorized") is True, "Active training is not authorized")
+    _require(proposal.get("status") == "approved", "Proposal status changed")
+    _require(proposal.get("training_authorized") is True, "Proposal approval state changed")
     run_ids = proposal.get("target_run_ids", {})
     _require(
         run_ids
@@ -91,9 +93,21 @@ def validate(path: Path = PROPOSAL) -> dict[str, Any]:
     _require(gates.get("checkpoint_inspected_in_place") is True, "Checkpoint inspection gate failed")
     _require(gates.get("cross_run_resume_unit_tests_passed") is True, "Resume unit-test gate failed")
     _require(gates.get("full_test_suite_passed") is True, "Full test-suite gate failed")
-    _require(gates.get("active_manifest_updated_and_hash_locked") is False, "Active manifest changed before approval")
-    _require(gates.get("project_owner_approved_additional_cost") is False, "Proposal claims unreceived approval")
-    _require(proposal.get("next_gate") == "project_owner_budget_approval", "Unexpected next gate")
+    _require(gates.get("active_manifest_updated_and_hash_locked") is True, "Active manifest is not locked")
+    _require(gates.get("project_owner_approved_additional_cost") is True, "Project-owner approval is missing")
+    approval = proposal.get("approval", {})
+    _require(approval.get("approved_on") == "2026-10-19", "Approval date changed")
+    _require(approval.get("approved_additional_cost_cap_usd") == 2.45, "Approved cap changed")
+    _require(approval.get("authorization_sha256") == sha256(AUTHORIZATION), "Authorization hash changed")
+    _require(authorization.get("status") == "active" and authorization.get("consumed") is False, "Authorization is not active")
+    _require(authorization.get("authorized_run_ids") == run_ids, "Authorization run IDs changed")
+    _require(authorization.get("resume_source") == {key: source[key] for key in ("source_run_id", "source_modal_input_id", "checkpoint_step", "directory_sha256")}, "Authorization resume source changed")
+    _require(authorization.get("additional_cost_cap_usd") == 2.45, "Authorization cap changed")
+    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Authorization opens final holdout")
+    _require(active.get("execution", {}).get("authorized_run_ids") == run_ids, "Active manifest run IDs changed")
+    _require(active.get("training", {}).get("cross_run_resume") == authorization["resume_source"], "Active manifest resume source changed")
+    _require(active.get("execution", {}).get("active_authorization_sha256") == sha256(AUTHORIZATION), "Active manifest authorization hash changed")
+    _require(proposal.get("next_gate") == "deploy_and_spawn_authorized_training_run", "Unexpected next gate")
     return {
         "proposal_id": proposal["proposal_id"],
         "status": proposal["status"],
@@ -103,7 +117,7 @@ def validate(path: Path = PROPOSAL) -> dict[str, Any]:
         "source_checkpoint_sha256": source["directory_sha256"],
         "maximum_compute_usd": maximum,
         "requested_additional_cost_cap_usd": budget["requested_additional_cost_cap_usd"],
-        "training_authorized": False,
+        "training_authorized": True,
         "final_holdout_v2_inference": scope["final_holdout_v2_inference"],
         "next_gate": proposal["next_gate"],
     }

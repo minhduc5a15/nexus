@@ -549,11 +549,11 @@ USD, không có GPU. Chạy audit offline:
 Runner cũng có đường resume liên-run nhưng chỉ hoạt động khi manifest được duyệt
 chỉ rõ source run, Modal input ID, checkpoint step và SHA-256 toàn thư mục.
 Checkpoint thiếu optimizer/scheduler/RNG, sai step, sai marker hoặc sai hash đều
-bị từ chối trước khi tạo Trainer. Manifest hiện không có resume spec và
-`training_authorized` vẫn là `false`.
+bị từ chối trước khi tạo Trainer.
 
 Resume proposal hiện sẵn sàng để review: target train/development dùng hậu tố
 `20261016d`, tiếp tục từ step 25 còn 275 optimizer step. Theo giá Modal kiểm tra
 ngày 16/10/2026, trần compute là 2,30236667 USD và trần xin duyệt là 2,45 USD.
-Full suite 465 test đạt; active manifest chưa đổi và launcher train vẫn trả exit
-code 2 trước khi reserve.
+Ngày 19/10/2026, project owner đã duyệt trần bổ sung này. Active manifest hiện
+khóa đúng checkpoint source, hai run ID và authorization artifact; final holdout
+v2 vẫn đóng và project automatic retry vẫn tắt.

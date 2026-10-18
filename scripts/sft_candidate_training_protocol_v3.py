@@ -1,4 +1,4 @@
-"""Validate the consumed reentrant SFT candidate v3 protocol and artifacts."""
+"""Validate the authorized checkpoint-resumed SFT candidate v3 protocol."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from scripts.score_sft_generation import summarize_proposal_texts
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "evals/sft_candidate_training_plan_v3.json"
 RUNNER = ROOT / "modal_sft_candidate_v3.py"
-EXPECTED_MANIFEST_SHA256 = "225fa3abecff3dfc74cd93af2a632f7051c31bba03ad8093cf6acae9624bd279"
+EXPECTED_MANIFEST_SHA256 = "43a527b6455b9bec55202d6dc9d078cdd9cd3f99ceb085162d1d2c0f8f29a78e"
 EXPECTED_MODEL = {
     "id": "Qwen/Qwen3-4B-Instruct-2507",
     "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
@@ -185,7 +185,22 @@ def validate_protocol(
     _require(training.get("save_steps") == [150, 300], "Checkpoint schedule changed")
     _require(training.get("recovery_checkpoint_interval_steps") == 25, "Recovery checkpoint interval changed")
     _require(training.get("recovery_checkpoint_retention") == 1, "Recovery checkpoint retention changed")
-    _require(training.get("resume_scope") == "same_modal_input_id_only", "Recovery resume scope changed")
+    _require(
+        training.get("resume_scope")
+        == "same_modal_input_or_hash_locked_cross_run_checkpoint",
+        "Recovery resume scope changed",
+    )
+    cross_run_resume = training.get("cross_run_resume", {})
+    _require(
+        cross_run_resume
+        == {
+            "source_run_id": "sft-candidate-v3-train-20261014c",
+            "source_modal_input_id": "in-01M4WE97X2S868S67G25JGMZV4:1791955869603-0",
+            "checkpoint_step": 25,
+            "directory_sha256": "e37986c9877f4bba225cec1b0e252dae5be5c243d0ad8a1e3923cd10f337d797",
+        },
+        "Cross-run resume source changed",
+    )
     expected_steps = (
         training["dataset_passes"] * dataset_spec["count"]
         // training["effective_batch_size"]
@@ -203,10 +218,10 @@ def validate_protocol(
     _require(
         authorized_runs
         == {
-            "train": "sft-candidate-v3-train-20261014c",
-            "development": "sft-candidate-v3-development-20261014c",
+            "train": "sft-candidate-v3-train-20261016d",
+            "development": "sft-candidate-v3-development-20261016d",
         },
-        "Authorized reentrant run IDs changed",
+        "Authorized resume run IDs changed",
     )
     authorization_path = root / execution.get("active_authorization_path", "")
     _require(
@@ -214,29 +229,39 @@ def validate_protocol(
         "Active authorization hash changed",
     )
     authorization = load_json(authorization_path)
-    _require(authorization.get("status") == "consumed", "Reentrant authorization status changed")
-    _require(authorization.get("authorized_run_ids") == authorized_runs, "Reentrant authorization run IDs changed")
-    _require(authorization.get("additional_cost_cap_usd") == 2.6, "Reentrant cost cap changed")
-    _require(authorization.get("execution", {}).get("transport") == "modal_run_detach", "Reentrant transport changed")
-    _require(authorization.get("execution", {}).get("project_automatic_retry") is False, "Reentrant project retry rule changed")
-    _require(authorization.get("execution", {}).get("provider_same_input_resume") is True, "Provider same-input resume changed")
-    _require(authorization.get("execution", {}).get("recovery_checkpoint_interval_steps") == 25, "Authorized recovery interval changed")
-    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Reentrant authorization includes final holdout")
-    _require(authorization.get("consumed") is True, "Reentrant authorization was not consumed")
+    _require(authorization.get("status") == "active", "Resume authorization status changed")
+    _require(authorization.get("authorized_run_ids") == authorized_runs, "Resume authorization run IDs changed")
+    _require(authorization.get("resume_source") == cross_run_resume, "Resume authorization source changed")
+    _require(authorization.get("additional_cost_cap_usd") == 2.45, "Resume cost cap changed")
+    _require(authorization.get("execution", {}).get("transport") == "deployed_function_spawn", "Resume transport changed")
+    _require(authorization.get("execution", {}).get("atomic_duplicate_guard") is True, "Resume duplicate guard changed")
+    _require(authorization.get("execution", {}).get("project_automatic_retry") is False, "Resume retry rule changed")
+    _require(authorization.get("scope", {}).get("final_holdout_v2_inference") is False, "Resume authorization includes final holdout")
+    _require(authorization.get("consumed") is False, "Resume authorization was already consumed")
     budget = manifest.get("budget", {})
-    _require(math.isclose(maximum_seconds * budget.get("t4_usd_per_second", -1), budget.get("maximum_gpu_usd", -1), abs_tol=1e-9), "GPU cost arithmetic changed")
-    _require(budget.get("requested_total_cost_cap_usd") == 2.6, "Requested total cost cap changed")
-    _require(budget["requested_total_cost_cap_usd"] > budget["maximum_compute_usd"], "Total cost cap must exceed the compute ceiling")
-    _require(budget.get("pricing_checked_on") == "2026-10-14", "Pricing verification date changed")
+    gpu = maximum_seconds * budget.get("t4_usd_per_hour", -1) / 3600
+    cpu = maximum_seconds * manifest["runtime"]["cpu_cores"] * budget.get("cpu_core_usd_per_hour", -1) / 3600
+    memory = maximum_seconds * manifest["runtime"]["training_memory_gib"] * budget.get("memory_gib_usd_per_hour", -1) / 3600
+    _require(math.isclose(gpu, budget.get("maximum_gpu_usd", -1), abs_tol=1e-12), "GPU cost arithmetic changed")
+    _require(math.isclose(cpu, budget.get("maximum_cpu_usd", -1), abs_tol=1e-12), "CPU cost arithmetic changed")
+    _require(math.isclose(memory, budget.get("maximum_memory_usd", -1), abs_tol=1e-12), "Memory cost arithmetic changed")
+    _require(math.isclose(gpu + cpu + memory, budget.get("maximum_compute_usd", -1), abs_tol=1e-12), "Compute cost arithmetic changed")
+    _require(budget.get("requested_additional_cost_cap_usd") == 2.45, "Requested additional cost cap changed")
+    _require(budget["requested_additional_cost_cap_usd"] > budget["maximum_compute_usd"], "Additional cost cap must exceed the compute ceiling")
+    _require(budget.get("pricing_checked_on") == "2026-10-16", "Pricing verification date changed")
 
-    _require(manifest.get("training_authorized") is False, "Reentrant training must remain blocked")
+    _require(manifest.get("training_authorized") is True, "Checkpoint-resumed training is not authorized")
     _require(
         manifest.get("authorization_basis")
-        == "The authorized reentrant run was consumed by sft-candidate-v3-train-20261014c and interrupted when the operator cancelled the detached local entrypoint.",
+        == "Project owner explicitly approved the locked cross-run resume and additional 2.45 USD Modal cap on 2026-10-19.",
         "Candidate training authorization basis changed",
     )
     scope = manifest.get("scope", {})
-    _require(scope and not any(scope.values()), "Candidate protocol scope must exclude side effects, holdout and rollout")
+    _require(scope.get("train") is True and scope.get("development") is True, "Authorized train/development scope changed")
+    _require(
+        not any(value for key, value in scope.items() if key not in {"train", "development"}),
+        "Candidate protocol opens an unauthorized later stage",
+    )
 
     tree = ast.parse(runner_path.read_text(encoding="utf-8"))
     constants = {
@@ -314,8 +339,8 @@ def validate_protocol(
         "gpu": manifest["runtime"]["gpu"],
         "maximum_planned_gpu_seconds": maximum_seconds,
         "maximum_planned_gpu_cost_usd": budget["maximum_gpu_usd"],
-        "requested_total_cost_cap_usd": budget["requested_total_cost_cap_usd"],
-        "training_authorized": False,
+        "requested_additional_cost_cap_usd": budget["requested_additional_cost_cap_usd"],
+        "training_authorized": True,
         "authorized_run_ids": authorized_runs,
         "final_holdout_inference": False,
     }

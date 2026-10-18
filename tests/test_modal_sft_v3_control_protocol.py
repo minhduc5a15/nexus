@@ -29,7 +29,7 @@ class ModalSftV3ControlProtocolTests(unittest.TestCase):
         self.assertTrue(summary["atomic_duplicate_guard"])
         self.assertFalse(summary["launcher_waits_for_remote_result"])
         self.assertFalse(summary["status_can_cancel"])
-        self.assertFalse(summary["training_authorized"])
+        self.assertTrue(summary["training_authorized"])
         self.assertFalse(summary["final_holdout_inference_authorized"])
 
     def test_gpu_canary_is_rejected(self):
@@ -52,13 +52,13 @@ class ModalSftV3ControlProtocolTests(unittest.TestCase):
             ):
                 protocol.validate_protocol()
 
-    def test_training_authorization_must_remain_closed(self):
+    def test_training_authorization_must_remain_open_for_approved_run(self):
         value = json.loads(protocol.PLAN.read_text(encoding="utf-8"))
-        value["training_authorized"] = True
+        value["training_authorized"] = False
         path = self.write("plan.json", json.dumps(value))
         with patch.object(protocol, "PLAN", path):
             with self.assertRaisesRegex(
-                protocol.ModalControlProtocolError, "Training must remain blocked"
+                protocol.ModalControlProtocolError, "must remain authorized"
             ):
                 protocol.validate_protocol()
 

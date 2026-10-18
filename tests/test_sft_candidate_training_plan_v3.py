@@ -25,9 +25,9 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         self.assertEqual(summary["checkpoints"], ["step-150", "step-300"])
         self.assertEqual(summary["probe"]["behaviors"], {"call": 28, "clarify": 7, "no_action": 5})
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
-        self.assertAlmostEqual(summary["maximum_compute_usd"], 2.428632)
-        self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertAlmostEqual(summary["maximum_compute_usd"], 2.302366666666667)
+        self.assertEqual(summary["requested_additional_cost_cap_usd"], 2.45)
+        self.assertTrue(summary["training_authorized"])
         self.assertFalse(summary["final_holdout_v2_inference_authorized"])
         self.assertTrue(summary["runner_authored"])
         self.assertEqual(summary["attempt"]["status"], "interrupted")
@@ -49,10 +49,11 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         )
         self.assertEqual(
             summary["authorized_run_ids"]["train"],
-            "sft-candidate-v3-train-20261014c",
+            "sft-candidate-v3-train-20261016d",
         )
-        self.assertEqual(summary["active_authorization"]["additional_cost_cap_usd"], 2.6)
-        self.assertTrue(summary["active_authorization"]["consumed"])
+        self.assertEqual(summary["active_authorization"]["additional_cost_cap_usd"], 2.45)
+        self.assertFalse(summary["active_authorization"]["consumed"])
+        self.assertEqual(summary["active_authorization"]["status"], "active")
         self.assertEqual(summary["reentrant_attempt"]["last_logged_optimizer_step"], 31)
         self.assertEqual(summary["reentrant_attempt"]["last_durable_optimizer_step"], 25)
         self.assertEqual(summary["reentrant_attempt"]["metered_cost_usd"], 0.21459993)
@@ -66,11 +67,11 @@ class SftCandidateTrainingPlanV3Tests(unittest.TestCase):
         ):
             broken = deepcopy(original)
             if field == "training_authorized":
-                broken[field] = True
+                broken[field] = False
             else:
                 broken["final_holdout"]["model_inference_authorized"] = True
             with self.subTest(field=field):
-                with self.assertRaisesRegex(audit.TrainingPlanV3Error, message):
+                with self.assertRaisesRegex(audit.TrainingPlanV3Error, "not authorized" if field == "training_authorized" else message):
                     audit.validate_plan(self.write_plan(broken))
 
     def test_budget_and_step_arithmetic_cannot_drift(self):

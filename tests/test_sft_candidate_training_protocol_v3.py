@@ -24,13 +24,13 @@ class SftCandidateTrainingProtocolV3Tests(unittest.TestCase):
         self.assertEqual(summary["checkpoints"], ["step-150", "step-300"])
         self.assertEqual(summary["probe_balance"], {"call": 28, "clarify": 7, "no_action": 5})
         self.assertEqual(summary["maximum_planned_gpu_seconds"], 10200)
-        self.assertEqual(summary["requested_total_cost_cap_usd"], 2.6)
-        self.assertFalse(summary["training_authorized"])
+        self.assertEqual(summary["requested_additional_cost_cap_usd"], 2.45)
+        self.assertTrue(summary["training_authorized"])
         self.assertEqual(
             summary["authorized_run_ids"],
             {
-                "train": "sft-candidate-v3-train-20261014c",
-                "development": "sft-candidate-v3-development-20261014c",
+                "train": "sft-candidate-v3-train-20261016d",
+                "development": "sft-candidate-v3-development-20261016d",
             },
         )
         self.assertFalse(summary["final_holdout_inference"])

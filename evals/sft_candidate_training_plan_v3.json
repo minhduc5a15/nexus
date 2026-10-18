@@ -77,7 +77,7 @@
     ],
     "recovery_checkpoint_interval_steps": 25,
     "recovery_checkpoint_retention": 1,
-    "resume_scope": "same_modal_input_id_only",
+    "resume_scope": "same_modal_input_or_hash_locked_cross_run_checkpoint",
     "teacher_forced_probe_ids": [
       "sft_create_delimited",
       "sft_create_blank_line",
@@ -119,7 +119,13 @@
       "v3_no_action_negation_01",
       "sft_no_action_uncomplete",
       "pilot_no_action_bare_weather"
-    ]
+    ],
+    "cross_run_resume": {
+      "source_run_id": "sft-candidate-v3-train-20261014c",
+      "source_modal_input_id": "in-01M4WE97X2S868S67G25JGMZV4:1791955869603-0",
+      "checkpoint_step": 25,
+      "directory_sha256": "e37986c9877f4bba225cec1b0e252dae5be5c243d0ad8a1e3923cd10f337d797"
+    }
   },
   "development": {
     "path": "evals/model_proposal_development_v1.json",
@@ -169,37 +175,40 @@
     "development_timeout_seconds": 1800,
     "maximum_planned_gpu_seconds": 10200,
     "automatic_retry": false,
-    "runner_status": "blocked_after_operator_cancelled_reentrant_run",
+    "runner_status": "authorized_resume_pending_launch",
     "runner_path": "modal_sft_candidate_v3.py",
     "authorized_run_ids": {
-      "train": "sft-candidate-v3-train-20261014c",
-      "development": "sft-candidate-v3-development-20261014c"
+      "train": "sft-candidate-v3-train-20261016d",
+      "development": "sft-candidate-v3-development-20261016d"
     },
-    "active_authorization_path": "evals/sft_candidate_training_reentrant_authorization_v3.json",
-    "active_authorization_sha256": "4d24dc9a3e3b1095da710d20b85239f27945e4f53864cde94586a0686461bf4c"
+    "active_authorization_path": "evals/sft_candidate_training_resume_authorization_v3.json",
+    "active_authorization_sha256": "22b63593c8364fd827d8a7c7c24dc56540c1544eb71b13b865cf4c1101646d37"
   },
   "budget": {
     "pricing_source": "https://modal.com/pricing",
-    "pricing_checked_on": "2026-10-14",
-    "t4_usd_per_second": 0.000164,
-    "cpu_core_usd_per_second": 0.0000131,
-    "memory_gib_usd_per_second": 0.00000222,
-    "maximum_gpu_usd": 1.6728,
-    "maximum_cpu_usd": 0.36156,
-    "maximum_memory_usd": 0.394272,
-    "maximum_compute_usd": 2.428632,
-    "requested_total_cost_cap_usd": 2.6,
-    "note": "The ceiling includes full train/development timeouts plus a CPU-only 3600-second model-download timeout. Actual billing should be lower; stop instead of retrying automatically."
+    "pricing_checked_on": "2026-10-16",
+    "t4_usd_per_hour": 0.59,
+    "cpu_core_usd_per_hour": 0.0473,
+    "memory_gib_usd_per_hour": 0.008,
+    "maximum_gpu_usd": 1.6716666666666666,
+    "maximum_cpu_usd": 0.26803333333333335,
+    "maximum_memory_usd": 0.3626666666666667,
+    "maximum_compute_usd": 2.302366666666667,
+    "requested_additional_cost_cap_usd": 2.45,
+    "note": "The ceiling covers the full train and development GPU timeouts through deployed Function.spawn. The model is already cached; no automatic retry is authorized."
   },
   "scope": {
     "tools_or_database_executed": false,
     "policy_used_for_gold": false,
+    "train": true,
+    "development": true,
+    "diagnostic_holdout_v1": false,
     "final_holdout_v2_packaged": false,
     "final_holdout_v2_inference": false,
     "gguf_export": false,
     "deployment_rollout": false
   },
-  "training_authorized": false,
-  "authorization_basis": "The authorized reentrant run was consumed by sft-candidate-v3-train-20261014c and interrupted when the operator cancelled the detached local entrypoint.",
-  "next_gate": "review_operator_cancellation_and_choose_a_launch_strategy_before_any_new_paid_run"
+  "training_authorized": true,
+  "authorization_basis": "Project owner explicitly approved the locked cross-run resume and additional 2.45 USD Modal cap on 2026-10-19.",
+  "next_gate": "deploy_and_spawn_authorized_training_run"
 }

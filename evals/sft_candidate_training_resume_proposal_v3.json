@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "proposal_id": "nexus-sft-candidate-v3-cross-run-resume-20261016d",
-  "status": "ready_for_budget_review",
+  "status": "approved",
   "protocol_id": "nexus-sft-qlora-candidate-v3",
   "target_run_ids": {
     "train": "sft-candidate-v3-train-20261016d",
@@ -52,10 +52,16 @@
     "checkpoint_inspected_in_place": true,
     "cross_run_resume_unit_tests_passed": true,
     "full_test_suite_passed": true,
-    "active_manifest_updated_and_hash_locked": false,
-    "project_owner_approved_additional_cost": false
+    "active_manifest_updated_and_hash_locked": true,
+    "project_owner_approved_additional_cost": true
   },
-  "training_authorized": false,
+  "training_authorized": true,
   "approval_required": "Explicit project-owner approval for one train and one development run with an additional 2.45 USD cap.",
-  "next_gate": "project_owner_budget_approval"
+  "next_gate": "deploy_and_spawn_authorized_training_run",
+  "approval": {
+    "approved_on": "2026-10-19",
+    "approved_additional_cost_cap_usd": 2.45,
+    "authorization_path": "evals/sft_candidate_training_resume_authorization_v3.json",
+    "authorization_sha256": "22b63593c8364fd827d8a7c7c24dc56540c1544eb71b13b865cf4c1101646d37"
+  }
 }
