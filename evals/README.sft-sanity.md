@@ -606,6 +606,14 @@ chống duplicate và không automatic retry. Bảng giá Modal ngày 16/10/2026
 trần compute 2,30236667 USD; trần xin duyệt là 2,45 USD. Project owner đã duyệt
 ngày 19/10/2026; active manifest khóa checkpoint step 25, hai run ID và
 authorization artifact. Final holdout v2 vẫn đóng và automatic retry vẫn tắt.
+
+Run `20261016d` hoàn tất 300 step với training loss 0,128074. Teacher-forced
+probe tăng từ 23/40 lên 36/40 exact. Trên development 80 ca, base/step-150/
+step-300 lần lượt đạt 66/75/77 ca; unexpected call giảm 6/1/0. Review 24 phản
+hồi non-call cho mỗi cấu hình đạt 15/19/22. Step 300 được chọn cho checkpoint
+candidate, nhưng còn ba `missing_call` ở DEADLINE và chưa đủ điều kiện rollout.
+Chi phí quan sát của train, development hoàn tất và lượt development trùng bị
+guard chặn là 1,66953486 USD, dưới trần bổ sung 2,45 USD.
 Billing report theo đúng Modal app ID ghi nhận 1,02082830 USD metered cost; tổng
 billed cost của workspace trong tháng tại thời điểm kiểm tra là 0 USD nhờ credit
 và allowance cấp workspace.

@@ -557,3 +557,9 @@ ngày 16/10/2026, trần compute là 2,30236667 USD và trần xin duyệt là 2
 Ngày 19/10/2026, project owner đã duyệt trần bổ sung này. Active manifest hiện
 khóa đúng checkpoint source, hai run ID và authorization artifact; final holdout
 v2 vẫn đóng và project automatic retry vẫn tắt.
+
+Run resume đã hoàn tất đủ 300 optimizer step. Development 80 ca cho kết quả
+base 66/80, adapter step 150 đạt 75/80 và step 300 đạt 77/80. Step 300 được chọn
+ở mốc development vì có điểm exact cao nhất và không còn unexpected tool call;
+tuy nhiên DEADLINE giảm từ 8/8 ở base xuống 5/8, nên candidate chưa đủ điều kiện
+rollout và final holdout v2 vẫn chưa được mở.

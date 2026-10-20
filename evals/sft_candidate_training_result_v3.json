@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "result_id": "nexus-sft-candidate-v3-development-decision",
+  "recorded_on": "2026-10-20",
+  "status": "development_complete_candidate_selected",
+  "source": {
+    "train_run_id": "sft-candidate-v3-train-20261016d",
+    "train_report_path": "evals/results/sft-candidate-v3-train-20261016d/sft-candidate-v3/train.json",
+    "train_report_sha256": "4f7f82c75a1c394a788a0ed3c4645d17fa1f0e161f33a9391ae7b8f0e05577dd",
+    "development_run_id": "sft-candidate-v3-development-20261016d",
+    "development_report_path": "evals/results/sft-candidate-v3-development-20261016d/sft-candidate-v3/development.json",
+    "development_report_sha256": "5b95c18052545e4c610affe5c5334456d05f7854e988ca95120f7eeb2c4f7f46",
+    "manual_review_path": "evals/sft_candidate_development_review_v3.json",
+    "manual_review_sha256": "7c7a7124bc534fb1e444c071620f1be278c9bf59a33d6f088128ef8cb9b67e48",
+    "manifest_sha256": "43a527b6455b9bec55202d6dc9d078cdd9cd3f99ceb085162d1d2c0f8f29a78e",
+    "runner_sha256": "18865f69a903704fe6fae78d3b02ba89fb23716782e564862a53a63761572dd7"
+  },
+  "training": {
+    "completed_steps": 300,
+    "runtime_seconds": 5986.6586,
+    "training_loss": 0.12807407875061472,
+    "trainable_parameters": 33030144,
+    "trainable_fraction": 0.014753237962053498,
+    "only_lora_trainable": true,
+    "teacher_forced_before": {
+      "mean_loss": 0.8761495392886781,
+      "token_accuracy": 0.896551724137931,
+      "exact_sequences": 23,
+      "cases": 40,
+      "supervised_tokens": 957
+    },
+    "teacher_forced_after": {
+      "mean_loss": 0.03850530908812716,
+      "token_accuracy": 0.9905956112852664,
+      "exact_sequences": 36,
+      "cases": 40,
+      "supervised_tokens": 957
+    },
+    "peak_allocated_bytes": 6811419136,
+    "peak_reserved_bytes": 9107931136,
+    "all_gates_passed": true
+  },
+  "development": {
+    "automatic_summary": {
+      "baseline": {
+        "cases": 80,
+        "pass": 66,
+        "fail": 14,
+        "by_behavior": {
+          "call": {
+            "pass": 48,
+            "fail": 8
+          },
+          "clarify": {
+            "pass": 10,
+            "fail": 3
+          },
+          "no_action": {
+            "pass": 8,
+            "fail": 3
+          }
+        },
+        "by_action": {
+          "create": {
+            "pass": 3,
+            "fail": 5
+          },
+          "list": {
+            "pass": 8,
+            "fail": 0
+          },
+          "complete": {
+            "pass": 8,
+            "fail": 0
+          },
+          "edit": {
+            "pass": 5,
+            "fail": 3
+          },
+          "delete": {
+            "pass": 8,
+            "fail": 0
+          },
+          "deadline": {
+            "pass": 8,
+            "fail": 0
+          },
+          "due_query": {
+            "pass": 8,
+            "fail": 0
+          }
+        },
+        "unexpected_calls": 6,
+        "reply_review_pending": 24,
+        "error_tags": {
+          "arguments_mismatch": 7,
+          "call_during_clarification": 3,
+          "call_without_authorization": 3,
+          "missing_call": 1,
+          "multiple_calls": 1,
+          "unexpected_call": 6
+        }
+      },
+      "candidates": {
+        "step-150": {
+          "cases": 80,
+          "pass": 75,
+          "fail": 5,
+          "by_behavior": {
+            "call": {
+              "pass": 52,
+              "fail": 4
+            },
+            "clarify": {
+              "pass": 13,
+              "fail": 0
+            },
+            "no_action": {
+              "pass": 10,
+              "fail": 1
+            }
+          },
+          "by_action": {
+            "create": {
+              "pass": 8,
+              "fail": 0
+            },
+            "list": {
+              "pass": 8,
+              "fail": 0
+            },
+            "complete": {
+              "pass": 8,
+              "fail": 0
+            },
+            "edit": {
+              "pass": 5,
+              "fail": 3
+            },
+            "delete": {
+              "pass": 8,
+              "fail": 0
+            },
+            "deadline": {
+              "pass": 7,
+              "fail": 1
+            },
+            "due_query": {
+              "pass": 8,
+              "fail": 0
+            }
+          },
+          "unexpected_calls": 1,
+          "reply_review_pending": 24,
+          "error_tags": {
+            "call_without_authorization": 1,
+            "missing_call": 4,
+            "unexpected_call": 1
+          }
+        },
+        "step-300": {
+          "cases": 80,
+          "pass": 77,
+          "fail": 3,
+          "by_behavior": {
+            "call": {
+              "pass": 53,
+              "fail": 3
+            },
+            "clarify": {
+              "pass": 13,
+              "fail": 0
+            },
+            "no_action": {
+              "pass": 11,
+              "fail": 0
+            }
+          },
+          "by_action": {
+            "create": {
+              "pass": 8,
+              "fail": 0
+            },
+            "list": {
+              "pass": 8,
+              "fail": 0
+            },
+            "complete": {
+              "pass": 8,
+              "fail": 0
+            },
+            "edit": {
+              "pass": 8,
+              "fail": 0
+            },
+            "delete": {
+              "pass": 8,
+              "fail": 0
+            },
+            "deadline": {
+              "pass": 5,
+              "fail": 3
+            },
+            "due_query": {
+              "pass": 8,
+              "fail": 0
+            }
+          },
+          "unexpected_calls": 0,
+          "reply_review_pending": 24,
+          "error_tags": {
+            "missing_call": 3
+          }
+        }
+      },
+      "comparisons": {
+        "step-150": {
+          "pass_delta": 9,
+          "unexpected_call_delta": -5
+        },
+        "step-300": {
+          "pass_delta": 11,
+          "unexpected_call_delta": -6
+        }
+      }
+    },
+    "semantic_noncall_summary": {
+      "baseline": {
+        "pass": 15,
+        "fail": 9,
+        "total": 24
+      },
+      "step-150": {
+        "pass": 19,
+        "fail": 5,
+        "total": 24
+      },
+      "step-300": {
+        "pass": 22,
+        "fail": 2,
+        "total": 24
+      }
+    },
+    "selected_checkpoint": "step-300",
+    "selected_adapter_directory_sha256": "436e9c24d537e48c8ea8987ef6ea771966aca578c7cc248f74e377bc268e529b",
+    "selected_adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e",
+    "selected_failures": [
+      {
+        "id": "deadline_relative",
+        "action": "deadline",
+        "prompt": "Đặt hạn việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+        "error_tags": [
+          "missing_call"
+        ],
+        "generated_text": "NEXUS chỉ đặt deadline cho một task cụ thể; hãy cung cấp ID.<|im_end|>"
+      },
+      {
+        "id": "dev_057",
+        "action": "deadline",
+        "prompt": "Đặt hạn việc 41 lúc 7 giờ sáng hôm nay.",
+        "error_tags": [
+          "missing_call"
+        ],
+        "generated_text": "NEXUS chỉ đặt deadline cho task có ID được nêu; bạn chưa cung cấp cụm thời gian.<|im_end|>"
+      },
+      {
+        "id": "dev_058",
+        "action": "deadline",
+        "prompt": "Đặt hạn việc 52 lúc 18:15 ngày mai.",
+        "error_tags": [
+          "missing_call"
+        ],
+        "generated_text": "NEXUS chỉ đặt deadline cho task đã tồn tại; hãy chọn một ID cụ thể.<|im_end|>"
+      }
+    ],
+    "median_generation_seconds": {
+      "baseline": 3.0264765955,
+      "step-150": 3.91676582599996,
+      "step-300": 3.9066846344999817
+    },
+    "p95_generation_seconds": {
+      "baseline": 5.185932858000008,
+      "step-150": 6.577282922999984,
+      "step-300": 6.0070684539999775
+    }
+  },
+  "billing": {
+    "range": "2026-10-18 through 2026-10-20 UTC hourly report",
+    "training_window_usd": 1.42024937,
+    "completed_development_usd": 0.22806755,
+    "duplicate_guarded_development_attempt_usd": 0.02121794,
+    "total_observed_usd": 1.66953486,
+    "approved_additional_cap_usd": 2.45
+  },
+  "incident": {
+    "description": "The authorized development artifact already existed and validated before the guarded launcher was invoked on 2026-10-20. The later FunctionCall was rejected by the remote completed-artifact guard and did not overwrite evidence.",
+    "rejected_function_call_id": "fc-01M5D0KCT58ZG49W0K3NZWCG3Z",
+    "existing_artifact_modal_input_id": "in-01M5CJQV5M6ZHD8ZQZKNJWTEHV:1792497413300-0"
+  },
+  "decision": {
+    "selected_checkpoint": "step-300",
+    "rollout_eligible": false,
+    "final_holdout_v2_opened": false,
+    "reason": "Step 300 has the highest development exact score and zero unexpected calls, but deadline regressed from 8/8 at baseline to 5/8 and final holdout remains separately gated.",
+    "next_gate": "project-owner review before any final-holdout-v2 inference"
+  }
+}
