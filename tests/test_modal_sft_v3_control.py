@@ -262,7 +262,12 @@ class ModalSftV3ControlTests(unittest.TestCase):
     def authorized_train_plan(self):
         return {
             "training_authorized": True,
-            "execution": {"authorized_run_ids": {"train": "train-d"}},
+            "execution": {
+                "authorized_run_ids": {
+                    "train": "train-d",
+                    "development": "development-d",
+                }
+            },
             "training": {
                 "cross_run_resume": {
                     "source_run_id": "train-c",
@@ -332,6 +337,73 @@ class ModalSftV3ControlTests(unittest.TestCase):
                         record_path=self.record_path(),
                     )
                 self.assertEqual(registry.values, {})
+                self.assertEqual(function.calls, [])
+
+    def test_development_spawn_requires_completed_authorized_train(self):
+        plan = self.authorized_train_plan()
+        registry = FakeRegistry()
+        function = FakeFunction()
+        with self.assertRaisesRegex(control.ModalControlError, "verified complete"):
+            control.reserve_and_spawn_development(
+                "development-d",
+                "train-d",
+                plan=plan,
+                registry=registry,
+                function=function,
+                record_path=self.record_path(),
+            )
+        self.assertEqual(function.calls, [])
+        self.assertNotIn("development-d", registry.values)
+
+    def test_development_spawn_locks_train_and_final_holdout(self):
+        plan = self.authorized_train_plan()
+        registry = FakeRegistry()
+        registry.values["train-d"] = {
+            "state": "complete",
+            "source_commit": "abc",
+            "result": {"training": {"completed_steps": 300}},
+        }
+        function = FakeFunction()
+        record = control.reserve_and_spawn_development(
+            "development-d",
+            "train-d",
+            plan=plan,
+            registry=registry,
+            function=function,
+            now=lambda: "now",
+            record_path=self.record_path(),
+        )
+        self.assertEqual(function.calls, [("development-d", "train-d")])
+        self.assertEqual(record["source_commit"], "abc")
+        self.assertEqual(record["train_run_id"], "train-d")
+        self.assertFalse(record["final_holdout_inference_authorized"])
+
+    def test_development_spawn_rejects_wrong_ids_and_open_holdout(self):
+        base = self.authorized_train_plan()
+        variants = [
+            ("wrong", "train-d", base, "authorized only"),
+            ("development-d", "wrong", base, "may read only"),
+        ]
+        open_holdout = self.authorized_train_plan()
+        open_holdout["scope"]["final_holdout_v2_inference"] = True
+        variants.append(("development-d", "train-d", open_holdout, "final holdout"))
+        for run_id, train_run_id, plan, message in variants:
+            registry = FakeRegistry()
+            registry.values["train-d"] = {
+                "state": "complete",
+                "result": {"training": {"completed_steps": 300}},
+            }
+            function = FakeFunction()
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(control.ModalControlError, message):
+                    control.reserve_and_spawn_development(
+                        run_id,
+                        train_run_id,
+                        plan=plan,
+                        registry=registry,
+                        function=function,
+                        record_path=self.record_path(),
+                    )
                 self.assertEqual(function.calls, [])
 
 

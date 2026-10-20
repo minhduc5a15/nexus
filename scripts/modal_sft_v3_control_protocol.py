@@ -115,6 +115,10 @@ def validate_protocol() -> dict[str, Any]:
         'modal.Function.from_name(APP_NAME, "run_train")' in control_text,
         "Deployed train handle missing",
     )
+    _require(
+        'modal.Function.from_name(APP_NAME, "run_development")' in control_text,
+        "Deployed development handle missing",
+    )
     demo_text = DEMO.read_text(encoding="utf-8")
     _require("modal\" deploy" in demo_text, "Demo must deploy before spawning")
     _require("launch-canary" in demo_text and " status " in demo_text, "Demo stages changed")

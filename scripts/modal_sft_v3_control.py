@@ -197,6 +197,83 @@ def reserve_and_spawn_train(
     return launched
 
 
+def reserve_and_spawn_development(
+    run_id: str,
+    train_run_id: str,
+    *,
+    plan: dict[str, Any],
+    registry: Any,
+    function: Any,
+    now: Callable[[], str] = utc_now,
+    record_path: Path | None = None,
+) -> dict[str, Any]:
+    run_id = safe_run_id(run_id)
+    train_run_id = safe_run_id(train_run_id)
+    if plan.get("training_authorized") is not True:
+        raise ModalControlError("Development is not authorized by the active manifest")
+    execution = plan.get("execution", {})
+    authorized = execution.get("authorized_run_ids", {})
+    if run_id != authorized.get("development"):
+        raise ModalControlError(
+            f"Development is authorized only for {authorized.get('development')}"
+        )
+    if train_run_id != authorized.get("train"):
+        raise ModalControlError(
+            f"Development may read only {authorized.get('train')}"
+        )
+    if plan.get("scope", {}).get("final_holdout_v2_inference") is not False:
+        raise ModalControlError("Training manifest does not keep final holdout closed")
+    train_record = registry.get(train_run_id)
+    completed_steps = (
+        train_record.get("result", {}).get("training", {}).get("completed_steps")
+        if isinstance(train_record, dict)
+        else None
+    )
+    if train_record is None or train_record.get("state") != "complete" or completed_steps != 300:
+        raise ModalControlError("Development requires a verified complete 300-step train run")
+    record_path = record_path or local_record_path(run_id)
+    reservation = {
+        "schema_version": 1,
+        "run_id": run_id,
+        "stage": "development",
+        "state": "reserved",
+        "reservation_id": str(uuid.uuid4()),
+        "reserved_at": now(),
+        "deployment": {"app_name": APP_NAME, "function_name": "run_development"},
+        "source_commit": train_record.get("source_commit"),
+        "train_run_id": train_run_id,
+        "gpu_authorized": True,
+        "final_holdout_inference_authorized": False,
+    }
+    if not registry.put(run_id, reservation, skip_if_exists=True):
+        existing = registry.get(run_id)
+        raise ModalControlError(
+            f"run_id already reserved; refusing duplicate spawn: {existing}"
+        )
+    _write_json(record_path, reservation)
+    try:
+        call = function.spawn(run_id, train_run_id)
+    except BaseException as error:
+        failed = {
+            **reservation,
+            "state": "spawn_failed",
+            "failed_at": now(),
+            "error": {"type": type(error).__name__, "message": str(error)},
+        }
+        registry.put(run_id, failed)
+        _write_json(record_path, failed)
+        raise
+    launched = {
+        **reservation,
+        "state": "spawned",
+        "spawned_at": now(),
+        "function_call_id": call.object_id,
+    }
+    registry.put(run_id, launched)
+    _write_json(record_path, launched)
+    return launched
+
+
 def poll_launch(
     run_id: str,
     *,
@@ -291,6 +368,9 @@ def main() -> int:
     launch.add_argument("--duration-seconds", type=int, default=90)
     launch_train = subparsers.add_parser("launch-train")
     launch_train.add_argument("run_id")
+    launch_development = subparsers.add_parser("launch-development")
+    launch_development.add_argument("run_id")
+    launch_development.add_argument("train_run_id")
     status = subparsers.add_parser("status")
     status.add_argument("run_id")
     inspect_checkpoint_parser = subparsers.add_parser("inspect-checkpoint")
@@ -312,6 +392,16 @@ def main() -> int:
                 plan=plan,
                 registry=_registry(),
                 function=modal.Function.from_name(APP_NAME, "run_train"),
+            )
+        elif args.command == "launch-development":
+            plan = json.loads(TRAINING_PLAN.read_text(encoding="utf-8"))
+            registry = _registry()
+            record = reserve_and_spawn_development(
+                args.run_id,
+                args.train_run_id,
+                plan=plan,
+                registry=registry,
+                function=modal.Function.from_name(APP_NAME, "run_development"),
             )
         elif args.command == "status":
             record = poll_launch(
