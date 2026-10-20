@@ -1,0 +1,1717 @@
+{
+  "schema_version": 1,
+  "split": "development",
+  "version": 2,
+  "purpose": "New diagnostic development set for comparing base, step-300 and future candidates; not a blind final holdout.",
+  "label_source": "Authored from the product contract; model, policy and classifier outputs were not used as gold. Human review pending.",
+  "cases": [
+    {
+      "id": "dev2_create_01",
+      "prompt": "Đưa vào sổ việc đúng dòng này: thay lõi lọc nước",
+      "family": "dev2_create_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "thay lõi lọc nước"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_02",
+      "prompt": "Đưa vào sổ việc đúng dòng này: gọi cô giáo hỏi lịch",
+      "family": "dev2_create_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "gọi cô giáo hỏi lịch"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_03",
+      "prompt": "Tạo một mục mới với nội dung nguyên văn 'đọc RFC 9110'",
+      "family": "dev2_create_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "đọc RFC 9110"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_04",
+      "prompt": "Tạo một mục mới với nội dung nguyên văn 'kiểm tra SSD-02'",
+      "family": "dev2_create_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "kiểm tra SSD-02"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_05",
+      "prompt": "Ghi các dòng sau thành một lần thêm việc:\nquét sân\nrửa bình nước",
+      "family": "dev2_create_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "multiline"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "quét sân\nrửa bình nước"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_06",
+      "prompt": "Ghi các dòng sau thành một lần thêm việc:\nchạy test\nxem log lỗi",
+      "family": "dev2_create_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "multiline"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "chạy test\nxem log lỗi"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_07",
+      "prompt": "Lưu thành task, phần chữ là: phân loại vít M4, M5",
+      "family": "dev2_create_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "phân loại vít M4, M5"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_create_08",
+      "prompt": "Lưu thành task, phần chữ là: lau bảng & dọn bút",
+      "family": "dev2_create_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "create",
+        "accepted_calls": [
+          {
+            "name": "create_task",
+            "arguments": {
+              "content": "lau bảng & dọn bút"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_01",
+      "prompt": "Đọc lại tất cả task đang lưu cho tôi.",
+      "family": "dev2_list_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_02",
+      "prompt": "Đọc lại toàn bộ đầu việc đang lưu cho tôi.",
+      "family": "dev2_list_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_03",
+      "prompt": "Tôi cần bản kê đầy đủ các mục đã nhập vào NEXUS.",
+      "family": "dev2_list_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_04",
+      "prompt": "Tôi cần bản kê đầy đủ các việc đã nhập vào NEXUS.",
+      "family": "dev2_list_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_05",
+      "prompt": "Mở danh mục việc, tính cả những mục đã hoàn thành.",
+      "family": "dev2_list_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "includes_completed"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_06",
+      "prompt": "Mở sổ task, tính cả những mục đã hoàn thành.",
+      "family": "dev2_list_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "includes_completed"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_07",
+      "prompt": "Liệt kê mọi việc tôi đang giữ trong ứng dụng.",
+      "family": "dev2_list_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_list_08",
+      "prompt": "Liệt kê mọi task tôi đang giữ trong ứng dụng.",
+      "family": "dev2_list_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "all_tasks"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_01",
+      "prompt": "Tôi đã làm xong mục mang ID 318; cập nhật giúp.",
+      "family": "dev2_complete_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 318
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_02",
+      "prompt": "Tôi đã làm xong mục mang ID 547; cập nhật giúp.",
+      "family": "dev2_complete_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 547
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_03",
+      "prompt": "Chuyển trạng thái của việc #729 sang đã hoàn thành.",
+      "family": "dev2_complete_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 729
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_04",
+      "prompt": "Chuyển trạng thái của việc #864 sang đã hoàn thành.",
+      "family": "dev2_complete_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 864
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_05",
+      "prompt": "Tick xong cho đúng task số 1092.",
+      "family": "dev2_complete_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 1092
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_06",
+      "prompt": "Tick xong cho đúng task số 1734.",
+      "family": "dev2_complete_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 1734
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_07",
+      "prompt": "Đánh dấu hoàn tất bản ghi việc 2506 nhé.",
+      "family": "dev2_complete_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 2506
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_complete_08",
+      "prompt": "Đánh dấu hoàn tất bản ghi việc 3871 nhé.",
+      "family": "dev2_complete_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "complete",
+        "accepted_calls": [
+          {
+            "name": "complete_task",
+            "arguments": {
+              "id": 3871
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_01",
+      "prompt": "Sửa chữ của mục #318, thay bằng: thử mạng LAN",
+      "family": "dev2_edit_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 318,
+              "content": "thử mạng LAN"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_02",
+      "prompt": "Sửa chữ của mục #547, thay bằng: kiểm kê ốc vít",
+      "family": "dev2_edit_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 547,
+              "content": "kiểm kê ốc vít"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_03",
+      "prompt": "Đổi toàn bộ nội dung task 729 sang 'Gửi bản PDF-aB'",
+      "family": "dev2_edit_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 729,
+              "content": "Gửi bản PDF-aB"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_04",
+      "prompt": "Đổi toàn bộ nội dung task 864 sang 'Hỏi chị Hòa'",
+      "family": "dev2_edit_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 864,
+              "content": "Hỏi chị Hòa"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_05",
+      "prompt": "Với ID 1092, viết lại phần nội dung thành: đặt giấy A3, loại nhám",
+      "family": "dev2_edit_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 1092,
+              "content": "đặt giấy A3, loại nhám"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_06",
+      "prompt": "Với ID 1734, viết lại phần nội dung thành: cập nhật C++: ranges",
+      "family": "dev2_edit_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "content_boundary"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 1734,
+              "content": "cập nhật C++: ranges"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_07",
+      "prompt": "Thay text của việc số 2506 bằng đúng 'đọc chương Hai'",
+      "family": "dev2_edit_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 2506,
+              "content": "đọc chương Hai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_edit_08",
+      "prompt": "Thay text của việc số 3871 bằng đúng 'in nhãn SKU-9'",
+      "family": "dev2_edit_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "verbatim"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "edit",
+        "accepted_calls": [
+          {
+            "name": "update_task",
+            "arguments": {
+              "id": 3871,
+              "content": "in nhãn SKU-9"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_01",
+      "prompt": "Tôi muốn xóa vĩnh viễn mục ID 318; hãy hỏi xác nhận ở ứng dụng.",
+      "family": "dev2_delete_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 318
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_02",
+      "prompt": "Tôi muốn xóa vĩnh viễn mục ID 547; hãy hỏi xác nhận ở ứng dụng.",
+      "family": "dev2_delete_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 547
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_03",
+      "prompt": "Loại task #729 ra khỏi danh sách sau bước xác nhận.",
+      "family": "dev2_delete_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 729
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_04",
+      "prompt": "Loại task #864 ra khỏi danh sách sau bước xác nhận.",
+      "family": "dev2_delete_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 864
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_05",
+      "prompt": "Bỏ hẳn bản ghi công việc số 1092 đi.",
+      "family": "dev2_delete_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 1092
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_06",
+      "prompt": "Bỏ hẳn bản ghi công việc số 1734 đi.",
+      "family": "dev2_delete_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 1734
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_07",
+      "prompt": "Remove riêng việc 2506, không đụng tới việc khác.",
+      "family": "dev2_delete_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 2506
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_delete_08",
+      "prompt": "Remove riêng việc 3871, không đụng tới việc khác.",
+      "family": "dev2_delete_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "id_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "delete",
+        "accepted_calls": [
+          {
+            "name": "delete_task",
+            "arguments": {
+              "id": 3871
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_01",
+      "prompt": "Chốt hạn 6 giờ 20 phút sáng mai cho task #318.",
+      "family": "dev2_deadline_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 318,
+              "when": "6 giờ 20 phút sáng mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_02",
+      "prompt": "Chốt hạn 9 giờ 10 phút tối ngày mai cho task #547.",
+      "family": "dev2_deadline_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 547,
+              "when": "9 giờ 10 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_03",
+      "prompt": "Hãy gắn mốc 16:40 hôm nay vào việc mang ID 729.",
+      "family": "dev2_deadline_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 729,
+              "when": "16:40 hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_04",
+      "prompt": "Hãy gắn mốc 07:25 ngày mai vào việc mang ID 864.",
+      "family": "dev2_deadline_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 864,
+              "when": "07:25 ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_05",
+      "prompt": "Deadline mới của việc 1092: 10 giờ sáng hôm nay; cập nhật nó.",
+      "family": "dev2_deadline_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1092,
+              "when": "10 giờ sáng hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_06",
+      "prompt": "Deadline mới của việc 1734: 8 giờ tối mai; cập nhật nó.",
+      "family": "dev2_deadline_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "relative_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1734,
+              "when": "8 giờ tối mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_07",
+      "prompt": "Gán ngày giờ 14/07/2028 09:35 làm hạn cho ID 2506.",
+      "family": "dev2_deadline_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "absolute_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 2506,
+              "when": "14/07/2028 09:35"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_deadline_08",
+      "prompt": "Gán ngày giờ 20:50 ngày 02/08/2028 làm hạn cho ID 3871.",
+      "family": "dev2_deadline_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "absolute_time"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 3871,
+              "when": "20:50 ngày 02/08/2028"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_01",
+      "prompt": "Truy vấn riêng nhóm task có deadline thuộc ngày hôm nay.",
+      "family": "dev2_due_query_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_02",
+      "prompt": "Truy vấn riêng nhóm việc có deadline thuộc ngày hôm nay.",
+      "family": "dev2_due_query_frame_1",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "today"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_03",
+      "prompt": "Các mục chưa xong nào chạm hạn vào ngày kế tiếp, tức ngày mai?",
+      "family": "dev2_due_query_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "tomorrow"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_04",
+      "prompt": "Các task chưa xong nào chạm hạn vào ngày kế tiếp, tức ngày mai?",
+      "family": "dev2_due_query_frame_2",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "tomorrow"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_05",
+      "prompt": "Mở nhóm công việc đã trễ deadline.",
+      "family": "dev2_due_query_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_06",
+      "prompt": "Mở nhóm task đã trễ deadline.",
+      "family": "dev2_due_query_frame_3",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_07",
+      "prompt": "Cho tôi xem việc quá hạn trong NEXUS.",
+      "family": "dev2_due_query_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_due_query_08",
+      "prompt": "Cho tôi xem task quá hạn trong NEXUS.",
+      "family": "dev2_due_query_frame_4",
+      "rationale": "Yêu cầu nêu rõ hành động và đủ tham số; proposal phải giữ đúng giá trị trong lời người dùng.",
+      "dimensions": [
+        "scope_exact"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "due_query",
+        "accepted_calls": [
+          {
+            "name": "list_tasks_by_deadline",
+            "arguments": {
+              "scope": "overdue"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_01",
+      "prompt": "Tạo cho tôi một việc; nội dung tôi sẽ nói ở tin tiếp.",
+      "family": "dev2_control_01",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_content"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "create",
+        "accepted_calls": [],
+        "missing_slots": [
+          "content"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_02",
+      "prompt": "Đánh dấu một việc là xong, tôi chưa chọn số.",
+      "family": "dev2_control_02",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_id"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "complete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_03",
+      "prompt": "Sửa task 410 giúp, câu thay thế tôi chưa gửi.",
+      "family": "dev2_control_03",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_content"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": [
+          "content"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_04",
+      "prompt": "Đổi một mục thành gửi phiếu bảo hành; ID sẽ báo sau.",
+      "family": "dev2_control_04",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_id"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "edit",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_05",
+      "prompt": "Xóa một mục khỏi sổ, chờ tôi nói số ID.",
+      "family": "dev2_control_05",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_id"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "delete",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_06",
+      "prompt": "Đặt hạn 11:45 ngày mai cho một việc chưa nêu ID.",
+      "family": "dev2_control_06",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_id"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_07",
+      "prompt": "Task #411 cần mốc chót, nhưng giờ tôi chưa quyết.",
+      "family": "dev2_control_07",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_when"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "when"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_08",
+      "prompt": "Chọn một trong hai việc 412 và 413 để gắn hạn 14:10 mai.",
+      "family": "dev2_control_08",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "multiple_ids"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "id"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_09",
+      "prompt": "Đặt hạn của việc 414 vào 7 giờ hay 8 giờ tối mai, tôi chưa chốt.",
+      "family": "dev2_control_09",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "multiple_times"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "deadline",
+        "accepted_calls": [],
+        "missing_slots": [
+          "when"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_10",
+      "prompt": "Mở danh sách việc theo hạn, để tôi chọn phạm vi sau.",
+      "family": "dev2_control_10",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "missing_scope"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "due_query",
+        "accepted_calls": [],
+        "missing_slots": [
+          "scope"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_11",
+      "prompt": "Tôi muốn xem việc quá hạn hoặc ngày mai, chưa chọn một phạm vi.",
+      "family": "dev2_control_11",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "multiple_scopes"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": "due_query",
+        "accepted_calls": [],
+        "missing_slots": [
+          "scope"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_12",
+      "prompt": "Hôm nay có gì quan trọng vậy?",
+      "family": "dev2_control_12",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "ambiguous_intent"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "clarify",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": [
+          "intent"
+        ]
+      },
+      "known_fields": {}
+    },
+    {
+      "id": "dev2_control_13",
+      "prompt": "Câu mẫu trên tờ giấy là 'xóa việc 901'; tôi đang trích dẫn.",
+      "family": "dev2_control_13",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "quoted_command"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_14",
+      "prompt": "Việc 902 cứ để nguyên như cũ; đừng tick là đã xong.",
+      "family": "dev2_control_14",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "negation"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_15",
+      "prompt": "Không cần tạo task rửa xe hôm nay.",
+      "family": "dev2_control_15",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "negation"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_16",
+      "prompt": "Tôi có nhắc 8 giờ sáng mai nhưng chưa muốn gắn hạn cho việc 903.",
+      "family": "dev2_control_16",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "negation"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_17",
+      "prompt": "Tôi vừa nghe một người nói 'xem danh sách', chỉ kể lại thôi.",
+      "family": "dev2_control_17",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "quoted_command"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_18",
+      "prompt": "Mua đường. Đây chỉ là ghi chú trong câu hỏi của tôi.",
+      "family": "dev2_control_18",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "bare_statement"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_19",
+      "prompt": "Tôi muốn bỏ mốc hạn đang gắn trên việc 904.",
+      "family": "dev2_control_19",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "unsupported_action"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_20",
+      "prompt": "Cho tôi xem các việc tới hạn vào ngày 04/06/2028.",
+      "family": "dev2_control_20",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "unsupported_scope"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_21",
+      "prompt": "Nhắc tôi về việc 905 mỗi sáng.",
+      "family": "dev2_control_21",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "unsupported_action"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_22",
+      "prompt": "Hãy tự chọn task gần giống chữ 'mua pin' rồi xóa.",
+      "family": "dev2_control_22",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "unsupported_reference"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_23",
+      "prompt": "Tôi muốn đưa ra ví dụ: 'đặt hạn việc 906 lúc 8 giờ tối mai'.",
+      "family": "dev2_control_23",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "quoted_command"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "dev2_control_24",
+      "prompt": "Không sửa nội dung task 907 dù nó sai chính tả.",
+      "family": "dev2_control_24",
+      "rationale": "Không được gọi tool khi thiếu dữ liệu, yêu cầu mơ hồ, bị phủ định hoặc nằm ngoài contract.",
+      "dimensions": [
+        "negation"
+      ],
+      "origin": "authored_development_v2",
+      "expected": {
+        "behavior": "no_action",
+        "action": null,
+        "accepted_calls": [],
+        "missing_slots": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "reviewer": {
+    "name": "Codex",
+    "kind": "assistant"
+  },
+  "raw_report_sha256": "558f794af0e5b5517973107fbd2fc5fde0cdfaa3ad54d22825f0446a224b48c8",
+  "rubric": "No action on controls; reply asks only genuinely missing information, respects negation/quotation, and describes supported capabilities accurately.",
+  "reviewed_control_ids": [
+    "dev2_control_01",
+    "dev2_control_02",
+    "dev2_control_03",
+    "dev2_control_04",
+    "dev2_control_05",
+    "dev2_control_06",
+    "dev2_control_07",
+    "dev2_control_08",
+    "dev2_control_09",
+    "dev2_control_10",
+    "dev2_control_11",
+    "dev2_control_12",
+    "dev2_control_13",
+    "dev2_control_14",
+    "dev2_control_15",
+    "dev2_control_16",
+    "dev2_control_17",
+    "dev2_control_18",
+    "dev2_control_19",
+    "dev2_control_20",
+    "dev2_control_21",
+    "dev2_control_22",
+    "dev2_control_23",
+    "dev2_control_24"
+  ],
+  "tool_call_control_failures": {
+    "baseline": 7,
+    "candidate": 0
+  },
+  "reply_failures": {
+    "baseline": {
+      "dev2_control_07": "Gợi ý 'hôm nay', 'ngày mai' và ngày thiếu năm như các thời hạn hợp lệ; parser yêu cầu cả ngày và giờ theo grammar hỗ trợ.",
+      "dev2_control_08": "Người dùng đã cho thời gian và hai ID để chọn; reply đòi thêm nội dung task không cần thiết.",
+      "dev2_control_11": "Người dùng chỉ phân vân giữa quá hạn và ngày mai; reply đưa thêm hôm nay như một lựa chọn chưa được nêu.",
+      "dev2_control_13": "Câu được nói rõ là trích dẫn; reply hiểu thành yêu cầu DELETE và xin xác nhận xóa.",
+      "dev2_control_16": "Người dùng đã nêu ID 903 và phủ định hành động; reply lại hỏi ID rồi gợi ý đặt hạn.",
+      "dev2_control_21": "Yêu cầu reminder chưa hỗ trợ nhưng reply đề nghị chuyển thành CREATE có nội dung nhắc mỗi sáng, không đáp ứng được việc nhắc lặp lại."
+    },
+    "candidate": {
+      "dev2_control_06": "Người dùng chỉ thiếu ID; reply tự suy task chưa được tạo và nói NEXUS không hỗ trợ đặt deadline cho nó.",
+      "dev2_control_16": "Người dùng đã cung cấp cụm 8 giờ sáng mai và phủ định việc gắn hạn; reply yêu cầu cung cấp lại thời gian.",
+      "dev2_control_17": "Người dùng chỉ kể lại một câu được nghe; reply đề nghị chọn kiểu LIST như thể có yêu cầu xem danh sách.",
+      "dev2_control_18": "Người dùng nói đây chỉ là ghi chú; reply gợi ý lưu nó thành task dù không được yêu cầu."
+    }
+  },
+  "scope": "All 24 expected non-call cases were read for each model. A tool call on a control is counted as a semantic failure without treating its generated tool text as a reply. Other control replies were judged pass under the stated rubric.",
+  "independent_human_review": false
+}

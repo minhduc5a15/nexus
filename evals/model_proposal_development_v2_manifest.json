@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "path": "evals/model_proposal_development_v2.json",
+    "sha256": "b1b0e5c3ef9228de635f95822dbabe7a0a84cf51ce7492647d8b1c36c3ff3d1c",
+    "cases": 80
+  },
+  "builder": {
+    "path": "scripts/build_model_proposal_development_v2.py",
+    "sha256": "3fdd9948d6a350badad26597464ed803c7b5fe7efc2facf7fc1acb05d6ff07c9"
+  },
+  "sources": {
+    "evals/sft_candidate_v3.json": "a0e54748aed6926d48e7ddc5f6674954bba7a19c9eab9f469cc09db80c7b83e7",
+    "evals/model_proposal_development_v1.json": "c7287c09af77f98ddd02d9888b34bbb8b0aac0f4d9cf4f330990e47ef98d1b27",
+    "evals/model_proposal_holdout_v2.json": "a1b9aead11ca80eeab34a827c2f1047b34a7c1c1f491de4123b42930ec2100ed",
+    "evals/sft_candidate_development_review_v3.json": "7c7a7124bc534fb1e444c071620f1be278c9bf59a33d6f088128ef8cb9b67e48"
+  },
+  "status": "offline_labels_authored_human_review_pending_no_model_inference"
+}

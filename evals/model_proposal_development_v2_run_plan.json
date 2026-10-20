@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-development-v2",
+  "dataset": {
+    "path": "evals/model_proposal_development_v2.json",
+    "sha256": "b1b0e5c3ef9228de635f95822dbabe7a0a84cf51ce7492647d8b1c36c3ff3d1c",
+    "count": 80
+  },
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "source_train_run_id": "sft-candidate-v3-train-20261016d",
+  "source_train_report_sha256": "4f7f82c75a1c394a788a0ed3c4645d17fa1f0e161f33a9391ae7b8f0e05577dd",
+  "source_adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e",
+  "generation": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "temperature": 0.0,
+    "do_sample": false,
+    "seed": 42,
+    "maximum_new_tokens": 128
+  },
+  "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+  "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5",
+  "resources": {
+    "gpu": "T4",
+    "cpu": 2,
+    "memory_mib": 16384,
+    "timeout_seconds": 1800,
+    "automatic_retry": false
+  },
+  "files": {
+    "evals/model_proposal_development_v2.json": "b1b0e5c3ef9228de635f95822dbabe7a0a84cf51ce7492647d8b1c36c3ff3d1c",
+    "evals/sft_candidate_training_plan_v3.json": "43a527b6455b9bec55202d6dc9d078cdd9cd3f99ceb085162d1d2c0f8f29a78e",
+    "modal_sft_candidate_v3.py": "18865f69a903704fe6fae78d3b02ba89fb23716782e564862a53a63761572dd7",
+    "modal_sft_development_v2.py": "94601f27e0230e4716c436583ddcdae28a0e4ae6c651df55806aa69190c3843d",
+    "scripts/score_sft_generation.py": "f6175f02ca4a1890cd2ca38d8220e6d650b67a93166867534f9ab52ed4f546c9"
+  },
+  "training_authorized": false,
+  "final_holdout_inference_authorized": false
+}
