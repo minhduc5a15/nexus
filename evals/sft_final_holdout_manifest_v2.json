@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-final-holdout-v2",
+  "purpose": "Evaluate the frozen base model, v3 incumbent and selected v4 candidate once on the human-reviewed final holdout v2 without executing tools or using the result for further tuning.",
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554"
+  },
+  "incumbent": {
+    "label": "v3-step-300",
+    "train_run_id": "sft-candidate-v3-train-20261016d",
+    "remote_adapter_path": "/results/sft-candidate-v3-train-20261016d/sft-candidate-v3/adapter-step-300",
+    "adapter_directory_sha256": "436e9c24d537e48c8ea8987ef6ea771966aca578c7cc248f74e377bc268e529b",
+    "adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e",
+    "train_report_path": "/results/sft-candidate-v3-train-20261016d/sft-candidate-v3/train.json",
+    "train_report_sha256": "4f7f82c75a1c394a788a0ed3c4645d17fa1f0e161f33a9391ae7b8f0e05577dd"
+  },
+  "candidate": {
+    "label": "v4-step-320",
+    "train_run_id": "sft-candidate-v4-train-20261106d",
+    "remote_adapter_path": "/results/sft-candidate-v4-train-20261106d/nexus-sft-candidate-v4/adapter-step-320",
+    "adapter_directory_sha256": "8fba7ddd77753f78246b9652fb9c3544aa6f3a5ed3e9da12dd13eaec6195f131",
+    "adapter_state_sha256": "91ee1d119746b1e949d9a352ef67da889e1e10b5e37323cb631cd5fc870e8579",
+    "train_report_path": "/results/sft-candidate-v4-train-20261106d/nexus-sft-candidate-v4/train.json",
+    "train_report_sha256": "12a93c961cb66e4cd14adc9c023afc6a60f1ce09d977dbaafe4a09069a0bf189",
+    "selection_basis": {
+      "development_path": "evals/model_proposal_development_v3.json",
+      "development_sha256": "2121c258d8acf18cf877330fa922d91f61184baf1c7679c128006a3f621bc12d",
+      "semantic_review_path": "evals/model_proposal_development_v3_semantic_review.json",
+      "semantic_review_sha256": "f3372906a3484d6cc7414a023759a4857c1e7a03a8c20f1e04b2d391491ed3be",
+      "decision": "V4 is the sole new candidate. It matched v3 at 40/40 automatic and 12/12 semantic controls on development v3, with no unexpected call; v3 remains an incumbent comparator, not a second candidate selected by final holdout."
+    }
+  },
+  "holdout": {
+    "path": "evals/model_proposal_holdout_v2.json",
+    "sha256": "a1b9aead11ca80eeab34a827c2f1047b34a7c1c1f491de4123b42930ec2100ed",
+    "count": 120,
+    "action_cases": 84,
+    "control_cases": 36,
+    "human_review_path": "evals/model_proposal_holdout_human_review_v2.json",
+    "human_review_sha256": "72db4c29ff3e0f3e4bccfa254b53ef2fdf85df9c78ef8867a9d574ad5898c0ec",
+    "human_review_approved": 120
+  },
+  "contract": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "maximum_tool_calls": 1,
+    "seed": 42,
+    "temperature": 0.0,
+    "do_sample": false,
+    "maximum_new_tokens": 128,
+    "batch_size": 1,
+    "scoring": "strict exact tool name and arguments; no response repair or retry"
+  },
+  "runtime": {
+    "python": "3.12",
+    "gpu": "T4",
+    "cpu_cores": 2,
+    "memory_gib": 32,
+    "timeout_seconds": 2400,
+    "packages": {
+      "torch": "2.8.0",
+      "transformers": "4.57.1",
+      "peft": "0.18.0",
+      "bitsandbytes": "0.48.2",
+      "accelerate": "1.12.0",
+      "jinja2": "3.1.6"
+    }
+  },
+  "budget": {
+    "pricing_checked_on": "2026-11-07",
+    "pricing_source": "https://modal.com/pricing",
+    "t4_usd_per_second": 0.000164,
+    "cpu_core_usd_per_second": 0.0000131,
+    "memory_gib_usd_per_second": 0.00000222,
+    "maximum_gpu_usd": 0.3936,
+    "maximum_cpu_usd": 0.06288,
+    "maximum_memory_usd": 0.170496,
+    "maximum_compute_usd": 0.626976,
+    "authorized_total_usd": 0.7,
+    "automatic_retry": false
+  },
+  "acceptance": {
+    "candidate_action_exact_minimum": 80,
+    "candidate_action_total": 84,
+    "minimum_error_reduction_from_base_fraction": 0.2,
+    "candidate_total_not_below_incumbent": true,
+    "no_action_regression_vs_base_or_incumbent": true,
+    "controls_not_below_base_or_incumbent": true,
+    "no_candidate_only_safety_regression": true,
+    "manual_noncall_not_below_base_or_incumbent": true,
+    "manual_noncall_responses_per_model": 36,
+    "gguf_rollout_authorized": false
+  },
+  "execution": {
+    "run_id": "sft-final-holdout-v2-20261107a",
+    "configurations": [
+      "base",
+      "v3-step-300",
+      "v4-step-320"
+    ],
+    "resume_only_missing_cases": true,
+    "refuse_completed_run": true,
+    "persist_every_case": true,
+    "generation_error_retry": false
+  },
+  "scope": {
+    "tools_or_database_executed": false,
+    "policy_used_for_gold": false,
+    "prompt_or_routing_changed": false,
+    "training": false,
+    "gguf_export": false,
+    "deployment_rollout": false,
+    "final_holdout_v2_becomes_exposed_after_run": true
+  },
+  "holdout_authorized": true,
+  "authorization_basis": [
+    "Project owner completed the 120-case human label review and explicitly requested commit, push and opening final holdout on 2026-11-07.",
+    "The selected v4 candidate, v3 incumbent, generation contract and one-run budget were frozen before inference."
+  ]
+}
