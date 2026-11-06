@@ -563,3 +563,25 @@ base 66/80, adapter step 150 đạt 75/80 và step 300 đạt 77/80. Step 300 đ
 ở mốc development vì có điểm exact cao nhất và không còn unexpected tool call;
 tuy nhiên DEADLINE giảm từ 8/8 ở base xuống 5/8, nên candidate chưa đủ điều kiện
 rollout và final holdout v2 vẫn chưa được mở.
+
+Development v2 mới (80 ca cân bằng) xác nhận step 300 tăng từ 67/80 ở base lên
+78/80, nhưng còn hai lỗi LIST. Một chẩn đoán 10 cặp cách diễn đạt trên dữ liệu
+đã lộ cho kết quả base 20/20 và step 300 13/20: bốn lỗi DEADLINE, ba lỗi LIST,
+đều là bỏ tool call rồi mô tả sai khả năng ứng dụng. Xem
+[bảng cặp và raw provenance](evals/model_proposal_framing_diagnostic_v1_findings.md).
+Đây là bằng chứng để thiết kế lát cắt dữ liệu có đối chứng; chưa mở final
+holdout v2, huấn luyện lại hoặc đổi model mặc định.
+
+Bản nháp SFT v4 giữ 600 ví dụ v3 và thêm 40 ca DEADLINE/LIST có đối chứng.
+Audit offline không thấy trùng hoặc gần trùng ở ngưỡng 0,92 với development v2,
+final holdout v2 hay diagnostic cặp. Policy ban đầu chặn/hỏi lại 24/30 gold
+call mới; sau hai lát cắt mở rộng policy, cả 30/30 proposal chuẩn của bản nháp
+được chấp nhận hoặc, với DELETE, chuyển sang yêu cầu xác nhận. Xem
+[review SFT v4](evals/sft_candidate_v4_draft_review.md) trước khi coi đây là dữ
+liệu train: Codex và project owner đã duyệt đủ 40 ca mới theo hash của bản sau
+sửa. Kết quả 30/30 chỉ đo
+khả năng tương thích với các proposal đã gán nhãn, chưa đo chất lượng model.
+Đã chuẩn bị [development v3 40 ca](evals/README.development-v3.md) và
+[preflight v4](evals/sft_candidate_v4_offline_preflight.json) để khóa dữ liệu
+và thiết kế so sánh. Chưa khóa runner/budget, chưa dùng GPU hoặc mở final
+holdout cho v4. Sidecar duyệt chi tiết chỉ lưu local ngoài Git.

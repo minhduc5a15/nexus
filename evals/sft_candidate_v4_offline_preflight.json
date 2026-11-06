@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-candidate-v4-offline-preflight",
+  "purpose": "Freeze reviewed training data and an independent diagnostic split before building a paid training runner.",
+  "dataset": {
+    "path": "evals/sft_candidate_v4_draft.json",
+    "sha256": "6b30bb0cebcb253a8d0357c1a1767b38e9d8172385360d192321e038ee09c31b",
+    "cases": 640,
+    "source_v3_cases": 600,
+    "new_cases": 40,
+    "builder_path": "scripts/build_sft_candidate_v4_draft.py",
+    "builder_sha256": "e84945465f7baca1bbf260a0aeda57c73dc09772273111105bb5f614fdde2432",
+    "owner_review_path": "evals/results/sft_candidate_v4_owner_review.json",
+    "owner_review_sha256": "577392f4126f84aea0c103931794212996a65b0b5314c957393fd8c0196515b5",
+    "owner_approved_new_cases": 40
+  },
+  "development": {
+    "path": "evals/model_proposal_development_v3.json",
+    "sha256": "2121c258d8acf18cf877330fa922d91f61184baf1c7679c128006a3f621bc12d",
+    "cases": 40,
+    "builder_path": "scripts/build_model_proposal_development_v3.py",
+    "builder_sha256": "1742d12dce1ef509705bf65a75cb7afd0686e2633b63a8f64bdd19d619bb2842",
+    "status": "diagnostic; assistant-authored labels; not a blind final holdout"
+  },
+  "comparison": {
+    "base_model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "base_model_revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "baseline_adapter_checkpoint": "v3-step-300",
+    "baseline_adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e",
+    "candidate_origin": "base model plus reviewed v4 dataset; no v3 adapter continuation",
+    "candidate_target_steps": 320,
+    "prompt_version": "v13",
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tool_routing": "all",
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5",
+    "seed": 42,
+    "do_sample": false,
+    "maximum_new_tokens": 128,
+    "proposal_only": true
+  },
+  "renderer_files_sha256": {
+    "scripts/audit_sft_data.py": "9b295a5c4fdec0005440baa23ff34c0db752e8ee51a8723306f3bfda7316292c",
+    "scripts/inspect_sft_tokens.py": "0dd14c1f7dbeffe8584a2be8a46ddc36732529a7eef5c7e50c31d38f45eea00d",
+    "scripts/score_sft_generation.py": "f6175f02ca4a1890cd2ca38d8220e6d650b67a93166867534f9ab52ed4f546c9"
+  },
+  "training_design": {
+    "dataset_passes": 2,
+    "per_device_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "effective_batch_size": 4,
+    "optimizer_steps": 320,
+    "adapter_rank": 16,
+    "adapter_alpha": 32,
+    "learning_rate": 0.0001,
+    "inherits_other_hyperparameters_from": "evals/sft_candidate_training_plan_v3.json",
+    "training_reference_sha256": "43a527b6455b9bec55202d6dc9d078cdd9cd3f99ceb085162d1d2c0f8f29a78e",
+    "training_runner_locked": false
+  },
+  "tokenizer_validation": {
+    "local_result_path": "evals/results/sft_candidate_v4_token_audit.json",
+    "local_result_sha256": "55cfe0b8da131af0f997c190f60705065267613a1a5db2784476b3110ee9c6e6",
+    "model_revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "transformers_version": "4.57.1",
+    "local_cache_only": true,
+    "cases_checked": 640,
+    "maximum_sequence_tokens": 2048,
+    "maximum_observed_tokens": 1368,
+    "median_observed_tokens": 1318.0,
+    "supervised_tokens_total": 16050,
+    "assistant_only_mask": "verified_by_exact_token_prefix"
+  },
+  "execution_design": {
+    "planned_stages": ["train", "development"],
+    "gpu": "T4",
+    "cpu_cores": 2,
+    "memory_gib": 16,
+    "train_timeout_seconds": 8400,
+    "development_timeout_seconds": 1800,
+    "automatic_retry": false,
+    "pricing_checked_on": "2026-11-03",
+    "pricing_source": "https://modal.com/pricing",
+    "t4_usd_per_second": 0.000164,
+    "cpu_core_usd_per_second": 0.0000131,
+    "memory_gib_usd_per_second": 0.00000222,
+    "maximum_planned_compute_usd": 2.302344,
+    "proposed_total_budget_usd": 2.6,
+    "budget_authorized": false
+  },
+  "gates": {
+    "owner_label_review_complete": true,
+    "development_assistant_review_complete": true,
+    "training_authorized": false,
+    "development_inference_authorized": false,
+    "final_holdout_inference_authorized": false
+  }
+}

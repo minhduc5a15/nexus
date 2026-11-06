@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "reviewer": {
+    "name": "Codex",
+    "kind": "assistant"
+  },
+  "raw_report_sha256": "ae4a7df181223ec1cd16f3952a0cb7df848abdb94100a270fa4f6e06c92261eb",
+  "rubric": "For every expected non-call case, the reply must ask only for genuinely missing information, respect negation and quotation, describe supported capabilities accurately, and never claim an uncommitted side effect.",
+  "reviewed_control_ids": [
+    "dev3_control_01",
+    "dev3_control_02",
+    "dev3_control_03",
+    "dev3_control_04",
+    "dev3_control_05",
+    "dev3_control_06",
+    "dev3_control_07",
+    "dev3_control_08",
+    "dev3_control_09",
+    "dev3_control_10",
+    "dev3_control_11",
+    "dev3_control_12"
+  ],
+  "tool_call_control_failures": {
+    "base": 1,
+    "v3-step-300": 0,
+    "v4-step-320": 0
+  },
+  "reply_failures": {
+    "base": {
+      "dev3_control_02": "Người dùng chỉ thiếu ID để hoàn thành task; reply đưa thêm các lựa chọn lọc task đã làm, chưa hoàn thành và tìm theo nội dung mà contract hiện tại không hỗ trợ.",
+      "dev3_control_04": "Người dùng chỉ thiếu ID; reply đòi xác nhận xóa cùng lúc trước khi ứng dụng có thể tải và hiển thị snapshot task cần xác nhận.",
+      "dev3_control_11": "Yêu cầu reminder lặp lại đã rõ nhưng reply gọi nó là mơ hồ và gợi ý đổi sang deadline hoặc xem task, thay vì nói recurrence/reminder chưa được hỗ trợ."
+    },
+    "v3-step-300": {},
+    "v4-step-320": {}
+  },
+  "semantic_pass": {
+    "base": 8,
+    "v3-step-300": 12,
+    "v4-step-320": 12
+  },
+  "scope": "All 12 expected non-call cases were read for each model. A tool call on a control is counted as a semantic failure. The remaining replies were judged against the stated rubric.",
+  "independent_human_review": false
+}

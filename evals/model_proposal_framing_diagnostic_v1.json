@@ -1,0 +1,525 @@
+{
+  "schema_version": 1,
+  "split": "diagnostic",
+  "version": 1,
+  "purpose": "Paired framing check after development v1/v2 exposure; not an independent holdout or training set.",
+  "label_source": "Authored from product contract; three DEADLINE and two LIST prompts intentionally reuse exposed failures.",
+  "cases": [
+    {
+      "id": "framing_deadline_01_a",
+      "pair_id": "deadline_01",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+      "family": "framing_deadline_01_a",
+      "rationale": "Thêm 'cho' vào khung câu từng bị step-300 bỏ sót.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 6,
+              "when": "8 giờ 30 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_01_b",
+      "pair_id": "deadline_01",
+      "variant": "b",
+      "prompt": "Đặt hạn cho việc 6 lúc 8 giờ 30 phút tối ngày mai.",
+      "family": "framing_deadline_01_b",
+      "rationale": "Thêm 'cho' vào khung câu từng bị step-300 bỏ sót.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 6,
+              "when": "8 giờ 30 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_02_a",
+      "pair_id": "deadline_02",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 41 lúc 7 giờ sáng hôm nay.",
+      "family": "framing_deadline_02_a",
+      "rationale": "Giữ ID/thời gian, đưa thời gian lên trước ID.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 41,
+              "when": "7 giờ sáng hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_02_b",
+      "pair_id": "deadline_02",
+      "variant": "b",
+      "prompt": "Chốt hạn 7 giờ sáng hôm nay cho task #41.",
+      "family": "framing_deadline_02_b",
+      "rationale": "Giữ ID/thời gian, đưa thời gian lên trước ID.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 41,
+              "when": "7 giờ sáng hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_03_a",
+      "pair_id": "deadline_03",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 52 lúc 18:15 ngày mai.",
+      "family": "framing_deadline_03_a",
+      "rationale": "Giữ ID/thời gian, thay khung 'đặt hạn việc ... lúc' bằng khung rõ lời dẫn.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 52,
+              "when": "18:15 ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_03_b",
+      "pair_id": "deadline_03",
+      "variant": "b",
+      "prompt": "Đặt thời hạn cho việc 52 vào 18:15 ngày mai.",
+      "family": "framing_deadline_03_b",
+      "rationale": "Giữ ID/thời gian, thay khung 'đặt hạn việc ... lúc' bằng khung rõ lời dẫn.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v1",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 52,
+              "when": "18:15 ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_04_a",
+      "pair_id": "deadline_04",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 1103 lúc 6 giờ 35 phút sáng mai.",
+      "family": "framing_deadline_04_a",
+      "rationale": "ID/thời gian mới; chỉ thêm 'cho' vào khung câu.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1103,
+              "when": "6 giờ 35 phút sáng mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_04_b",
+      "pair_id": "deadline_04",
+      "variant": "b",
+      "prompt": "Đặt hạn cho việc 1103 lúc 6 giờ 35 phút sáng mai.",
+      "family": "framing_deadline_04_b",
+      "rationale": "ID/thời gian mới; chỉ thêm 'cho' vào khung câu.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1103,
+              "when": "6 giờ 35 phút sáng mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_05_a",
+      "pair_id": "deadline_05",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 1104 lúc 21:40 hôm nay.",
+      "family": "framing_deadline_05_a",
+      "rationale": "ID/thời gian mới; so khung ID-trước với thời-gian-trước.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1104,
+              "when": "21:40 hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_05_b",
+      "pair_id": "deadline_05",
+      "variant": "b",
+      "prompt": "Chốt hạn 21:40 hôm nay cho task #1104.",
+      "family": "framing_deadline_05_b",
+      "rationale": "ID/thời gian mới; so khung ID-trước với thời-gian-trước.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1104,
+              "when": "21:40 hôm nay"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_06_a",
+      "pair_id": "deadline_06",
+      "variant": "a",
+      "prompt": "Đặt hạn việc 1105 lúc 9 giờ 20 phút tối ngày mai.",
+      "family": "framing_deadline_06_a",
+      "rationale": "ID/thời gian mới; so khung tiếng Việt với khung pha tiếng Anh.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1105,
+              "when": "9 giờ 20 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_deadline_06_b",
+      "pair_id": "deadline_06",
+      "variant": "b",
+      "prompt": "Set deadline task #1105 thành 9 giờ 20 phút tối ngày mai.",
+      "family": "framing_deadline_06_b",
+      "rationale": "ID/thời gian mới; so khung tiếng Việt với khung pha tiếng Anh.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "deadline",
+        "accepted_calls": [
+          {
+            "name": "set_task_deadline",
+            "arguments": {
+              "id": 1105,
+              "when": "9 giờ 20 phút tối ngày mai"
+            }
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_01_a",
+      "pair_id": "list_01",
+      "variant": "a",
+      "prompt": "Mở danh mục việc, tính cả những mục đã hoàn thành.",
+      "family": "framing_list_01_a",
+      "rationale": "Yêu cầu LIST bao gồm completed; câu đầu là lỗi v2 của step-300.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_01_b",
+      "pair_id": "list_01",
+      "variant": "b",
+      "prompt": "Liệt kê mọi việc đã lưu, gồm cả mục đã hoàn thành.",
+      "family": "framing_list_01_b",
+      "rationale": "Yêu cầu LIST bao gồm completed; câu đầu là lỗi v2 của step-300.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_02_a",
+      "pair_id": "list_02",
+      "variant": "a",
+      "prompt": "Mở sổ task, tính cả những mục đã hoàn thành.",
+      "family": "framing_list_02_a",
+      "rationale": "Yêu cầu LIST bao gồm completed; câu đầu là lỗi v2 của step-300.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_02_b",
+      "pair_id": "list_02",
+      "variant": "b",
+      "prompt": "Đọc lại toàn bộ task, kể cả task đã xong.",
+      "family": "framing_list_02_b",
+      "rationale": "Yêu cầu LIST bao gồm completed; câu đầu là lỗi v2 của step-300.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "old_development_v2",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_03_a",
+      "pair_id": "list_03",
+      "variant": "a",
+      "prompt": "Cho tôi xem sổ việc, cả các mục đã xong.",
+      "family": "framing_list_03_a",
+      "rationale": "Hai cách mới để yêu cầu toàn bộ danh sách gồm completed.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_03_b",
+      "pair_id": "list_03",
+      "variant": "b",
+      "prompt": "Tất cả việc trong danh sách, bao gồm đã hoàn thành, hiện là gì?",
+      "family": "framing_list_03_b",
+      "rationale": "Hai cách mới để yêu cầu toàn bộ danh sách gồm completed.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_04_a",
+      "pair_id": "list_04",
+      "variant": "a",
+      "prompt": "Mở bảng task, đừng bỏ các task completed.",
+      "family": "framing_list_04_a",
+      "rationale": "Hai cách mới pha tiếng Anh để yêu cầu toàn bộ danh sách.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    },
+    {
+      "id": "framing_list_04_b",
+      "pair_id": "list_04",
+      "variant": "b",
+      "prompt": "Xem toàn bộ danh sách task; giữ cả những mục completed.",
+      "family": "framing_list_04_b",
+      "rationale": "Hai cách mới pha tiếng Anh để yêu cầu toàn bộ danh sách.",
+      "dimensions": [
+        "paired_framing",
+        "exposed_diagnostic"
+      ],
+      "origin": "new_diagnostic",
+      "expected": {
+        "behavior": "call",
+        "action": "list",
+        "accepted_calls": [
+          {
+            "name": "list_tasks",
+            "arguments": {}
+          }
+        ],
+        "missing_slots": []
+      }
+    }
+  ]
+}

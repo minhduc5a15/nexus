@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nexus-sft-candidate-v4",
+  "preflight": {
+    "path": "evals/sft_candidate_v4_offline_preflight.json",
+    "sha256": "7213ad240e55a076f09dac190d89ff4c57288d0893815f0b655983a64d093bf4"
+  },
+  "dataset": {
+    "path": "evals/sft_candidate_v4_draft.json",
+    "sha256": "6b30bb0cebcb253a8d0357c1a1767b38e9d8172385360d192321e038ee09c31b",
+    "count": 640
+  },
+  "development": {
+    "path": "evals/model_proposal_development_v3.json",
+    "sha256": "2121c258d8acf18cf877330fa922d91f61184baf1c7679c128006a3f621bc12d",
+    "count": 40
+  },
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "start_from": "base"
+  },
+  "source_v3": {
+    "run_id": "sft-candidate-v3-train-20261016d",
+    "train_report_sha256": "4f7f82c75a1c394a788a0ed3c4645d17fa1f0e161f33a9391ae7b8f0e05577dd",
+    "step_300_adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e"
+  },
+  "generation": {
+    "prompt_version": "v13",
+    "tool_routing": "all",
+    "prompt_sha256": "b70b3c29366edcdb7abbc23b9753a25f7e1689fd5be1ef6d2d4701158c4096aa",
+    "tools_sha256": "5725def8dea124bde6cea837a50d70f1244ca2ead10c4a50f509de8d8e61f7f5",
+    "seed": 42,
+    "do_sample": false,
+    "maximum_new_tokens": 128,
+    "proposal_only": true
+  },
+  "training": {
+    "seed": 42,
+    "dataset_passes": 2,
+    "maximum_steps": 320,
+    "per_device_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "effective_batch_size": 4,
+    "maximum_sequence_tokens": 2048,
+    "learning_rate": 0.0001,
+    "optimizer": "paged_adamw_8bit",
+    "scheduler": "constant_with_warmup",
+    "warmup_steps": 15,
+    "weight_decay": 0.01,
+    "adapter_rank": 16,
+    "adapter_alpha": 32,
+    "recovery_checkpoint_interval_steps": 25,
+    "automatic_retry": false
+  },
+  "resources": {
+    "gpu": "T4",
+    "cpu_cores": 2,
+    "memory_mib": 16384,
+    "train_timeout_seconds": 1800,
+    "development_timeout_seconds": 800
+  },
+  "resume": {
+    "source_run_id": "sft-candidate-v4-train-20261104c",
+    "source_plan_sha256": "b10c8ec43b0a04e0a776d3989c606a56967cd72f10136950e9afe2bcd0a4c690",
+    "checkpoint_step": 275,
+    "checkpoint_path": "sft-candidate-v4-train-20261104c/nexus-sft-candidate-v4/trainer-checkpoints/checkpoint-275",
+    "trainer_state_sha256": "002ae377f6721dd2e04156d73724ec91525e8d7970fad5ddbe5323a8df8b337b"
+  },
+  "run_ids": {
+    "train": "sft-candidate-v4-train-20261106d",
+    "development": "sft-candidate-v4-development-20261106d"
+  },
+  "image_files": {
+    "shared": [
+      "scripts/__init__.py",
+      "scripts/audit_proposal_data.py",
+      "scripts/audit_sft_data.py",
+      "scripts/eval_proposals.py",
+      "scripts/eval_qwen.py",
+      "scripts/inspect_sft_tokens.py",
+      "scripts/score_sft_generation.py",
+      "src",
+      "modal_sft_candidate_v4.py",
+      "evals/sft_candidate_v4_execution_plan.json"
+    ],
+    "train_only": ["evals/sft_candidate_v4_draft.json"],
+    "development_only": ["evals/model_proposal_development_v3.json"]
+  },
+  "authorization": {
+    "proposed_total_budget_usd": 2.6,
+    "approved_total_budget_usd": 2.6,
+    "approved_by": "project_owner",
+    "approved_on": "2026-11-03",
+    "training_authorized": true,
+    "development_inference_authorized": true,
+    "final_holdout_inference_authorized": false
+  }
+}

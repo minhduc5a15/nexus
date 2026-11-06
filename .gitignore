@@ -16,3 +16,8 @@ dist/
 /reports/
 /PROJECT_OVERVIEW.local.md
 /tools/*
+# Local-only SFT v4 review UI and its helper files.
+/scripts/review_sft_v4_web.py
+/scripts/review_sft_v4_web/
+/tests/test_review_sft_v4_web.py
+/evals/sft_candidate_v4_owner_review_sheet.md

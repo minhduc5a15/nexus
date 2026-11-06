@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nexus-sft-candidate-v4-draft",
+  "dataset_sha256": "6b30bb0cebcb253a8d0357c1a1767b38e9d8172385360d192321e038ee09c31b",
+  "reviewer": {
+    "name": "Codex",
+    "kind": "assistant"
+  },
+  "scope": "40 new cases only; source v3 review remains historical",
+  "criteria": "Independent product contract; action, tool, exact arguments, clarification/no-action and absence of side-effect claims.",
+  "cases": [
+    {
+      "id": "v4_deadline_01",
+      "case_sha256": "f4ed4cc3a6193d83f5034e6fe7c73f3609693387368a39cfc046168134eabbaf",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_02",
+      "case_sha256": "050c985e24c97db4db7675f47e353609163f2cd90fda88d7564b311198255554",
+      "decision": "approved_assistant",
+      "note": "Đã bỏ dấu # khỏi prompt theo feedback project owner; tool và arguments giữ nguyên. Chờ owner duyệt lại."
+    },
+    {
+      "id": "v4_deadline_03",
+      "case_sha256": "6b166d5aaaa2b2a9913bb8d80e1286d6b96f9725bf0a66f6421dd63aa34934c8",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_04",
+      "case_sha256": "a861a469094aa3be2b238f1158ce72742c74971c71a86f33310cb02176035364",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_05",
+      "case_sha256": "5b491988772a17c63b2004465d38ae3706b2a285e17a7b2ad477af7d9b50af49",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_06",
+      "case_sha256": "22a6c285300959e1f8f025ce0701e01eada3bfe73d19d249e8e8a1ebd405750c",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_07",
+      "case_sha256": "11a04e0d219fd03dae7959bbdcb1043b62666ef6582bc0a9afebffa74ff43075",
+      "decision": "approved_assistant",
+      "note": "Đã bỏ dấu # khỏi prompt theo feedback project owner; tool và arguments giữ nguyên. Chờ owner duyệt lại."
+    },
+    {
+      "id": "v4_deadline_08",
+      "case_sha256": "c351305b9540d1048117641497cca5af3abe7cbd615e363ff65303b54c7c435e",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_deadline_09",
+      "case_sha256": "d9c7bc206e744ddc4c6f55ecfc4e798dbab665ff2e4dc763f7efa70a60825336",
+      "decision": "approved_assistant",
+      "note": "358 là ID; 8 là giờ trong when, không phải ID thứ hai."
+    },
+    {
+      "id": "v4_deadline_10",
+      "case_sha256": "37a083f3e202e989a0de1efa728b156c9ebc1c562142f8348ecfb2145030b20f",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_01",
+      "case_sha256": "beb8a24afeb59ab44735aeb8df8580db9adc6220801a5cf09a2931b0fa522666",
+      "decision": "approved_assistant",
+      "note": "LIST toàn bộ bao gồm completed; không yêu cầu bộ lọc mới."
+    },
+    {
+      "id": "v4_list_02",
+      "case_sha256": "972ca6fad4a4570b06d0232600a601a62cd156c14543bfba5537c23f9fb5dcea",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_03",
+      "case_sha256": "78415466d7ef8cbe327a8dc3e20f2d5052e4335ace9cde908d96c400c2a70351",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_04",
+      "case_sha256": "1ca153d44ec0a6fba2568f1f006c177a4487bf9f0018401e4c807ff062465926",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_05",
+      "case_sha256": "794ecb2bbad17217cd8c81e5a7a7cbcc6660f9624d717281fd28c9b0ebb70d84",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_06",
+      "case_sha256": "5ad91f19d13f214ea9917029b18333f75a04dc1add7e9075d331f907d93c91a8",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_07",
+      "case_sha256": "1c5aec3bf247777811bf5696e8643e5d3440fee2b7544846fbecd7c8bfea0e94",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_08",
+      "case_sha256": "57c4e3aba40a7b4d4b7076ba85aa96c45b3a290c818109b35905dddb03ee6456",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_09",
+      "case_sha256": "2dda5f06947334b37859550b467613ddcea013c99e7c232e262685f61191b219",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_list_10",
+      "case_sha256": "e4ee74aed84963aec74876f71b8881500fa0f61555ac6a6484c18d41d105daef",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_01",
+      "case_sha256": "6712dc7267549f3a9ea5674687339ac42401909154f5260b85da20b79b743f17",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_02",
+      "case_sha256": "d3d148556a269db4732ec42d24e725d67d7a40006c537042f0b428c601713110",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_03",
+      "case_sha256": "bd287d756b67b83ffd54a879a2351617e46d108dd292e321d8422ab2f8520f42",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_04",
+      "case_sha256": "3db54a612178f6ebf48242c7577081d0fe9c4fdce729d4e3f44ee37dde6228ad",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_05",
+      "case_sha256": "edf5ecb07a2ca32b32df10e11d55e41cbd0bf143198eed42ac519e088e5deb1d",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_06",
+      "case_sha256": "3383f2ecd5aca477cd9ab5604f51c7dcce0ef7db578213b79f416a04b1609475",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_07",
+      "case_sha256": "273d922be83ae0dce20b8d1a5a019e022d88484be76cda76a9e2e822b57fec5f",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_08",
+      "case_sha256": "80cde640909351bbfe3c79e693b2d534fb9d41f3b848105158fed79557c1335c",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_09",
+      "case_sha256": "7886a7f1de4d73badc30857b2d350598384e5e45339cc30d38e8e64f5ea27fce",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_control_10",
+      "case_sha256": "8f6ef31081117000674fdc0c80abf366ae34fabb8e7bf6a2c59a978c169e4bde",
+      "decision": "approved_assistant",
+      "note": "Yêu cầu chỉ hiển thị completed là bộ lọc chưa hỗ trợ, nên không gọi LIST toàn bộ."
+    },
+    {
+      "id": "v4_create_01",
+      "case_sha256": "8f7a9f7960761f59734b2e4f2c4e7fea5e272d0d419a45844db246206a883229",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_create_02",
+      "case_sha256": "71fb0c372bf050e6e71b4a07b133f541125a66a41dafffdc05f6f92f366a80b8",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_complete_01",
+      "case_sha256": "d8ec615b2d066c53336709c84117e1959fe8f448dbeeba3d3f017ac8ef0d0284",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_complete_02",
+      "case_sha256": "1e3c151f7b889245e6ca3f6da43b22a9af05f6c17a7e5c4ee8fce68956c5e052",
+      "decision": "approved_assistant",
+      "note": "Đã bỏ dấu # khỏi prompt theo feedback project owner; tool và arguments giữ nguyên. Chờ owner duyệt lại."
+    },
+    {
+      "id": "v4_edit_01",
+      "case_sha256": "4cfc90a8846eef5b40b278ef1078595f1e829488c5a92e4fb5199d37ecd3861b",
+      "decision": "approved_assistant",
+      "note": "Dấu chấm cuối kết câu yêu cầu; content mới là mua dây sạc mới."
+    },
+    {
+      "id": "v4_edit_02",
+      "case_sha256": "a1eb09462e8072dd1c745f541efabe949fd4ca1855eac1d7d792c6eec49c747b",
+      "decision": "approved_assistant",
+      "note": "Đã bỏ dấu # khỏi prompt theo feedback project owner; tool và arguments giữ nguyên. Chờ owner duyệt lại."
+    },
+    {
+      "id": "v4_delete_01",
+      "case_sha256": "3fbc2333b508548b42ee84320517c685909aaba851e2e649e556ce4e47e288cf",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_delete_02",
+      "case_sha256": "57374659e14f7129f8bb66cdbd557fbbb630f7a2d2a1210bd97c1ab99a857e49",
+      "decision": "approved_assistant",
+      "note": "Đã bỏ dấu # khỏi prompt theo feedback project owner; tool và arguments giữ nguyên. Chờ owner duyệt lại."
+    },
+    {
+      "id": "v4_due_query_01",
+      "case_sha256": "39d5968ea1b814b2f814ec0f3c9bd7073aebe9a53b1b041229231d0809c0bcf9",
+      "decision": "approved_assistant",
+      "note": "Prompt and target match the product contract."
+    },
+    {
+      "id": "v4_due_query_02",
+      "case_sha256": "0d10873471b9e82a5a76ed09f7d50a615e39a021d3897913cb39e1bf824eda80",
+      "decision": "approved_assistant",
+      "note": "Quá hạn là scope overdue của truy vấn theo deadline."
+    }
+  ],
+  "project_owner_review_complete": false,
+  "training_authorized": false,
+  "final_holdout_v2_inference_authorized": false
+}

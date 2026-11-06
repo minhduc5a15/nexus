@@ -146,7 +146,8 @@ _INTRO = (
 _REQUEST_PREFACE = rf"(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn|nhờ{_H}bạn|bạn|{_PRONOUN}{_H}muốn|nhớ){_H})?"
 _CREATE_HEAD = re.compile(
     rf"^\s*{_REQUEST_PREFACE}(?:"
-    rf"(?:thêm|ghi(?:{_H}lại)?|lưu|tạo){_H}(?:{_COURTESY}{_H})?{_INTRO}"
+    rf"lưu{_H}(?:một|1){_H}task{_H}mới{_H}có{_H}nội{_H}dung"
+    rf"|(?:thêm|ghi(?:{_H}lại)?|lưu|tạo){_H}(?:{_COURTESY}{_H})?{_INTRO}"
     rf"|note{_H}{_COURTESY}(?:{_H}{_INTRO})?"
     rf"|bỏ{_H}vào{_H}todo\b"
     rf"|(?P<give>cho{_H}{_OBJECT})"
@@ -215,8 +216,13 @@ _COMPLETE_EXACT = re.compile(
     rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
     rf"hoàn{_H}thành{_H}(?:việc|task){_H}\#?(?P<finish_id>[0-9]+)"
     rf"|đánh{_H}dấu{_H}(?:việc|task){_H}\#?(?P<mark_id>[0-9]+)"
-    rf"{_H}(?:là{_H})?(?:đã{_H}xong|hoàn{_H}thành)"
+    rf"{_H}(?:là{_H})?(?:đã{_H}xong|đã{_H}hoàn{_H}thành|hoàn{_H}thành)"
     rf")(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_COMPLETE_REPORTED_DONE = re.compile(
+    rf"^\s*{_PRONOUN}{_H}làm{_H}xong{_H}(?:việc|task){_H}#?[0-9]+"
+    rf"{_H}rồi\s*;\s*cập{_H}nhật{_H}trạng{_H}thái[.?!]*\s*$",
     re.IGNORECASE,
 )
 _ID_TOKEN = re.compile(r"(?<!\w)#?([0-9]+)(?!\w)")
@@ -231,10 +237,10 @@ _NEGATED_EDIT_HEAD = re.compile(
     rf"không{_H}muốn|khỏi|không){_H}(?:sửa|cập{_H}nhật|đổi{_H}nội{_H}dung)\b",
     re.IGNORECASE,
 )
-_EDIT_SEPARATOR = re.compile(rf"{_H}thành(?:{_H}|\s*$)", re.IGNORECASE)
+_EDIT_SEPARATOR = re.compile(rf"{_H}thành(?:{_H}|(?=:)|\s*$)", re.IGNORECASE)
 _DELETE_COMMAND_HEAD = re.compile(
     rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?"
-    rf"(?:xóa|xoá|bỏ){_H}(?:việc|task)\b",
+    rf"(?:xóa|xoá|bỏ(?:{_H}hẳn)?){_H}(?:việc|task)\b",
     re.IGNORECASE,
 )
 _NEGATED_DELETE_HEAD = re.compile(
@@ -245,9 +251,15 @@ _NEGATED_DELETE_HEAD = re.compile(
 _DELETE_EXACT = re.compile(
     rf"^\s*(?:(?:hãy|xin|vui{_H}lòng|làm{_H}ơn){_H})?(?:"
     rf"(?:xóa|xoá){_H}(?:việc|task){_H}\#?(?P<delete_id>[0-9]+)"
+    rf"(?:{_H}khỏi{_H}danh{_H}sách)?"
     rf"|bỏ{_H}(?:việc|task){_H}\#?(?P<drop_id>[0-9]+)"
     rf"(?:{_H}khỏi{_H}danh{_H}sách)?"
     rf")(?:{_H}(?:giúp{_H}{_PRONOUN}|nhé|với))*[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_DELETE_WITH_CONFIRMATION_REQUEST = re.compile(
+    rf"^\s*(?:bỏ{_H}hẳn){_H}(?:việc|task){_H}#?[0-9]+"
+    rf"\s*;\s*ứng{_H}dụng{_H}hãy{_H}hỏi{_H}xác{_H}nhận[.?!]*\s*$",
     re.IGNORECASE,
 )
 
@@ -267,6 +279,23 @@ _DEADLINE_BEFORE = re.compile(
     rf"^(?:cho{_H})?(?:(?:việc|task)(?:{_H}#?[0-9]+)?)?$",
     re.IGNORECASE,
 )
+
+# Additional *complete* request frames. Their named ID is taken only from the
+# task reference, so numbers in the time phrase cannot become extra task IDs.
+# Each frame still passes the captured when through the deterministic parser.
+_DEADLINE_ADDITIONAL_FRAMES = tuple(re.compile(pattern, re.IGNORECASE) for pattern in (
+    rf"^\s*(?:(?:cho{_H}{_PRONOUN}|xin|hãy){_H})?"
+    rf"(?:đặt|chốt|set|cập{_H}nhật){_H}(?:hạn|deadline|thời{_H}hạn)"
+    rf"(?:{_H}(?:của|cho))?{_H}(?:việc|task){_H}#?(?P<id>[0-9]+)"
+    rf"(?:\s*:\s*|{_H}(?:lúc|vào|ở|là|thành){_H})"
+    rf"(?P<when>.+?)(?:,\s*đúng{_H}ID{_H}đó)?[.?!]*\s*$",
+    rf"^\s*(?:việc|task){_H}#?(?P<id>[0-9]+)\s*:\s*"
+    rf"đặt{_H}hạn{_H}(?P<when>.+?)[.?!]*\s*$",
+    rf"^\s*hạn{_H}của{_H}(?:việc|task){_H}#?(?P<id>[0-9]+)\s*,\s*"
+    rf"hãy{_H}chuyển{_H}sang{_H}(?P<when>.+?)[.?!]*\s*$",
+    rf"^\s*với{_H}(?:việc|task){_H}ID{_H}#?(?P<id>[0-9]+)\s*,\s*"
+    rf"hạn{_H}mới{_H}là{_H}(?P<when>.+?)(?:;\s*ghi{_H}lại)?[.?!]*\s*$",
+))
 
 
 _DUE_QUERY_EXACT = re.compile(
@@ -288,6 +317,11 @@ _DUE_QUERY_MISSING = re.compile(
     rf"cho{_H}{_PRONOUN}{_H}xem{_H})"
     rf"(?:(?:các|những){_H})?(?:việc|task){_H}(?:theo{_H}hạn|(?:đến|tới){_H}hạn)"
     rf")[.?!]*\s*$",
+    re.IGNORECASE,
+)
+_DUE_QUERY_OVERDUE_QUESTION = re.compile(
+    rf"^\s*cho{_H}{_PRONOUN}{_H}biết{_H}(?:việc|task){_H}nào"
+    rf"{_H}đã{_H}(?:quá|trễ){_H}hạn[.?!]*\s*$",
     re.IGNORECASE,
 )
 _NEGATED_DUE_QUERY = re.compile(
@@ -325,6 +359,8 @@ def _authorize_deadline_query(prompt: str) -> str | ToolDecision:
     if match is not None:
         value = match.group("overdue") or match.group("dated") or match.group("prefix")
         return _scope_from_text(value)
+    if _DUE_QUERY_OVERDUE_QUESTION.fullmatch(prompt):
+        return "overdue"
     if _DUE_QUERY_MISSING.fullmatch(prompt):
         return ToolDecision(
             PolicyResult.NEEDS_CLARIFICATION,
@@ -388,6 +424,7 @@ class _EditRequest:
     task_id: int
     content_start: int
     content_end: int
+    optional_punctuation_end: int
 
 
 @dataclass(frozen=True)
@@ -397,6 +434,8 @@ class _EditParts:
     content: str | None
     content_start: int | None
     content_end: int | None
+    optional_punctuation_end: int | None
+    literal: bool
 
 
 def _parse_edit_parts(prompt: str) -> _EditParts | None:
@@ -410,19 +449,32 @@ def _parse_edit_parts(prompt: str) -> _EditParts | None:
         content = None
         content_start = None
         content_end = None
+        optional_punctuation_end = None
+        literal = False
     else:
         before = tail[:separator.start()].strip()
         content_start = head.end() + separator.end()
         while content_start < len(prompt) and prompt[content_start].isspace():
             content_start += 1
+        literal = content_start < len(prompt) and prompt[content_start] == ":"
+        if literal:
+            content_start += 1
+            while content_start < len(prompt) and prompt[content_start].isspace():
+                content_start += 1
         content_end = len(prompt.rstrip())
+        optional_punctuation_end = content_end
+        if not literal:
+            while content_end > content_start and prompt[content_end - 1] in ".?!":
+                content_end -= 1
+            while content_end > content_start and prompt[content_end - 1].isspace():
+                content_end -= 1
         content = (
             prompt[content_start:content_end]
             if content_start < content_end
             else None
         )
     ids = tuple(int(value) for value in _ID_TOKEN.findall(before))
-    return _EditParts(ids, before, content, content_start, content_end)
+    return _EditParts(ids, before, content, content_start, content_end, optional_punctuation_end, literal)
 
 
 def edit_request_fields(prompt: str) -> tuple[int | None, str | None]:
@@ -457,7 +509,14 @@ def _authorize_edit(prompt: str) -> _EditRequest | ToolDecision:
         return ToolDecision(
             PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MISSING_UPDATE_CONTENT
         )
-    return _EditRequest(task_id, parts.content_start, parts.content_end)
+    if not parts.literal and re.search(
+        r"(?:[,;]\s*|\b(?:và|rồi|sau đó|đồng thời)\s+)"
+        r"(?:xóa|xoá|thêm|hoàn thành|đánh dấu|đặt hạn)\b",
+        parts.content,
+        re.IGNORECASE,
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION)
+    return _EditRequest(task_id, parts.content_start, parts.content_end, parts.optional_punctuation_end)
 
 
 def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
@@ -482,7 +541,8 @@ def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.TASK_ID_MISMATCH)
     content = arguments["content"]
     expected = prompt[request.content_start:request.content_end]
-    if content == expected:
+    with_punctuation = prompt[request.content_start:request.optional_punctuation_end]
+    if content in (expected, with_punctuation):
         return ToolDecision(PolicyResult.ALLOW, PolicyReason.EXPLICIT_UPDATE)
     if content not in prompt:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.CONTENT_NOT_GROUNDED)
@@ -491,32 +551,48 @@ def policy_for_update_task(prompt: Any, arguments: Any) -> ToolDecision:
 
 def _parse_deadline_parts(prompt: str) -> _DeadlineParts | None:
     head = _DEADLINE_COMMAND_HEAD.match(prompt)
-    if head is None:
-        return None
-    tail = prompt[head.end():]
-    separator = _DEADLINE_SEPARATOR.search(tail)
-    if separator is None:
-        before = tail.strip().rstrip(".?!").rstrip()
-        when = None
-        when_start = None
-        when_end = None
-        punctuation_end = None
-    else:
-        before = tail[:separator.start()].strip()
-        when_start = head.end() + separator.end()
-        while when_start < len(prompt) and prompt[when_start].isspace():
-            when_start += 1
-        punctuation_end = len(prompt.rstrip())
-        when_end = punctuation_end
-        while when_end > when_start and prompt[when_end - 1] in ".?!":
-            when_end -= 1
-        while when_end > when_start and prompt[when_end - 1].isspace():
-            when_end -= 1
-        when = prompt[when_start:when_end] if when_start < when_end else None
-    ids = tuple(int(value) for value in _ID_TOKEN.findall(before))
-    return _DeadlineParts(
-        ids, before, when, when_start, when_end, punctuation_end
-    )
+    legacy = None
+    if head is not None:
+        tail = prompt[head.end():]
+        separator = _DEADLINE_SEPARATOR.search(tail)
+        if separator is None:
+            before = tail.strip().rstrip(".?!").rstrip()
+            when = None
+            when_start = None
+            when_end = None
+            punctuation_end = None
+        else:
+            before = tail[:separator.start()].strip()
+            when_start = head.end() + separator.end()
+            while when_start < len(prompt) and prompt[when_start].isspace():
+                when_start += 1
+            punctuation_end = len(prompt.rstrip())
+            when_end = punctuation_end
+            while when_end > when_start and prompt[when_end - 1] in ".?!":
+                when_end -= 1
+            while when_end > when_start and prompt[when_end - 1].isspace():
+                when_end -= 1
+            when = prompt[when_start:when_end] if when_start < when_end else None
+        ids = tuple(int(value) for value in _ID_TOKEN.findall(before))
+        legacy = _DeadlineParts(
+            ids, before, when, when_start, when_end, punctuation_end
+        )
+        if _DEADLINE_BEFORE.fullmatch(before):
+            return legacy
+
+    for frame in _DEADLINE_ADDITIONAL_FRAMES:
+        match = frame.fullmatch(prompt)
+        if match is None:
+            continue
+        task_id = int(match.group("id"))
+        when_start, when_end = match.span("when")
+        suffix = prompt[when_end:].strip()
+        punctuation_end = len(prompt.rstrip()) if re.fullmatch(r"[.?!]+", suffix) else when_end
+        return _DeadlineParts(
+            (task_id,), f"việc {task_id}", match.group("when"),
+            when_start, when_end, punctuation_end,
+        )
+    return legacy
 
 
 def deadline_request_fields(prompt: str) -> tuple[int | None, str | None]:
@@ -631,7 +707,7 @@ def _authorize_delete(prompt: str) -> _DeleteRequest | ToolDecision:
         return ToolDecision(
             PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
         )
-    exact = _DELETE_EXACT.fullmatch(prompt)
+    exact = _DELETE_EXACT.fullmatch(prompt) or _DELETE_WITH_CONFIRMATION_REQUEST.fullmatch(prompt)
     if exact is None or unique_ids[0] <= 0:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
     return _DeleteRequest(unique_ids[0])
@@ -661,7 +737,7 @@ def policy_for_delete_task(prompt: Any, arguments: Any) -> ToolDecision:
 def _authorize_complete(prompt: str) -> _CompleteRequest | ToolDecision:
     if _NEGATED_COMPLETE_HEAD.match(prompt):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
-    if not _COMPLETE_COMMAND_HEAD.match(prompt):
+    if not (_COMPLETE_COMMAND_HEAD.match(prompt) or _COMPLETE_REPORTED_DONE.fullmatch(prompt)):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
 
     ids = [int(value) for value in _ID_TOKEN.findall(prompt)]
@@ -674,7 +750,7 @@ def _authorize_complete(prompt: str) -> _CompleteRequest | ToolDecision:
         return ToolDecision(
             PolicyResult.NEEDS_CLARIFICATION, PolicyReason.MULTIPLE_TASK_IDS
         )
-    exact = _COMPLETE_EXACT.fullmatch(prompt)
+    exact = _COMPLETE_EXACT.fullmatch(prompt) or _COMPLETE_REPORTED_DONE.fullmatch(prompt)
     if exact is None or unique_ids[0] <= 0:
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
     return _CompleteRequest(unique_ids[0])
@@ -716,20 +792,74 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
 
     p = re.sub(r"\s+", " ", prompt.lower().strip())
 
-    strong_negation = ["đừng", "không cần", "chưa cần", "không muốn", "không chạy"]
-    action_words = ["xem", "mở", "hiển thị", "liệt kê", "show", "kiểm tra"]
-
-    has_strong_negation = any(kw in p for kw in strong_negation)
-    has_khong_action = any(
-        f"không {act}" in p or f"khỏi {act}" in p for act in action_words
+    # LIST returns every task. A request to select tasks by due date or a
+    # deadline scope must not be silently broadened into an all-task LIST.
+    all_tasks_with_due_details = (
+        re.search(r"\b(?:toàn bộ|tất cả|mọi)\s+(?:danh sách|task|việc|đầu việc)\b", p)
+        and re.search(r"\b(?:kèm|cùng với)\s+(?:thời hạn|deadline)\b", p)
     )
+    if not all_tasks_with_due_details and re.search(
+        r"\b(?:đến|tới|quá|trễ)\s+hạn\b|\b(?:theo|có|thuộc)\s+"
+        r"(?:thời\s+)?hạn\b|\bthời\s+hạn\b|\bmốc\s+chót\b|"
+        r"\bdeadline\s+(?:thuộc|vào|ngày|hôm)\b|\btrễ\s+deadline\b|"
+        r"\b(?:due|overdue)\b|\bđến\s+kỳ\s+xử\s+lý\b|"
+        r"\bphải\s+(?:làm\s+)?xong\s+(?:vào\s+)?(?:hôm\s+nay|ngày\s+mai)\b",
+        p,
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.DEADLINE_SCOPE_MISMATCH)
 
-    if has_strong_negation or has_khong_action:
+    # Negation must target the LIST action. "Chưa hoàn thành" and "không lọc"
+    # describe which stored tasks to show, not a request to avoid LIST.
+    if _NEGATED_COMMAND_HEAD.match(prompt) or re.match(
+        rf"^\s*(?:{_PRONOUN}{_H})?(?:đừng|không{_H}cần|chưa{_H}cần|"
+        rf"không{_H}muốn|khỏi|không){_H}(?:xem|mở|hiển{_H}thị|"
+        rf"liệt{_H}kê|show|đọc)\b", p
+    ):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
 
-    unsupported_keywords = ["xóa", "sửa", "hoàn thành", "note giúp", "thêm", "cập nhật"]
-    if any(kw in p for kw in unsupported_keywords):
+    # An explicit request not to execute also cancels a quoted/meta LIST.
+    if re.search(r"\b(?:không cần|đừng)\s+(?:chạy|thực hiện)\b", p):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+
+    if re.search(
+        r"\b(?:nhưng|mà)\s+(?:đừng|không cần|chưa cần|không muốn|khỏi)\s+"
+        r"(?:xem|mở|hiển thị|liệt kê|show|đọc)\b", p
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.NEGATED_REQUEST)
+
+    # A request to view only completed tasks needs a filter that LIST does not
+    # provide. Mentioning completed tasks as part of *all* tasks is supported.
+    if re.search(r"\b(?:chỉ|riêng|lọc riêng)\b", p) and re.search(
+        r"\b(?:đã hoàn thành|đã xong|completed)\b", p
+    ):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION)
+    if re.search(
+        r"\b(?:đừng|không)\s+(?:hiện|hiển thị|đưa ra)\s+"
+        r"(?:các\s+)?(?:task|việc)\s+chưa\s+(?:xong|hoàn thành)\b", p
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION)
+
+    if re.search(
+        r"(?:[,;]\s*|\b(?:và|rồi|sau đó|đồng thời)\s+)"
+        r"(?:xóa|xoá|sửa|thêm|cập nhật|hoàn thành|đánh dấu)\b", p
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION)
+
+    # A command for another action cannot authorize LIST merely because its
+    # object mentions a list. Normalize framing whitespace, never task data.
+    if _UNSUPPORTED_HEAD.match(p) or _CREATE_HEAD.match(prompt):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.UNSUPPORTED_ACTION)
+
+    # "Việc đã thêm" is an ambiguous description of stored entries. Keep the
+    # existing session contract until a separately reviewed LIST frame covers it.
+    if re.search(r"\bdanh sách việc đã thêm\b", p):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
+
+    # "Có những việc nào giúp tôi ngủ ngon?" asks for advice, not saved tasks.
+    if re.match(r"^có những việc (?:nào|gì)\b", p) and not re.search(
+        r"\b(?:danh sách|đã lưu|đã ghi|đã note|hiện có)\b", p
+    ):
+        return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
 
     if _META.search(p):
         return ToolDecision(PolicyResult.REJECT, PolicyReason.BARE_STATEMENT)
@@ -743,8 +873,9 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
     # Demand a request/question opening, rather than a verb anywhere in a story.
     opening = re.match(
         rf"^(?:(?:hãy|xin|vui lòng)\s+)?(?:"
-        rf"xem|mở|hiển thị|liệt kê|show|kiểm tra|cho\s+{_PRONOUN}\s+(?:xem|biết)"
+        rf"xem|mở|đọc|đưa\s+ra|hiển thị|liệt kê|show|kiểm tra|cho\s+{_PRONOUN}\s+(?:xem|biết)"
         rf"|bạn\s+đọc\s+lại|{_PRONOUN}\s+(?:muốn\s+xem\s+lại|còn)"
+        rf"|{_PRONOUN}\s+cần\s+xem"
         rf"|{_PRONOUN}\s+đã\s+(?:ghi|lưu|note)"
         rf"|tính\s+đến\s+giờ\s+{_PRONOUN}\s+đã\s+(?:ghi|lưu|note)"
         rf"|danh sách|todo|task|có những việc (?:nào|gì))\b", p
@@ -768,8 +899,10 @@ def policy_for_list_tasks(prompt: Any, arguments: Any) -> ToolDecision:
         "việc gì",
         "task nào",
         "đọc lại",
+        "đọc",
+        "đưa ra",
     ]
-    object_words = ["danh sách", "todo", "task", "các việc", "đã ghi", "đã lưu", "đã note"]
+    object_words = ["danh sách", "todo", "task", "các việc", "những việc", "mọi việc", "đầu việc", "việc chưa làm", "đã ghi", "đã lưu", "đã note"]
 
     has_intent = any(iw in p for iw in intent_words)
     has_object = any(ow in p for ow in object_words)
