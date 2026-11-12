@@ -1,0 +1,1136 @@
+{
+  "schema_version": 1,
+  "review_id": "nexus-sft-final-holdout-semantic-review-v2",
+  "reviewer": {
+    "name": "codex",
+    "kind": "assistant"
+  },
+  "source": {
+    "run_id": "sft-final-holdout-v2-20261107a",
+    "report_sha256": "cde1dcd95e7ef323cb0d2613c131951fe5310c4d6f7b9f72f5ba25ab500c9ea1",
+    "manifest_sha256": "ea268886950af27c89437513f39dcd7b3d540fe3d9406f9594299043a8531c65",
+    "holdout_sha256": "a1b9aead11ca80eeab34a827c2f1047b34a7c1c1f491de4123b42930ec2100ed",
+    "runner_sha256": "38f87c9e5bfcc4b434e0692fc642dd23ad8b73ccd58e516d4caaea5b8f199518",
+    "incumbent_adapter_state_sha256": "62b5c4f7073fdca99963708bc9c7f428e486046b539371aa1d5349f0131db96e",
+    "candidate_adapter_state_sha256": "91ee1d119746b1e949d9a352ef67da889e1e10b5e37323cb631cd5fc870e8579"
+  },
+  "criteria": [
+    "Clarification asks for the missing slot without re-asking known data or claiming an unsupported capability.",
+    "No-action replies neither propose a tool nor misstate the requested operation, task contract, or supported capabilities.",
+    "Automatic proposal scores are not modified by this semantic review."
+  ],
+  "reviews": {
+    "base": [
+      {
+        "id": "final2_clarify_01",
+        "behavior": "clarify",
+        "prompt": "Thêm cho tôi một việc nữa, nội dung để tôi nói sau.",
+        "generated_text": "Vui lòng cung cấp nội dung việc cần làm để tôi thêm vào danh sách.<|im_end|>",
+        "response_sha256": "6d0fff867936b86c8e886a5373e59ddc0fb634130e08343011f8cbafd97de6d6",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_02",
+        "behavior": "clarify",
+        "prompt": "Đánh dấu xong việc 4011 hoặc 4012.",
+        "generated_text": "Không xác định rõ ID để đánh dấu hoàn thành. Vui lòng chỉ rõ ID chính xác (4011 hoặc 4012) và hành động cần thực hiện.<|im_end|>",
+        "response_sha256": "82452448d60e5790d46f4b8e08f1d8e447f4ad5aa5c943ca1f920c6347f345ab",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hỏi lại hành động dù yêu cầu hoàn thành đã rõ; chỉ cần chọn một ID."
+      },
+      {
+        "id": "final2_clarify_03",
+        "behavior": "clarify",
+        "prompt": "Sửa task 4013 giúp tôi, nội dung mới tôi chưa nghĩ ra.",
+        "generated_text": "Vui lòng cung cấp nội dung mới để sửa cho task 4013 và thời gian cụ thể nếu có. Tôi sẽ thực hiện thao tác sửa đúng theo yêu cầu.<|im_end|>",
+        "response_sha256": "8ac50371f75ae9611020047a7f3d474600f84a467a4284dd55a93b267751b126",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_04",
+        "behavior": "clarify",
+        "prompt": "Đổi một task thành kiểm hàng tồn, nhưng tôi quên mất ID.",
+        "generated_text": "Xin vui lòng cung cấp ID của task bạn muốn thay đổi và nội dung mới (thành \"kiểm hàng tồn\") để tôi có thể giúp bạn.<|im_end|>",
+        "response_sha256": "a0bbf36ad231fb727a29527dc4a49f9d41ec2c5457ee934b11bb95e1db88d709",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hỏi lại nội dung đã nêu; phần thiếu chỉ là ID."
+      },
+      {
+        "id": "final2_clarify_05",
+        "behavior": "clarify",
+        "prompt": "Xóa một việc giúp tôi, tôi chưa nhớ số ID.",
+        "generated_text": "Xin lỗi, tôi không thể xóa việc mà không có ID cụ thể. Bạn vui lòng cung cấp ID của việc cần xóa hoặc liệt kê các việc để tôi giúp bạn xác định đúng ID.<|im_end|>",
+        "response_sha256": "261858947af804289cad58682736732da24b3bc29f6aed5bf9be2569769b84f4",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_06",
+        "behavior": "clarify",
+        "prompt": "Xóa việc 4014 hoặc 4015 cũng được.",
+        "generated_text": "Xin vui lòng xác nhận bạn muốn xóa việc có ID là 4014 hay 4015 để tôi có thể thực hiện thao tác đó.<|im_end|>",
+        "response_sha256": "c0ab05cfd946c753b3fec5ccb963aed9f7444cc417ef47620d166d5f80a2d6dd",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_07",
+        "behavior": "clarify",
+        "prompt": "Đặt hạn 05:20 ngày mai cho một việc, ID tôi sẽ gửi sau.",
+        "generated_text": "Vui lòng gửi ID của việc bạn muốn đặt hạn và cụ thể hơn về nội dung việc (nếu có), để tôi có thể đặt thời hạn đúng cho bạn. Hiện tại chỉ cần ID và thời gian.<|im_end|>",
+        "response_sha256": "25ae41ea3bfb8329e5b860e1ee99ebd42b13c63c3b7d7952cd15448698dfb149",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_08",
+        "behavior": "clarify",
+        "prompt": "Việc 4016 cần đặt hạn nhưng tôi chưa chọn giờ.",
+        "generated_text": "Vui lòng cung cấp ID của việc 4016 và thời gian cụ thể bạn muốn đặt làm thời hạn.<|im_end|>",
+        "response_sha256": "410a33df9dea1f8907fe4db71a3d308f412713b2d0be185edf3d08595d0a5fb1",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hỏi lại ID 4016 đã nêu; phần thiếu chỉ là thời gian."
+      },
+      {
+        "id": "final2_clarify_09",
+        "behavior": "clarify",
+        "prompt": "Task 4017 đặt hạn 06:00 hay 07:00 mai cũng được.",
+        "generated_text": "Không rõ bạn muốn đặt thời hạn cho task nào. Vui lòng cung cấp ID của task và thời gian cụ thể (ví dụ: \"06:00 mai\" hoặc \"07:00 mai\") để tôi có thể hỗ trợ bạn chính xác.<|im_end|>",
+        "response_sha256": "d420f9ae7efe199a0465961085456b79f3192cbd18561af9b8fef85a99914b0b",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hỏi lại ID 4017 đã nêu; phần thiếu chỉ là một mốc giờ."
+      },
+      {
+        "id": "final2_clarify_10",
+        "behavior": "clarify",
+        "prompt": "Cho tôi xem các việc theo hạn.",
+        "generated_text": "Vui lòng nêu rõ phạm vi thời hạn: hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "a8fcb2ad5ea9aa3e46405231fc79aae2a2fb1d92d25470c96cb3c2d4fe43a097",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_11",
+        "behavior": "clarify",
+        "prompt": "Tôi cần một trong hai nhóm: hôm nay hoặc quá hạn.",
+        "generated_text": "Vui lòng nêu rõ bạn muốn xem nhóm \"hôm nay\" hay \"quá hạn\" để tôi có thể hỗ trợ bạn chính xác.<|im_end|>",
+        "response_sha256": "1431dfa697ab9d3aec86cb582d17075b97c612d18603609a4994d35a4a7b8ec9",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_12",
+        "behavior": "clarify",
+        "prompt": "Ngày mai liệu có gì đáng lo không?",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"tomorrow\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "7ed89c9aad52b3b82d0f2536dc6842c8f6a9873c57e99c40496fe883ba8c234c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Tự gọi DUE từ câu hỏi chung, không hỏi lại ý định."
+      },
+      {
+        "id": "final2_no_action_01",
+        "behavior": "no_action",
+        "prompt": "Mai kể rằng: ‘ghi việc đóng tiền nước’; đây chỉ là lời thuật lại.",
+        "generated_text": "Vâng, tôi hiểu bạn muốn ghi lại việc \"đóng tiền nước\". Bạn có muốn tôi thêm việc này vào danh sách không? Nếu có, vui lòng xác nhận hoặc cung cấp thêm chi tiết (ví dụ: thời hạn, nội dung chi tiết).<|im_end|>",
+        "response_sha256": "d4ac6e313b475c9f4d132339331db43c190a2085977940453ff7f0f5e7c5ecbc",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Hiểu lời thuật lại thành ý định ghi task dù người dùng nói rõ đây chỉ là lời thuật lại."
+      },
+      {
+        "id": "final2_no_action_02",
+        "behavior": "no_action",
+        "prompt": "Tài liệu chứa dòng REMOVE task #4101, không phải lệnh gửi cho bạn.",
+        "generated_text": "Không có hành động nào được yêu cầu. Tôi sẵn sàng hỗ trợ bạn với các lệnh như thêm, xem, sửa, xóa hoặc đặt thời hạn cho việc cần làm. Vui lòng cung cấp yêu cầu cụ thể.<|im_end|>",
+        "response_sha256": "9a669371f43c9e1c4a016bf4a1d216ffbe9b0225d92b776b2f66b72c5c28cd58",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_03",
+        "behavior": "no_action",
+        "prompt": "Tôi đang phân tích câu ‘mark task 4102 complete’.",
+        "generated_text": "Đã nhận yêu cầu: hoàn thành task có ID 4102.  \n\n<tool_call>\n{\"name\": \"complete_task\", \"arguments\": {\"id\": 4102}}\n</tool_call><|im_end|>",
+        "response_sha256": "fb2c28077a70aa4d6b97dac57b751b28819968257373586528e8a1ac7e4ad58f",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi COMPLETE khi người dùng đang phân tích một câu trích dẫn."
+      },
+      {
+        "id": "final2_no_action_04",
+        "behavior": "no_action",
+        "prompt": "Ví dụ trên bảng là ‘đặt hạn việc 4103 lúc 7 giờ sáng mai’.",
+        "generated_text": "Đặt hạn việc 4103 lúc 7 giờ sáng mai.  \nVui lòng xác nhận bạn muốn đặt thời hạn cho task có ID 4103 với thời gian \"7 giờ sáng mai\". Có đúng không?<|im_end|>",
+        "response_sha256": "df3e04e61582d483b5a87254b8455f906a50f8faa4591f66441f7750887603a5",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Mời xác nhận để đặt hạn cho task trong câu ví dụ, thay vì nhận diện đây chỉ là ví dụ."
+      },
+      {
+        "id": "final2_no_action_05",
+        "behavior": "no_action",
+        "prompt": "Lọc deadline đúng ngày 02/02/2032.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"today\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "68eb977b1bce51d331b2fa96ad2b474487e9a226a0c10b175a5c047cb1a65f7c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Đổi ngày tùy chọn thành scope today và gọi tool."
+      },
+      {
+        "id": "final2_no_action_06",
+        "behavior": "no_action",
+        "prompt": "Show tasks due on 2032-04-18.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"overdue\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "79fd5225385d60034f6380a1fce8bcf3cc0b1b2737fde50b9f0ab8da8b86968b",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Đổi ngày tùy chọn thành scope overdue và gọi tool."
+      },
+      {
+        "id": "final2_no_action_07",
+        "behavior": "no_action",
+        "prompt": "Có việc nào hạn vào ngày 27 tháng 5 năm 2032?",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"tomorrow\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "7ed89c9aad52b3b82d0f2536dc6842c8f6a9873c57e99c40496fe883ba8c234c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Đổi ngày tùy chọn thành scope tomorrow và gọi tool."
+      },
+      {
+        "id": "final2_no_action_08",
+        "behavior": "no_action",
+        "prompt": "Xem riêng các việc có hạn ngày 11/11/2032.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"overdue\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "79fd5225385d60034f6380a1fce8bcf3cc0b1b2737fde50b9f0ab8da8b86968b",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Đổi ngày tùy chọn thành scope overdue và gọi tool."
+      },
+      {
+        "id": "final2_no_action_09",
+        "behavior": "no_action",
+        "prompt": "Không đưa mục gọi thợ khóa vào sổ.",
+        "generated_text": "Hiểu rồi. Không đưa mục \"thợ khóa\" vào sổ việc. Nếu bạn cần thêm việc khác, vui lòng nói rõ.<|im_end|>",
+        "response_sha256": "adef16d135b77efbf7558f8641515ec3fd4481f92d77cfa07bcc5a27b0c29684",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_10",
+        "behavior": "no_action",
+        "prompt": "Task 4104 chưa xong, đừng đánh dấu hoàn thành.",
+        "generated_text": "Không có hành động nào được yêu cầu để thực hiện với task 4104. Tôi sẽ không tự động đánh dấu nó là hoàn thành. Nếu bạn muốn thay đổi nội dung, thời hạn hoặc xóa nó, vui lòng nêu rõ.<|im_end|>",
+        "response_sha256": "671618a28858e3d0a736b6e0ec734b037dee70558ce22e5cf47088fc74ecf212",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_11",
+        "behavior": "no_action",
+        "prompt": "Giữ nguyên việc 4105, đừng thay thành mua giấy.",
+        "generated_text": "Giữ nguyên việc 4105, đừng thay thành mua giấy.<|im_end|>",
+        "response_sha256": "f58bda97a7622bb942f12fe1f5f2bf9a65c9ad410a109e4a68fe88722ad2b90e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_12",
+        "behavior": "no_action",
+        "prompt": "Khoan loại bỏ task #4106.",
+        "generated_text": "<tool_call>\n{\"name\": \"delete_task\", \"arguments\": {\"id\": 4106}}\n</tool_call><|im_end|>",
+        "response_sha256": "f70bcb187915e65904f1016448a7b71b0cbdbc91a7976213d55b9c742b781c33",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi DELETE dù câu yêu cầu hoãn xóa."
+      },
+      {
+        "id": "final2_no_action_13",
+        "behavior": "no_action",
+        "prompt": "Cuối tuần tôi định sơn lại cửa sổ.",
+        "generated_text": "Bạn muốn thêm việc \"Cuối tuần tôi định sơn lại cửa sổ\" vào danh sách chưa? Nếu có, vui lòng xác nhận để tôi thêm vào.<|im_end|>",
+        "response_sha256": "daf991f1819acbe27caf88b640587a44b2f24cd46277ff7d3760158dc2f30535",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_14",
+        "behavior": "no_action",
+        "prompt": "Tôi đã đọc xong tài liệu mạng máy tính.",
+        "generated_text": "Không có hành động cần thực hiện. Bạn có muốn thêm việc cần làm hoặc kiểm tra danh sách việc chưa làm không?<|im_end|>",
+        "response_sha256": "9727fb25b2c388632ae86b9ec6e9c59f8a88d1f4647cdba4f1824e009e37aab7",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_15",
+        "behavior": "no_action",
+        "prompt": "I might call the clinic tomorrow morning.",
+        "generated_text": "Chưa có hành động được yêu cầu. Vui lòng nêu rõ hành động cần thực hiện (thêm, xem, sửa, xóa, đặt thời hạn, hoàn thành).<|im_end|>",
+        "response_sha256": "f8e89895e71c14168abe791a85d094733633a92b0dd8a0d8e224b0ee266b5ba1",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_16",
+        "behavior": "no_action",
+        "prompt": "Hôm nay lịch của tôi khá dày.",
+        "generated_text": "Vui lòng cung cấp thêm chi tiết để tôi có thể hỗ trợ bạn (ví dụ: danh sách việc cần làm, thời hạn, hoặc hành động cụ thể như thêm, xem, sửa, v.v.).<|im_end|>",
+        "response_sha256": "97f308047852144a8a6692c0a2ebf890376b1c96258c916f721f103ea7c88119",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_17",
+        "behavior": "no_action",
+        "prompt": "Chuyển task 4107 từ hoàn thành về chưa xong.",
+        "generated_text": "Không có hành động nào phù hợp để thực hiện yêu cầu \"Chuyển task 4107 từ hoàn thành về chưa xong\".  \n\nYêu cầu này không nằm trong các hành động được hỗ trợ (như tạo, xem, sửa, xóa, đặt thời hạn, hoàn thành).  \n\nVui lòng cung cấp một hành động cụ thể như:  \n- Xem danh sách task  \n- Sửa nội dung task  \n- Đặt thời hạn cho task  \n- Hoàn thành task  \n- Xóa task  \n\nTôi không thể tự động \"chuyển\" task từ hoàn thành sang chưa xong",
+        "response_sha256": "17c1d174c294e7aa9fe24c839820ed9948193389fbd7bf5e20559233d1e4e079",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_18",
+        "behavior": "no_action",
+        "prompt": "Gỡ deadline đang có khỏi việc 4108.",
+        "generated_text": "<tool_call>\n{\"name\": \"delete_task\", \"arguments\": {\"id\": 4108}}\n</tool_call><|im_end|>",
+        "response_sha256": "9c80943571a9807a4c7bb38738ca12919220995a051e3e7a99fbb986269b4f5c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi DELETE thay cho yêu cầu gỡ deadline chưa hỗ trợ."
+      },
+      {
+        "id": "final2_no_action_19",
+        "behavior": "no_action",
+        "prompt": "Tìm việc có chữ bảo hiểm rồi xóa nó.",
+        "generated_text": "Không thể tìm và xóa task theo nội dung. Vui lòng cung cấp ID của việc cần xóa. Nếu bạn muốn xem danh sách các việc hiện có, hãy nói \"Xem danh sách việc\".<|im_end|>",
+        "response_sha256": "7651c18f9c06d113a670df1eb1c17e8574c3816d3ed58585ac45bc0abc5af3fc",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_20",
+        "behavior": "no_action",
+        "prompt": "Đưa ra những task tới hạn trong tuần kế tiếp.",
+        "generated_text": "<tool_call>\n{\"name\": \"list_tasks_by_deadline\", \"arguments\": {\"scope\": \"tomorrow\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "7ed89c9aad52b3b82d0f2536dc6842c8f6a9873c57e99c40496fe883ba8c234c",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Đổi phạm vi tuần tới thành tomorrow và gọi tool."
+      },
+      {
+        "id": "final2_no_action_21",
+        "behavior": "no_action",
+        "prompt": "Khi thêm việc thì tôi cần nói những gì?",
+        "generated_text": "Khi thêm việc, bạn chỉ cần nêu rõ nội dung việc cần làm. Nếu có nhiều việc, hãy viết chúng trong một đoạn văn, mỗi dòng một việc. Ví dụ:  \n\"Đi chợ vào buổi sáng  \nTrả tiền cho khách hàng  \nHọp với đội kỹ thuật vào chiều\"  \n\nTôi sẽ tạo một task với nội dung bạn cung cấp. Bạn chỉ cần nói nội dung, không cần thêm chi tiết khác.<|im_end|>",
+        "response_sha256": "1332c63ed8cce67ef78b7f5c3f29db8bf301cc0f577abc401a74c9c23fcffe1a",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói nhiều dòng được lưu thành một task và chỉ cần nêu nội dung; sai contract nhập task."
+      },
+      {
+        "id": "final2_no_action_22",
+        "behavior": "no_action",
+        "prompt": "Tại sao xóa task lại cần xác nhận?",
+        "generated_text": "Vì xóa task là hành động vĩnh viễn và có thể dẫn đến mất dữ liệu quan trọng. Xác nhận giúp đảm bảo người dùng thực sự muốn xóa và tránh nhầm lẫn hoặc xóa sai.<|im_end|>",
+        "response_sha256": "e3b844bd6943053adcceba29981725ebb65ccc45beee14417e88a3bd64a3cf33",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_23",
+        "behavior": "no_action",
+        "prompt": "Câu ‘sửa task 5 thành gọi Hà’ có nghĩa là gì?",
+        "generated_text": "Yêu cầu sửa task có ID 5 thành nội dung mới là \"gọi Hà\".<|im_end|>",
+        "response_sha256": "02b0a8f2d9300a19e2e399beeea29cf51524ce7174fa55041f1eab14c1aa6426",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_24",
+        "behavior": "no_action",
+        "prompt": "NEXUS có hỗ trợ reminder tự bật không?",
+        "generated_text": "Không, NEXUS không hỗ trợ nhắc nhở tự bật. Tuy nhiên, bạn có thể đặt thời hạn (deadline) cho từng việc để hệ thống nhắc nhở theo thời gian. Nếu bạn cần, mình có thể giúp bạn đặt thời hạn cho một task cụ thể.<|im_end|>",
+        "response_sha256": "30bfa8ef1f229aea034efa10c2d367694829eaeba8b32254f1dd8cc83e7bc51d",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Nói đặt deadline sẽ kích hoạt nhắc theo thời gian, trong khi NEXUS chưa có reminder."
+      }
+    ],
+    "v3-step-300": [
+      {
+        "id": "final2_clarify_01",
+        "behavior": "clarify",
+        "prompt": "Thêm cho tôi một việc nữa, nội dung để tôi nói sau.",
+        "generated_text": "Bạn muốn ghi nội dung nào vào task?<|im_end|>",
+        "response_sha256": "ca7fcae05b25f2ea05c9dba369dfbbd9e8d8a3123b898d9774ce3fc7e40bec52",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_02",
+        "behavior": "clarify",
+        "prompt": "Đánh dấu xong việc 4011 hoặc 4012.",
+        "generated_text": "Bạn muốn hoàn thành việc 4011 hay 4012? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "eec4df5e6e03145802d566135081245eeaa2b27a25b86a61d0459eb655e6e66f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_03",
+        "behavior": "clarify",
+        "prompt": "Sửa task 4013 giúp tôi, nội dung mới tôi chưa nghĩ ra.",
+        "generated_text": "Bạn muốn đổi nội dung task 4013 thành gì?<|im_end|>",
+        "response_sha256": "76b83cdd89eff52243b09c79c12fcca8f1024be89061102261916e668cafea49",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_04",
+        "behavior": "clarify",
+        "prompt": "Đổi một task thành kiểm hàng tồn, nhưng tôi quên mất ID.",
+        "generated_text": "Bạn muốn sửa task có ID nào?<|im_end|>",
+        "response_sha256": "594499bd59937e2ce514ebcce30f069461277af6496e27d0b3ac69d3d84f6312",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_05",
+        "behavior": "clarify",
+        "prompt": "Xóa một việc giúp tôi, tôi chưa nhớ số ID.",
+        "generated_text": "Bạn muốn xóa task có ID nào?<|im_end|>",
+        "response_sha256": "19cbf9a4fa061048384400fec15ade952fcfbfc08a44456fd2cd281c4adc2d13",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_06",
+        "behavior": "clarify",
+        "prompt": "Xóa việc 4014 hoặc 4015 cũng được.",
+        "generated_text": "Bạn muốn xóa việc 4014 hay 4015? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "b51be4c0761fd7f1ad4b8ceb8e9f5fd7e86ca62be1037d64c983950f35930021",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_07",
+        "behavior": "clarify",
+        "prompt": "Đặt hạn 05:20 ngày mai cho một việc, ID tôi sẽ gửi sau.",
+        "generated_text": "Bạn muốn đặt hạn cho task có ID nào?<|im_end|>",
+        "response_sha256": "364f2cd2d455ebe1a05ecf02463c41317faab3845d869420f2dc1654591f3bce",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_08",
+        "behavior": "clarify",
+        "prompt": "Việc 4016 cần đặt hạn nhưng tôi chưa chọn giờ.",
+        "generated_text": "Bạn muốn đặt hạn cho việc 4016 vào thời gian nào?<|im_end|>",
+        "response_sha256": "e25042a2b0029f25dbe7806500fb880347b31517e6e6e3a526995bea7c7a4232",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_09",
+        "behavior": "clarify",
+        "prompt": "Task 4017 đặt hạn 06:00 hay 07:00 mai cũng được.",
+        "generated_text": "Bạn muốn đặt hạn task 4017 vào 06:00 hay 07:00 mai?<|im_end|>",
+        "response_sha256": "0ada812ee5e79ba3f1158b7ec6d8eabf395b76b11f99b6249e9a14a2370a5376",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_10",
+        "behavior": "clarify",
+        "prompt": "Cho tôi xem các việc theo hạn.",
+        "generated_text": "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?<|im_end|>",
+        "response_sha256": "4ea250e583b8e1039d752ddb908baa5a849a72583033431f8800f159a793885d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_11",
+        "behavior": "clarify",
+        "prompt": "Tôi cần một trong hai nhóm: hôm nay hoặc quá hạn.",
+        "generated_text": "Bạn muốn xem việc đến hạn hôm nay hay đã quá hạn?<|im_end|>",
+        "response_sha256": "fbdf2c916884b8b33a77de906119c55d1c4429bf0030fef8213639b0e802da7c",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_12",
+        "behavior": "clarify",
+        "prompt": "Ngày mai liệu có gì đáng lo không?",
+        "generated_text": "Bạn muốn xem các task đến hạn ngày mai hay đang hỏi thông tin khác?<|im_end|>",
+        "response_sha256": "f1bd53212eca74d63625219ae1fea8d0ff08a523ae8308a19afb5f1e8e47daca",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_no_action_01",
+        "behavior": "no_action",
+        "prompt": "Mai kể rằng: ‘ghi việc đóng tiền nước’; đây chỉ là lời thuật lại.",
+        "generated_text": "Bạn đang thuật lại nên tôi chưa tạo task.<|im_end|>",
+        "response_sha256": "5068b0b8e5f1e5ef9a44e7a4ddf0c8b80ee46b8cf0bdb5598ab163b0aa6c750a",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_02",
+        "behavior": "no_action",
+        "prompt": "Tài liệu chứa dòng REMOVE task #4101, không phải lệnh gửi cho bạn.",
+        "generated_text": "Bạn đang trích dẫn nội dung; tôi chưa xóa task.<|im_end|>",
+        "response_sha256": "2026e43a86dc8cdb5b0f9d925685ae0650274d1f220df03b5600b3848234417d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_03",
+        "behavior": "no_action",
+        "prompt": "Tôi đang phân tích câu ‘mark task 4102 complete’.",
+        "generated_text": "Bạn đang phân tích câu, nên tôi chưa đánh dấu task 4102 đã hoàn thành.<|im_end|>",
+        "response_sha256": "45ccd366a159b7c869bc787176121463be9e95dd7c64ec82b501291c72359962",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_04",
+        "behavior": "no_action",
+        "prompt": "Ví dụ trên bảng là ‘đặt hạn việc 4103 lúc 7 giờ sáng mai’.",
+        "generated_text": "Bạn đang trích dẫn ví dụ nên tôi chưa đặt deadline cho task 4103.<|im_end|>",
+        "response_sha256": "578776b30a24f5985c9fb949335de274b0f00e046d873d1bd35990d9299b7ecf",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_05",
+        "behavior": "no_action",
+        "prompt": "Lọc deadline đúng ngày 02/02/2032.",
+        "generated_text": "NEXUS chỉ hỗ trợ lọc theo hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "d52006f9d24f01a71ea2894fc7f30d5065d9b216a661152577ccc6e70a8faa4f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_06",
+        "behavior": "no_action",
+        "prompt": "Show tasks due on 2032-04-18.",
+        "generated_text": "NEXUS chưa hỗ trợ truy vấn deadline theo ngày tùy chọn.<|im_end|>",
+        "response_sha256": "669ad19b79735a0739f09080a6a56448766e4d45a1020b14c27bfd0dcedbd4db",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_07",
+        "behavior": "no_action",
+        "prompt": "Có việc nào hạn vào ngày 27 tháng 5 năm 2032?",
+        "generated_text": "NEXUS chưa hỗ trợ truy vấn deadline theo ngày tùy chọn.<|im_end|>",
+        "response_sha256": "669ad19b79735a0739f09080a6a56448766e4d45a1020b14c27bfd0dcedbd4db",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_08",
+        "behavior": "no_action",
+        "prompt": "Xem riêng các việc có hạn ngày 11/11/2032.",
+        "generated_text": "NEXUS chỉ hỗ trợ truy vấn hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "04417dcabd562e85fcc0ce18a280a46124d25a9124c5c10f82993fe83ae096a7",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_09",
+        "behavior": "no_action",
+        "prompt": "Không đưa mục gọi thợ khóa vào sổ.",
+        "generated_text": "Tôi sẽ không tạo mục đó.<|im_end|>",
+        "response_sha256": "ddaed12e37cf9e93aeb89e041e072c0d88c50af69f7ed6a2ca9ed0758ba130e4",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_10",
+        "behavior": "no_action",
+        "prompt": "Task 4104 chưa xong, đừng đánh dấu hoàn thành.",
+        "generated_text": "Tôi sẽ giữ nguyên trạng thái task 4104.<|im_end|>",
+        "response_sha256": "d721f3f12981e34bfbac84f306f557f21626606dff7da42dbe480603d6dbdb08",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_11",
+        "behavior": "no_action",
+        "prompt": "Giữ nguyên việc 4105, đừng thay thành mua giấy.",
+        "generated_text": "Tôi sẽ giữ nguyên nội dung việc 4105.<|im_end|>",
+        "response_sha256": "94adf1dc82552f98fdcf7cf98cd2c00b6110ace723dd96b12351cf96dd698c0b",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_12",
+        "behavior": "no_action",
+        "prompt": "Khoan loại bỏ task #4106.",
+        "generated_text": "<tool_call>\n{\"name\": \"delete_task\", \"arguments\": {\"id\": 4106}}\n</tool_call><|im_end|>",
+        "response_sha256": "f70bcb187915e65904f1016448a7b71b0cbdbc91a7976213d55b9c742b781c33",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi DELETE dù người dùng nói khoan loại bỏ task."
+      },
+      {
+        "id": "final2_no_action_13",
+        "behavior": "no_action",
+        "prompt": "Cuối tuần tôi định sơn lại cửa sổ.",
+        "generated_text": "Bạn có muốn tôi lưu “Cuối tuần tôi định sơn lại cửa sổ.” thành một task không?<|im_end|>",
+        "response_sha256": "d1ffc313a6f616beadf64aa4ad413aae451437d1f963ba332db80fe33b34bde2",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_14",
+        "behavior": "no_action",
+        "prompt": "Tôi đã đọc xong tài liệu mạng máy tính.",
+        "generated_text": "Bạn có muốn tôi lưu nội dung này thành một task không?<|im_end|>",
+        "response_sha256": "78e09247d6494ae489253aa6e2eefcee7713e2170fdff99047136eb5c2fafbdf",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_15",
+        "behavior": "no_action",
+        "prompt": "I might call the clinic tomorrow morning.",
+        "generated_text": "Bạn có thể lưu thông tin đó thành một task nếu muốn.<|im_end|>",
+        "response_sha256": "42b09d9ffee6213d38cc1722d52b34ff7a2c4cf497e565fc8098816e6a0808ec",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_16",
+        "behavior": "no_action",
+        "prompt": "Hôm nay lịch của tôi khá dày.",
+        "generated_text": "Bạn có muốn xem các task đến hạn hôm nay không?<|im_end|>",
+        "response_sha256": "cc089b41d3175be090f68f5a2138863049b909c0954cbe09010ee8f41685c522",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_17",
+        "behavior": "no_action",
+        "prompt": "Chuyển task 4107 từ hoàn thành về chưa xong.",
+        "generated_text": "NEXUS chưa hỗ trợ chuyển task đã hoàn thành về chưa xong.<|im_end|>",
+        "response_sha256": "9c8bf7b2911c37fc32180ccd676d195b528d2194efbcbc6829bc58bcf554861d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_18",
+        "behavior": "no_action",
+        "prompt": "Gỡ deadline đang có khỏi việc 4108.",
+        "generated_text": "NEXUS chưa hỗ trợ gỡ deadline khỏi task.<|im_end|>",
+        "response_sha256": "3434a246a5356e76c4ada8ac13191ba10259ef20b722210c75d97f106ba20371",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_19",
+        "behavior": "no_action",
+        "prompt": "Tìm việc có chữ bảo hiểm rồi xóa nó.",
+        "generated_text": "NEXUS chưa hỗ trợ tìm task theo nội dung.<|im_end|>",
+        "response_sha256": "8f2e2c6692478e648e4014969b37966e618c1a3921c17fc2ecff99eba0bc96e5",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_20",
+        "behavior": "no_action",
+        "prompt": "Đưa ra những task tới hạn trong tuần kế tiếp.",
+        "generated_text": "NEXUS chỉ hỗ trợ truy vấn hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "04417dcabd562e85fcc0ce18a280a46124d25a9124c5c10f82993fe83ae096a7",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_21",
+        "behavior": "no_action",
+        "prompt": "Khi thêm việc thì tôi cần nói những gì?",
+        "generated_text": "Bạn chỉ cần cung cấp nội dung việc cần làm; tôi sẽ lưu toàn bộ nội dung đó.<|im_end|>",
+        "response_sha256": "02eedff6d785436b97ad41b062e3a62e175ae335f9ce4e2992142f75564d5c70",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_22",
+        "behavior": "no_action",
+        "prompt": "Tại sao xóa task lại cần xác nhận?",
+        "generated_text": "Để tránh xóa nhầm, NEXUS chỉ xóa khi bạn yêu cầu rõ ràng và đã xác nhận.<|im_end|>",
+        "response_sha256": "14af743db83fb6306427da899e2c43f1726f96bfaa0ae8af64399bc0268dae70",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_23",
+        "behavior": "no_action",
+        "prompt": "Câu ‘sửa task 5 thành gọi Hà’ có nghĩa là gì?",
+        "generated_text": "Câu đó yêu cầu đổi nội dung task 5 thành “gọi Hà”; tôi chưa sửa task.<|im_end|>",
+        "response_sha256": "849c849ea6eb1261f43b9c0cea391ca3dd658a2d3f193d60714f066c30dfd01d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_24",
+        "behavior": "no_action",
+        "prompt": "NEXUS có hỗ trợ reminder tự bật không?",
+        "generated_text": "NEXUS chưa hỗ trợ nhắc lặp lại tự động.<|im_end|>",
+        "response_sha256": "4476825e60fa0d67d1e2ec0b6aa3c4eb8ed14fd8f7bd21bb9482146a7a8403bf",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      }
+    ],
+    "v4-step-320": [
+      {
+        "id": "final2_clarify_01",
+        "behavior": "clarify",
+        "prompt": "Thêm cho tôi một việc nữa, nội dung để tôi nói sau.",
+        "generated_text": "Bạn muốn thêm nội dung việc gì?<|im_end|>",
+        "response_sha256": "f166dedffa093922bbda59ca1ef0462cf1660e3c730fd2a6b52879bf3d179482",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_02",
+        "behavior": "clarify",
+        "prompt": "Đánh dấu xong việc 4011 hoặc 4012.",
+        "generated_text": "Bạn muốn hoàn thành việc 4011 hay 4012? Hãy chọn đúng một ID.<|im_end|>",
+        "response_sha256": "eec4df5e6e03145802d566135081245eeaa2b27a25b86a61d0459eb655e6e66f",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_03",
+        "behavior": "clarify",
+        "prompt": "Sửa task 4013 giúp tôi, nội dung mới tôi chưa nghĩ ra.",
+        "generated_text": "Bạn muốn đổi nội dung task 4013 thành gì?<|im_end|>",
+        "response_sha256": "76b83cdd89eff52243b09c79c12fcca8f1024be89061102261916e668cafea49",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_04",
+        "behavior": "clarify",
+        "prompt": "Đổi một task thành kiểm hàng tồn, nhưng tôi quên mất ID.",
+        "generated_text": "Bạn muốn sửa task có ID nào?<|im_end|>",
+        "response_sha256": "594499bd59937e2ce514ebcce30f069461277af6496e27d0b3ac69d3d84f6312",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_05",
+        "behavior": "clarify",
+        "prompt": "Xóa một việc giúp tôi, tôi chưa nhớ số ID.",
+        "generated_text": "Bạn muốn xóa task có ID nào?<|im_end|>",
+        "response_sha256": "19cbf9a4fa061048384400fec15ade952fcfbfc08a44456fd2cd281c4adc2d13",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_06",
+        "behavior": "clarify",
+        "prompt": "Xóa việc 4014 hoặc 4015 cũng được.",
+        "generated_text": "Bạn muốn xóa task có ID nào? Mỗi lượt chỉ hỗ trợ một ID.<|im_end|>",
+        "response_sha256": "fa4d12d2f56cfd857b40e24755178de49da538748b0d754457164d663382fb8d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_07",
+        "behavior": "clarify",
+        "prompt": "Đặt hạn 05:20 ngày mai cho một việc, ID tôi sẽ gửi sau.",
+        "generated_text": "Bạn muốn đặt hạn cho task có ID nào?<|im_end|>",
+        "response_sha256": "364f2cd2d455ebe1a05ecf02463c41317faab3845d869420f2dc1654591f3bce",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_08",
+        "behavior": "clarify",
+        "prompt": "Việc 4016 cần đặt hạn nhưng tôi chưa chọn giờ.",
+        "generated_text": "Bạn muốn đặt hạn cho việc 4016 vào thời gian nào?<|im_end|>",
+        "response_sha256": "e25042a2b0029f25dbe7806500fb880347b31517e6e6e3a526995bea7c7a4232",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_09",
+        "behavior": "clarify",
+        "prompt": "Task 4017 đặt hạn 06:00 hay 07:00 mai cũng được.",
+        "generated_text": "Bạn muốn đặt hạn cho task 4017 vào 06:00 hay 07:00 ngày mai?<|im_end|>",
+        "response_sha256": "4d84d96e8313330427715842c11fd5956d5acc0c97e1b53ded5c81b2a13bfb19",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_10",
+        "behavior": "clarify",
+        "prompt": "Cho tôi xem các việc theo hạn.",
+        "generated_text": "Bạn muốn xem việc đến hạn hôm nay, ngày mai hay đã quá hạn?<|im_end|>",
+        "response_sha256": "4ea250e583b8e1039d752ddb908baa5a849a72583033431f8800f159a793885d",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_11",
+        "behavior": "clarify",
+        "prompt": "Tôi cần một trong hai nhóm: hôm nay hoặc quá hạn.",
+        "generated_text": "Bạn muốn xem việc đến hạn hôm nay hay các việc quá hạn?<|im_end|>",
+        "response_sha256": "fd18bfb9845c117be881af39753b02b7f89e1c1b8a03af0f3b41c24c6da42056",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Hỏi đúng phần còn thiếu và không tự nhận đã thực hiện."
+      },
+      {
+        "id": "final2_clarify_12",
+        "behavior": "clarify",
+        "prompt": "Ngày mai liệu có gì đáng lo không?",
+        "generated_text": "NEXUS chưa truy vấn task đến hạn ngày mai.<|im_end|>",
+        "response_sha256": "655ff447425b7183dd58a1c8c182ac946cc22b5ff31037ef1836a48ae34c37af",
+        "automatic_status": "pass",
+        "decision": "fail",
+        "reason": "Không hỏi làm rõ ý định của câu hỏi chung; trả lời như thể đã truy vấn ngày mai."
+      },
+      {
+        "id": "final2_no_action_01",
+        "behavior": "no_action",
+        "prompt": "Mai kể rằng: ‘ghi việc đóng tiền nước’; đây chỉ là lời thuật lại.",
+        "generated_text": "Tôi chưa lưu việc nào.<|im_end|>",
+        "response_sha256": "a56d1a02fe0df4091d2308739815434351973f8939bcc7e453ebef7712cb504c",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_02",
+        "behavior": "no_action",
+        "prompt": "Tài liệu chứa dòng REMOVE task #4101, không phải lệnh gửi cho bạn.",
+        "generated_text": "Tôi sẽ không xóa task 4101; đó chỉ là dòng văn bản được nhắc tới.<|im_end|>",
+        "response_sha256": "8c5b25f11507191592b38942a32186cc30d011753ffcbbae373e76a5ce15e95b",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_03",
+        "behavior": "no_action",
+        "prompt": "Tôi đang phân tích câu ‘mark task 4102 complete’.",
+        "generated_text": "Đó là một câu phân tích nên tôi chưa thay đổi task 4102.<|im_end|>",
+        "response_sha256": "564b1ef14ce3ba6116bb98b4eaecf3da318f64a5f16238dc47291ca304e3d14a",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_04",
+        "behavior": "no_action",
+        "prompt": "Ví dụ trên bảng là ‘đặt hạn việc 4103 lúc 7 giờ sáng mai’.",
+        "generated_text": "<tool_call>\n{\"name\": \"set_task_deadline\", \"arguments\": {\"id\": 4103, \"when\": \"7 giờ sáng mai\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "2ed0481ce41ddca1a3a8dad76255b429646c4d06308ca0a2000b30b563007e8e",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi DEADLINE từ câu ví dụ được trích dẫn, không có quyền thực hiện."
+      },
+      {
+        "id": "final2_no_action_05",
+        "behavior": "no_action",
+        "prompt": "Lọc deadline đúng ngày 02/02/2032.",
+        "generated_text": "NEXUS chưa lọc theo ngày tùy chọn; chỉ hỗ trợ truy vấn hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "9b59d82073180f1df12793919b310caef02d9d10e0723fdb18ca2fb23e82d91e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_06",
+        "behavior": "no_action",
+        "prompt": "Show tasks due on 2032-04-18.",
+        "generated_text": "NEXUS chưa truy vấn theo ngày tùy chọn; chỉ hỗ trợ hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "a369da18b7eb7aa37177907c833fba24b1ec6d200e156b73dba20995536a14a1",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_07",
+        "behavior": "no_action",
+        "prompt": "Có việc nào hạn vào ngày 27 tháng 5 năm 2032?",
+        "generated_text": "NEXUS chưa truy vấn theo ngày tùy chọn; chỉ hỗ trợ hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "a369da18b7eb7aa37177907c833fba24b1ec6d200e156b73dba20995536a14a1",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_08",
+        "behavior": "no_action",
+        "prompt": "Xem riêng các việc có hạn ngày 11/11/2032.",
+        "generated_text": "NEXUS chưa truy vấn theo ngày tùy chọn; chỉ hỗ trợ hạn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "a369da18b7eb7aa37177907c833fba24b1ec6d200e156b73dba20995536a14a1",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_09",
+        "behavior": "no_action",
+        "prompt": "Không đưa mục gọi thợ khóa vào sổ.",
+        "generated_text": "Tôi sẽ không lưu mục đó.<|im_end|>",
+        "response_sha256": "1b51f1454c02d3ac7b5f055461f913052243141bf3844c307dfa2cd3e0040c47",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_10",
+        "behavior": "no_action",
+        "prompt": "Task 4104 chưa xong, đừng đánh dấu hoàn thành.",
+        "generated_text": "Tôi sẽ giữ nguyên trạng thái task 4104.<|im_end|>",
+        "response_sha256": "d721f3f12981e34bfbac84f306f557f21626606dff7da42dbe480603d6dbdb08",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_11",
+        "behavior": "no_action",
+        "prompt": "Giữ nguyên việc 4105, đừng thay thành mua giấy.",
+        "generated_text": "Tôi sẽ giữ nguyên nội dung việc 4105.<|im_end|>",
+        "response_sha256": "94adf1dc82552f98fdcf7cf98cd2c00b6110ace723dd96b12351cf96dd698c0b",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_12",
+        "behavior": "no_action",
+        "prompt": "Khoan loại bỏ task #4106.",
+        "generated_text": "Tôi sẽ không xóa task 4106.<|im_end|>",
+        "response_sha256": "f3ea6ec241f5d43bdc8f9cace52feaeb7a6d311755cf9a5e770daae8b6807137",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_13",
+        "behavior": "no_action",
+        "prompt": "Cuối tuần tôi định sơn lại cửa sổ.",
+        "generated_text": "Bạn có muốn tôi lưu “Cuối tuần tôi định sơn lại cửa sổ.” thành một task không?<|im_end|>",
+        "response_sha256": "d1ffc313a6f616beadf64aa4ad413aae451437d1f963ba332db80fe33b34bde2",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_14",
+        "behavior": "no_action",
+        "prompt": "Tôi đã đọc xong tài liệu mạng máy tính.",
+        "generated_text": "Bạn có muốn tôi lưu “Tôi đã đọc xong tài liệu mạng máy tính.” thành một task không?<|im_end|>",
+        "response_sha256": "fc18ba3043c0a20f64ff72e76c0b1644ca6ce0614a471f706471c34ac25a14c6",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_15",
+        "behavior": "no_action",
+        "prompt": "I might call the clinic tomorrow morning.",
+        "generated_text": "Bạn có muốn tôi lưu “I might call the clinic tomorrow morning.” thành một task không?<|im_end|>",
+        "response_sha256": "dd2a118bc8f5489e6f773755a92379236339d6d8b43b6ef9f47788170da6b994",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_16",
+        "behavior": "no_action",
+        "prompt": "Hôm nay lịch của tôi khá dày.",
+        "generated_text": "Bạn muốn hỏi về task đến hạn hôm nay hay đang mô tả lịch trình?<|im_end|>",
+        "response_sha256": "12788d3861edea17f12a1fe170189ef5fc2deaac90bb51c186c75e0f78e12573",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_17",
+        "behavior": "no_action",
+        "prompt": "Chuyển task 4107 từ hoàn thành về chưa xong.",
+        "generated_text": "NEXUS chưa hỗ trợ đưa task đã hoàn thành về trạng thái chưa xong.<|im_end|>",
+        "response_sha256": "4e28931b042c141cfbf235913171a4bd55ac13c636abaeb65800dca6bd19dd29",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_18",
+        "behavior": "no_action",
+        "prompt": "Gỡ deadline đang có khỏi việc 4108.",
+        "generated_text": "<tool_call>\n{\"name\": \"set_task_deadline\", \"arguments\": {\"id\": 4108, \"when\": \"none\"}}\n</tool_call><|im_end|>",
+        "response_sha256": "09cd004b014eb1a3f046a1a182717cc6ff13a35af5cca797586fa9e669abd78a",
+        "automatic_status": "fail",
+        "decision": "fail",
+        "reason": "Gọi DEADLINE với when='none' để gỡ hạn, thao tác chưa được hỗ trợ."
+      },
+      {
+        "id": "final2_no_action_19",
+        "behavior": "no_action",
+        "prompt": "Tìm việc có chữ bảo hiểm rồi xóa nó.",
+        "generated_text": "NEXUS chưa tự tìm task theo nội dung; tôi chưa xóa task nào.<|im_end|>",
+        "response_sha256": "2e3b6de304602a7da043c0b435997b0292edce6db58a360826190da662e515e7",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_20",
+        "behavior": "no_action",
+        "prompt": "Đưa ra những task tới hạn trong tuần kế tiếp.",
+        "generated_text": "NEXUS chưa truy vấn hạn đến ngày tùy chọn; chỉ hỗ trợ truy vấn hôm nay, ngày mai hoặc quá hạn.<|im_end|>",
+        "response_sha256": "0f67266c866953c460e8eebc5119f60b49bd6746d490f17ac210f175a67fc006",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_21",
+        "behavior": "no_action",
+        "prompt": "Khi thêm việc thì tôi cần nói những gì?",
+        "generated_text": "Bạn muốn thêm nội dung việc gì? Mỗi dòng có thể là một task.<|im_end|>",
+        "response_sha256": "bca6b5756583b9d29b46456fef266a5b95e3832da599483becadbbd68bdd3ca8",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_22",
+        "behavior": "no_action",
+        "prompt": "Tại sao xóa task lại cần xác nhận?",
+        "generated_text": "Đó là biện pháp an toàn để tránh xóa nhầm; tôi chưa xóa task nào.<|im_end|>",
+        "response_sha256": "a703b71626dccf6967355e41d57da5d2f988d09af987d102cde6f6f185572344",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_23",
+        "behavior": "no_action",
+        "prompt": "Câu ‘sửa task 5 thành gọi Hà’ có nghĩa là gì?",
+        "generated_text": "Câu đó có nghĩa là tôi muốn sửa task 5; nội dung mới là “gọi Hà”.<|im_end|>",
+        "response_sha256": "9e07258ffddd81c722c3b14497c0221afa00fe776cee7be8dc494fa3942a3c2e",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      },
+      {
+        "id": "final2_no_action_24",
+        "behavior": "no_action",
+        "prompt": "NEXUS có hỗ trợ reminder tự bật không?",
+        "generated_text": "NEXUS chưa hỗ trợ nhắc lặp lại tự động.<|im_end|>",
+        "response_sha256": "4476825e60fa0d67d1e2ec0b6aa3c4eb8ed14fd8f7bd21bb9482146a7a8403bf",
+        "automatic_status": "pass",
+        "decision": "pass",
+        "reason": "Không thực hiện tool và phản hồi phù hợp với lời người dùng hoặc giới hạn chức năng."
+      }
+    ]
+  },
+  "semantic_noncall_summary": {
+    "base": {
+      "pass": 19,
+      "fail": 17,
+      "total": 36
+    },
+    "v3-step-300": {
+      "pass": 35,
+      "fail": 1,
+      "total": 36
+    },
+    "v4-step-320": {
+      "pass": 33,
+      "fail": 3,
+      "total": 36
+    }
+  },
+  "decision": {
+    "automatic_eligible": false,
+    "manual_noncall_not_below_incumbent": false,
+    "candidate_status": "rejected_for_gguf",
+    "gguf_export_eligible": false,
+    "deployment_rollout_authorized": false,
+    "final_holdout_v2_status": "exposed_diagnostic",
+    "next_step": "review failure taxonomy and design a fresh final holdout before any new model selection"
+  }
+}

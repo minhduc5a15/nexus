@@ -585,3 +585,12 @@ khả năng tương thích với các proposal đã gán nhãn, chưa đo chất
 [preflight v4](evals/sft_candidate_v4_offline_preflight.json) để khóa dữ liệu
 và thiết kế so sánh. Chưa khóa runner/budget, chưa dùng GPU hoặc mở final
 holdout cho v4. Sidecar duyệt chi tiết chỉ lưu local ngoài Git.
+
+Cập nhật 12/11/2026: v4 đã train xong step 320, so sánh trên development và
+chạy Final Holdout v2 theo protocol đã khóa. Base/v3/v4 lần lượt đạt
+100/115/115 ca exact trên 120 ca. V4 đạt 81/84 action nhưng giảm CREATE và
+no-action so với v3, đồng thời gọi tool ngoài quyền trong một câu ví dụ; v4
+không đạt gate xuất GGUF hay rollout. Holdout v2 nay là diagnostic đã lộ.
+Xem [báo cáo Final Holdout v2](evals/README.final-holdout-v2.md) và sidecar
+review 108 phản hồi control để đọc các ca cụ thể. Các đoạn ở trên mô tả trạng
+thái lịch sử tại thời điểm từng checkpoint, không phải trạng thái hiện tại.
